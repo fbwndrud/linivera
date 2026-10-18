@@ -1,6 +1,6 @@
 # 정본·미해결 질문·인터뷰 엔진과 안전 수정 이식
 
-상태: Linivera main 이식·전체 검증·독립 재검토 완료. PR 생성 단계.
+상태: Linivera main 이식·전체 검증·독립 재검토 완료. [PR #1](https://github.com/fbwndrud/linivera/pull/1) 생성·대화 첨부 완료.
 사용자 요청(2026-10-18): 앞선 동명/근거/상태 안전 수정과 후속 정본·질문·인터뷰를
 구체화해 구현하고, Linivera 최신 main에 맞춰 PR을 올린다.
 기준 commit: `656e437edd06be3d961f570ca24825a43debfa2b`.
@@ -72,7 +72,7 @@ Vibelore PR #29/#26, 이슈 #27/#28의 의도와 대조한 안전 수정도 이�
 - [x] main의 관리 대상·판본·영수증 기록 후 중단 복구와 통합 회귀 확인.
 - [x] 전체 lint/typecheck/backend·viewer 테스트와 새 tarball 설치 예제 검증.
 - [x] Standards/Spec 독립 검토 지적을 해결하고 최종 증거 기록.
-- [ ] 관련 변경만 commit/push한 뒤 GitHub PR을 만들고 현재 대화에 첨부.
+- [x] 관련 변경만 commit/push한 뒤 GitHub PR을 만들고 현재 대화에 첨부.
 
 ## 한계
 
