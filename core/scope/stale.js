@@ -22,6 +22,8 @@ export function currentRev({ work, events, ref, nodeId, receiptRecords = [] }) {
     case 'entity': return work.entities.has(ref.id) ? entityRevAt({ work, events, entityId: ref.id, nodeId, receiptRecords }) : null;
     case 'asset': return work.assets.get(ref.id)?.rev ?? null;
     case 'source': return work.sources.get(ref.id)?.rev ?? null;
+    case 'lore': return work.lore?.contextRev ?? null;
+    case 'interview': return work.interview?.revision ?? null;
     default: return null;
   }
 }

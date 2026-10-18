@@ -1,3 +1,4 @@
+import { contextReasons } from '../work/context.js';
 import { sha256 } from '../util/hash.js';
 import { lastCommits, receiptsById } from '../ledger/receipts.js';
 import { preorder } from '../store/tree.js';
@@ -25,8 +26,9 @@ function oneVariant({ work, receiptRecords, events, applied, done, variant }) {
     else if (sha256(text.body) !== commit.committedHash) drift.push({ nodeId, code: 'HAND_EDITED', path: text.path, expected: commit.committedHash, actual: sha256(text.body) });
     const receipt = receipts.get(commit.receiptId);
     if (!receipt) continue;
-    const reasons = [];
+    const reasons = contextReasons(work, receipt.refs);
     for (const ref of receipt.refs ?? []) {
+      if (['lore', 'interview'].includes(ref.kind)) continue;
       const now = currentRev({ work, events, ref, nodeId });
       if (now !== ref.rev) reasons.push({ ...ref, was: ref.rev, now });
     }

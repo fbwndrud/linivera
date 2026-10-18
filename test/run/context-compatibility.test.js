@@ -9,6 +9,7 @@ import { loreCommand } from '../../core/lore/commands.js';
 import { interviewCommand } from '../../core/interview/commands.js';
 import { normalizePlan } from '../../core/tracking/plan.js';
 import { sha256 } from '../../core/util/hash.js';
+import { workStatus } from '../../core/status.js';
 import { changeAsset } from '../../core/assets/change.js';
 import { copyFixture, useFakePack, fakePacks } from '../support/fixtures.js';
 import { createFakeHost, driveToEnd } from '../support/fake-host.js';
@@ -42,6 +43,7 @@ test('variant requests and receipts bind author context; a translation receipt c
   assert.equal(receipt.refs.find((r) => r.kind === 'interview').rev, profile.revision);
   assert.equal(receipt.refs.find((r) => r.kind === 'lore').revision, lore.revision);
   assert.equal((await openWork(root)).tree.nodes.get('ep-001').body, text);
+  assert.deepEqual((await workStatus(root, { packs: fakePacks() })).variants.en.stale, []);
   await assert.rejects(loreCommand(root, { op: 'propose', expectedRev: lore.revision, snapshot: { evidence: [{ id: 'variant-proof', basis: 'explicit', text: 'Wrong review scope',
     anchor: { kind: 'node', id: 'ep-001', rev: sha256(text), quote: text, receiptId: receipt.receiptId } }] } }), { code: 'LORE_NODE_RECEIPT_INVALID' });
 });
@@ -80,4 +82,14 @@ test('tracking-managed subjects can anchor lore and asset review without false m
   a = (await changeAsset(root, { op: 'review', id: a.id, expectedRev: a.rev, contentHash: a.output.contentHash, checked, findings: [] })).asset;
   a = (await changeAsset(root, { op: 'decide', id: a.id, expectedRev: a.rev, reviewId: a.review.reviewId, action: 'approve' })).asset;
   assert.equal(a.approved, true); assert.equal((await openWork(root)).assets.get(a.id).approved, true);
+});
+
+
+test('adding an interview after a variant was finalized marks that old variant for review', async () => {
+  const root = await variantWork(); await commitMain(root, 'ep-001', '합성 원본.');
+  await finish(() => createRunner({ root, packs: fakePacks() }), createFakeHost({ drafts: { '*': 'Synthetic translation.' } }), { start: { node: 'ep-001', variant: 'en' } });
+  assert.deepEqual((await workStatus(root, { packs: fakePacks() })).variants.en.stale, []);
+  const profile = await confirmProfile(root);
+  const reasons = (await workStatus(root, { packs: fakePacks() })).variants.en.stale[0].reasons;
+  assert.ok(reasons.some((r) => r.kind === 'interview' && r.was === null && r.now === profile.revision));
 });

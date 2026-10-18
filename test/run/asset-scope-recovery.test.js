@@ -1,5 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { openWork } from '../../core/store/work.js';
+import { updateNode } from '../../core/store/tree.js';
 import { createRunStore } from '../../core/run/run-store.js';
 import { versionDigest } from '../../core/assets/schema.js';
 import { openLedger } from '../../core/ledger/ledger.js';
@@ -62,4 +64,18 @@ test('an asset scope error cannot make a receipt-locked committing run abandonab
   await changeScope(3, ['toy-scene', 'scene-b']);
   assert.equal((await make().run({ node: 'scene-b' })).status, 'done');
   assert.deepEqual((await openLedger(s.root, 'receipts').readAll()).map((r) => r.type), ['receipt', 'commit']);
+});
+
+
+test('status reports a manual out-of-scope reference without losing open-run and drift information', async () => {
+  const { s, make, host } = await setup({ scope: { nodeIds: ['toy-scene'] } });
+  await driveToEnd(make, createFakeHost(), { start: { node: 'scene-b' }, until: (o) => o.status === 'done' });
+  const work = await openWork(s.root);
+  await updateNode(s.root, work.tree.nodes.get('scene-b'), { data: { assets: ['scoped'] } });
+  const status = s.ok(await s.call('folio_status', {}));
+  assert.equal(status.activeRun, null);
+  assert.ok(status.stale.some((r) => r.nodeId === 'scene-b' && r.reasons.some((reason) => reason.code === 'ASSET_SCOPE_MISMATCH')));
+  const blocked = (await driveToEnd(make, host, { start: { node: 'scene-b' }, until: (o) => o.status === 'needs_user' })).at(-1);
+  assert.equal(blocked.question.code, 'ASSET_SCOPE_MISMATCH'); assert.equal(blocked.question.canApprove, false);
+  assert.equal(s.ok(await s.call('folio_status', {})).activeRun.runId, blocked.runId);
 });
