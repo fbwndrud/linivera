@@ -71,6 +71,8 @@ test('실제 MCP의 24개 도구는 카탈로그·성공·오류·모델 대기�
   await call('folio_export', { root: imported.root, output: join(dir, 'publication') });
   await call('folio_assets', { root, op: 'list' });
   await call('folio_tracking', { root, op: 'get' });
+  await call('folio_lore', { root, op: 'get' });
+  await call('folio_interview', { root, op: 'get' });
   const revisions = {};
   for (const [kind, value] of [
     ['document', 'synthetic resource'], ['profile', { version: 1, scope: ['document'], maxInputBytes: 2000 }],

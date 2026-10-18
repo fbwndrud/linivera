@@ -34,7 +34,7 @@ export async function listSources(root) {
     assertFeature(work.config, 'sources');
     return {
       sources: [...work.sources.values()].sort(byId).map((s) => ({
-        id: s.id, title: s.title, rev: s.rev, contentHash: s.contentHash, file: s.file, date: s.date, reliability: s.reliability, spans: s.spans.length, text: s.text !== null,
+        id: s.id, title: s.title, file: s.file, date: s.date, reliability: s.reliability, spans: s.spans.length, text: s.text !== null,
       })),
       evidence: await evidenceStatus(root, work),
     };

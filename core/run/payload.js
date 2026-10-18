@@ -61,7 +61,7 @@ export function basePayload(ctx, run, step, scope = scopeFor(ctx, run)) {
       const entity = work.entities.get(id);
       return { id, kind: entity.kind, name: entity.name, aliases: entity.aliases, body: entity.body, ...(trackingEffective(ctx.work) ? { data: entity.data } : {}) };
     }),
-    ambiguousReferences: scope.ambiguousReferences ?? [],
+    ...(scope.ambiguousReferences?.length ? { ambiguousReferences: scope.ambiguousReferences } : {}),
     priorEvents: scope.priorEvents.map(eventView),
     ...branchPayload(scope),
     // 순서 없는 노드(N4)의 연결된 노드 사건. 있을 때만 싣는다 — 없는 노드의 요청(과 그 digest)은 N4 전과 같다.
