@@ -12,11 +12,12 @@ export function pendingRechecks(stale) {
     const order = reasons.find((r) => r.kind === 'order');
     const feature = reasons.find((r) => r.kind === 'feature');
     const tracking = reasons.filter((r) => r.kind.startsWith('tracking_'));
+    const contexts = reasons.filter((r) => ['lore', 'interview'].includes(r.kind));
     const unknown = reasons.some((r) => r.kind === 'unknown');
     const branching = reasons.some((r) => ['branching', 'branch-graph'].includes(r.kind));
-    if (checks.length || order || feature || unknown || tracking.length || branching) {
+    if (checks.length || order || feature || unknown || tracking.length || branching || contexts.length) {
       out.push({
-        nodeId, checks, ...(branching ? { reason: 'branching' } : {}),
+        nodeId, checks, ...(contexts.length ? { contexts } : {}), ...(branching ? { reason: 'branching' } : {}),
         ...(tracking.length ? { tracking } : {}),
         ...(order ? { order: { was: order.was, now: order.now } } : {}),
         ...(feature ? { feature: { id: feature.id, was: feature.was, now: feature.now } } : {}),

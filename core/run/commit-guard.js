@@ -1,3 +1,4 @@
+import { assertWritingContext } from '../work/context.js';
 import { FolioError } from '../errors.js';
 import { sha256 } from '../util/hash.js';
 import { runDeterministicChecks } from '../checks/run-checks.js';
@@ -29,6 +30,7 @@ export function assertCommitReady({ ctx, run, steps, receipt = null }) {
     if (!sameTracking(receipt.trackingBatch ?? null, expected)) throw new FolioError('LOCK_TRACKING_INTEGRITY', 'receipt does not bind the checked tracking candidate');
     return;
   }
+  assertWritingContext(ctx.work, run.nodeId);
   assertAssetIntegrity(scopeFor(ctx, run).assets);
   const checkCtx = checkContext(ctx, run, scopeFor(ctx, run));
   const findings = steps.filter((s) => s.kind === 'check' && s.tier === 'deterministic' && s.mode !== 'off')

@@ -1,3 +1,6 @@
+import { assertAssetScope } from './scope.js';
+import { readEntities } from '../store/entities.js';
+import { entityRefsFor, reviewContextChanged, validateEntityRefs } from './review-context.js';
 import { FolioError } from '../errors.js';
 import { openLedger } from '../ledger/ledger.js';
 import { canonicalJson, sha256 } from '../util/hash.js';
@@ -27,18 +30,21 @@ export function replayAssets(records) {
     try {
       if (r.type === 'asset_version') {
         validateVersion(r, s?.version);
+        assertAssetScope({ id: r.id, managed: true, brief: r.brief }, s?.binding?.nodeIds ?? []);
         states.set(r.id, { version: r, binding: s?.binding ?? null, review: null, decision: null, lastHash: r.hash });
         continue;
       }
       if (!s) throw invalid('asset record without a version');
       if (r.type === 'asset_binding') {
         if (!Array.isArray(r.nodeIds) || new Set(r.nodeIds).size !== r.nodeIds.length || r.nodeIds.some((id) => typeof id !== 'string')) throw invalid('invalid binding');
+        assertAssetScope({ id: r.id, managed: true, brief: s.version.brief }, r.nodeIds);
         s.binding = r;
       } else if (r.type === 'asset_review') {
         if (r.version !== s.version.version || r.versionDigest !== s.version.versionDigest || r.contentHash !== s.version.output?.contentHash || !r.contentHash
           || typeof r.reviewId !== 'string' || !r.reviewId || r.reviewer?.sameHost !== true || r.reviewer?.independent !== false) throw invalid('invalid review version or reviewer');
         if (reviewIds.has(r.reviewId)) throw invalid('duplicate review id');
         reviewIds.add(r.reviewId);
+        validateEntityRefs(r.entityRefs, s.version.brief);
         const raw = r.findings.map(({ severity: _s, ...f }) => f);
         if (canonicalJson(readReview(r.checked, raw)) !== canonicalJson(r.findings)) throw invalid('invalid finding severity');
         s.review = r; s.decision = null;
@@ -52,7 +58,8 @@ export function replayAssets(records) {
   return states;
 }
 
-export async function readManagedAssets(root) {
+export async function readManagedAssets(root, entities = null) {
+  entities ??= (await readEntities(root)).entities;
   await assertAssetDirs(root);
   const records = await openLedger(root, ASSETS_LEDGER).readAll();
   const states = replayAssets(records);
@@ -60,9 +67,12 @@ export async function readManagedAssets(root) {
   for (const [id, s] of states) {
     const v = s.version;
     const inspection = await inspectOutput(root, v.output);
+    const entityRefs = entityRefsFor(v.brief, entities);
+    const reviewStale = reviewContextChanged(s.review, entityRefs);
     let status = inspection.state;
     if (status === 'ready' && s.review) status = s.decision?.action === 'approve' ? 'approved' : s.decision?.action === 'request_revision' ? 'needs_revision' : 'reviewed';
-    const rev = sha256(canonicalJson({ record: s.lastHash, actualHash: inspection.actualHash, state: inspection.state }));
+    if (['approved', 'reviewed', 'needs_revision'].includes(status) && reviewStale) status = 'review_stale';
+    const rev = sha256(canonicalJson({ record: s.lastHash, actualHash: inspection.actualHash, state: inspection.state, ...(entityRefs.length ? { entityRefs } : {}) }));
     const meta = { id, title: v.title, brief: v.brief, file: v.output?.file ?? null };
     assets.set(id, {
       id, managed: true, title: v.title, version: v.version, versionDigest: v.versionDigest,
@@ -82,7 +92,7 @@ export function assetView(a) {
     rev: a.rev, brief: a.brief, nodeIds: a.nodeIds ?? [], status: a.status ?? 'legacy',
     output: a.output ?? (a.file ? { kind: 'legacy', file: a.file } : null),
     contentVerified: Boolean(a.contentVerified), approved: Boolean(a.approved),
-    review: a.review ? { reviewId: a.review.reviewId, contentHash: a.review.contentHash, checked: a.review.checked, findings: a.review.findings, reviewer: a.review.reviewer } : null,
+    review: a.review ? { entityRefs: a.review.entityRefs ?? null, reviewId: a.review.reviewId, contentHash: a.review.contentHash, checked: a.review.checked, findings: a.review.findings, reviewer: a.review.reviewer } : null,
     decision: a.decision ? { action: a.decision.action, reviewId: a.decision.reviewId, source: a.decision.source, reason: a.decision.reason, feedback: a.decision.feedback } : null,
     checks: ASSET_CHECKS,
   };

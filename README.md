@@ -153,3 +153,5 @@ Keep backups before working on important material. The [operations guide (한국
 - **Development:** [Contributing](CONTRIBUTING.md), [testing](docs/testing.md), [security](SECURITY.md) — 한국어. Run `npm run check` and the checks listed in the contribution guide. Use synthetic reproductions in issues; do not upload private works or credentials.
 
 Linivera's code is [Apache-2.0](LICENSE). The separately released example manuscripts, original images and notes are CC0-1.0, with third-party quotes, code and trademarks excluded. Studio bundles include their third-party licenses and source references in `THIRD-PARTY-NOTICES.txt`; see [NOTICE](NOTICE).
+
+Approved lore, evidence, unresolved questions and saved interview confirmations: [workflow guide](docs/lore-interview.md).

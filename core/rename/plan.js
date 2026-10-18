@@ -217,6 +217,7 @@ export function planRename(work, occurrenceRecords, { entityId, newName, keepOld
     } else if (surface.kind === 'asset') {
       const asset = work.assets.get(surface.id);
       if (asset.managed) throw new FolioError('RENAME_MANAGED_ASSET', 'managed briefs require folio_assets update; exclude them from this rename plan', { assetId: asset.id });
+      if (asset.managed) throw new FolioError('RENAME_MANAGED_ASSET', 'managed briefs require folio_assets update; exclude them from this rename plan', { assetId: asset.id });
       const brief = assetBriefs.get(asset.id) ?? asset.brief;
       assetBriefs.set(asset.id, setPointer(brief, surface.field.replace(/^\/brief/, ''), text));
     }

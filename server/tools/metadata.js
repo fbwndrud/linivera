@@ -1,6 +1,34 @@
 import { RESOURCE_DESCRIPTIONS } from './resource-metadata.js';
 const DESCRIPTIONS = {
   ...RESOURCE_DESCRIPTIONS,
+  revision: 'Saved version to read. Omit for the current version.',
+  expectedRev: 'Current version from get or the last write. Use null only before the first version.',
+  snapshot: 'Complete candidate evidence, claims and questions. A proposal is not adopted until the author approves it.',
+  proposalId: 'Stored proposal id. Inspect the exact proposal before relaying an author decision.',
+  decision: 'Actual author approval or rejection text. The host must not invent it.',
+  evidence: 'Evidence records kept separately from claims and unresolved questions.',
+  questions: 'Unresolved or resolved questions, with support, objections and resolution reasons.',
+  basis: 'Evidence or resolution basis. Inference cannot become accepted evidence automatically.',
+  perspectiveId: 'Stable definition id for a private viewpoint; null means the shared world viewpoint.',
+  anchor: 'Exact saved source or finalized section version, quote and location.',
+  rev: 'Exact content fingerprint of the referenced version.',
+  hash: 'Fingerprint of the original bytes or finalized section text.',
+  span: 'Exact UTF-16 text range or author-declared passage id.',
+  start: 'Inclusive UTF-16 quote start position.', end: 'Exclusive UTF-16 quote end position.',
+  receiptId: 'Matching finalized section review record id.',
+  dependencies: 'Evidence ids required together for derived evidence. Cycles are refused.',
+  limitations: 'Limits of an inference. Required for inferred evidence.',
+  support: 'Evidence ids supporting this claim or question in the same viewpoint.',
+  against: 'Evidence ids opposing this claim or question; kept in history.',
+  status: 'Declared claim or question state; current invalid evidence is reported separately.',
+  claimIds: 'Related claim ids from this snapshot.',
+  required: 'Whether an unresolved question prevents finalizing its selected sections. Default false.',
+  resolution: 'Resolution basis and the author-reviewed reason.',
+  fields: 'Interview fields to confirm using the actual author confirmation.',
+  value: 'Interpreted answer, shown separately from the original answer.',
+  raw: 'Actual original author answer. Do not substitute host recommendations.',
+  confirmation: 'Actual author confirmation of the interpreted fields.',
+
   root: "Absolute path to the work folder chosen by the author. Required. The server does not restrict folders; pass only the author-chosen folder.",
   title: "Display title for the work, section or source. Free text, separate from its id.",
   preset: "Starting structure supplied by the first pack. Consult details.packPresets for available choices.",
@@ -78,7 +106,7 @@ export function toolAnnotations(name) {
   const readOnly = ['folio_status', 'folio_config'].includes(name);
   return {
     readOnlyHint: readOnly,
-    destructiveHint: ['folio_run', 'folio_resume', 'folio_decide', 'folio_structure', 'folio_occurrences', 'folio_assets', 'folio_tracking', 'folio_resources', 'folio_policy', 'folio_operations'].includes(name),
+    destructiveHint: ['folio_lore', 'folio_interview', 'folio_run', 'folio_resume', 'folio_decide', 'folio_structure', 'folio_occurrences', 'folio_assets', 'folio_tracking', 'folio_resources', 'folio_policy', 'folio_operations'].includes(name),
     idempotentHint: readOnly || ['folio_init', 'folio_find', 'folio_view'].includes(name),
     openWorldHint: false,
   };

@@ -1,3 +1,4 @@
+import { contextFindings } from '../../work/context.js';
 import { canonicalJson, sha256 } from '../../util/hash.js';
 import { appliedFromEntries } from '../../checks/applied.js';
 import { checkStepEntry } from '../../ledger/decisions.js';
@@ -92,6 +93,8 @@ export async function recheckStep({ ctx, run, step, steps, pipeline, env }) {
   if (open.length && !hardOf(open).length) {
     return awaitUser(run, { kind: 'flagged', stepId: step.id, draft: run.outputs.draft ?? '', blocking: open, advisories: advisoriesOf(run), canApprove: true });
   }
+  const contextIssues = contextFindings(ctx.work, run.nodeId);
+  if (contextIssues.length) return awaitUser(run, { kind: 'blocked', stepId: step.id, draft: run.outputs.draft ?? '', blocking: contextIssues, advisories: [], canApprove: false });
   const record = buildRecord({ ctx, run, steps, pipeline, refs: scope.refs, newId: env.newId });
   try {
     await recordRecheck({ work: ctx.work, ledgers: env.ledgers, pipeline, record });

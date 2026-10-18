@@ -8,7 +8,7 @@ Ask your assistant:
 
 You need Node.js 24 (22.13+ within 22.x, or 26.x also supported). The prepared package includes Studio. No cloning, source build or separate model download is needed. npm downloads the package and its dependencies on first use; you need internet access then. The package is distributed through GitHub Releases, not the npm registry.
 
-For a manual registration command, see [Installation](../README.md#installation). Reconnect or restart the AI application after registering. Ask it to list the server tools: the server reports `linivera`, version `0.1.2`, with 22 tools. Existing tool IDs still start with `folio_` for compatibility.
+For a manual registration command, see [Installation](../README.md#installation). Reconnect or restart the AI application after registering. Ask it to list the server tools: the server reports `linivera`, version `0.1.2`, with 24 tools. Existing tool IDs still start with `folio_` for compatibility.
 
 The server supplies basic workflow instructions on connection. Hosts supporting MCP resources can read this guide at `linivera://guides/getting-started`, the detailed skill at `linivera://guides/skill`, and its listed references. The detailed references currently use Korean; this guide and the tool descriptions cover the first English workflow. For a host without resource support, its instruction/skill mechanism can load the packaged `skill/folio/` folder.
 

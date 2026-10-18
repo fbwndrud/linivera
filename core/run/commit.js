@@ -1,3 +1,4 @@
+import { assertWritingContext, assertContextRefs } from '../work/context.js';
 import { FolioError } from '../errors.js';
 import { canonicalJson, sha256 } from '../util/hash.js';
 import { updateNode } from '../store/tree.js';
@@ -88,6 +89,7 @@ export async function commitNode({ root, work, ledgers, pipeline, receipt, text,
   }
   // 판정 대조: decisions 기록장이 없으면 대조할 수 없으니 거부한다(끌 수 없음).
   assertDecisionsMatch({ records: ledgers.decisions ? await ledgers.decisions.readAll() : null, pipeline, receipt });
+  if (!recordedBody) { assertWritingContext(work, receipt.nodeId); assertContextRefs(work, receipt.refs); }
   const node = work.tree.nodes.get(receipt.nodeId);
   if (!node) throw new FolioError('NODE_NOT_FOUND', receipt.nodeId);
   const assetIds = new Set(receipt.refs.filter((r) => r.kind === 'asset').map((r) => r.id));

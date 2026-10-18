@@ -89,7 +89,8 @@ export async function generateStep({ ctx, run, step, env }) {
   // 근거 연결(N2): evidenceInExtract(부모 evidence 가 꺼지면 저절로 꺼짐)가 켜지고, 이 작품이 sources 팩을 쓸 때만
   // 보통 실행의 추출 요청이 주장을 묻는다 — sources 팩이 없으면(예: 소설) 주장을 볼 검사가 없으니 묻지 않는다.
   const wantClaims = asks && Boolean(ctx.work.config.features.evidenceInExtract) && ctx.work.config.packs.includes('sources');
-  const wanted = step.produces === 'events' ? { occurrences: { wanted: wantOccurrences }, evidence: { wanted: wantClaims } } : {};
+  const sourceVersions = wantClaims ? [...ctx.work.sources.values()].map(({ id, rev, contentHash }) => ({ id, rev, contentHash })).sort((a, b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0) : null;
+  const wanted = step.produces === 'events' ? { occurrences: { wanted: wantOccurrences }, evidence: { wanted: wantClaims }, ...(sourceVersions ? { sourceVersions } : {}) } : {};
   const request = (extra) => requestModel(run, env, [{ stepId: step.id, purpose: 'generate', produces: step.produces, ...packRequest(ctx, run, step, { ...wanted, ...extra }) }]);
   const entry = takeAnswer(run, step.id, rawPackPayload(ctx, run, step, wanted));
   if (entry === undefined) return request();

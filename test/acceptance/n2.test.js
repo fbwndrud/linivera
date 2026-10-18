@@ -231,7 +231,7 @@ test('N2-7 the root plan request of a sourcebook work carries the sources, then 
   const { labels, requests } = await drive(folio, root, { node: 'part-1' }, answerer(), (o) => o.status === 'needs_model' && o.requests[0].stepId === 'children');
   assert.deepEqual(labels, ['model:plan', 'user:approve', 'model:children']);
   const plan = requests.find((r) => r.stepId === 'plan').payload;
-  assert.deepEqual(plan.sources, [{ id: 'history-notes', title: '세포 발견사', date: null, reliability: 'high', spans: [{ id: 'hooke', quote: '1665년에 코르크에서 세포를 처음 관찰했다' }] }]);
+  assert.deepEqual(plan.sources.map(({ rev: _rev, contentHash: _hash, ...source }) => source), [{ id: 'history-notes', title: '세포 발견사', date: null, reliability: 'high', spans: [{ id: 'hooke', quote: '1665년에 코르크에서 세포를 처음 관찰했다' }] }]);
   assert.match(plan.instructions, /`sources`/);
   assert.doesNotMatch(folio.stderr(), /Error/);
 });

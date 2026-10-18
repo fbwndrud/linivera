@@ -1,3 +1,5 @@
+import { loreCommand } from '../../core/lore/commands.js';
+import { interviewCommand } from '../../core/interview/commands.js';
 import { embeddingsTool } from './embeddings.js';
 import { resourcesTool } from './resources.js';
 import { inputsTool } from './inputs.js';
@@ -42,6 +44,8 @@ function structureArgs(op, args) {
 export function createHandlers({ packs, viewer = createViewerRegistry({ packs }) }) {
   const runner = (root) => createRunner({ root, packs });
   return {
+    folio_lore: ({ root, ...args }) => loreCommand(root, args),
+    folio_interview: ({ root, ...args }) => interviewCommand(root, args),
     folio_embeddings: ({ root, ...args }) => embeddingsTool(root, args),
     folio_resources: ({ root, ...args }) => resourcesTool(root, args),
     folio_inputs: ({ root, ...args }) => inputsTool(root, args),

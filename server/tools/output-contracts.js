@@ -27,6 +27,8 @@ const format = status('web', 'epub');
 
 /** 동적인 노드·검사·질문 상세는 확장을 허용하고, 안정적인 바깥 계약을 선언한다. */
 const RESULTS = {
+  folio_lore: choice(shape({ revision: nullable(text) }), shape({ proposalId: text }), shape({ history: array })),
+  folio_interview: choice(shape({ revision: nullable(text), profile: object, pending: strings }), shape({ history: array })),
   folio_assets: choice(shape({ asset: object }), shape({ assets: array, summary: object })),
   folio_tracking: choice(shape({ plan: nullable(object) }), shape({ proposalId: text, proposalDigest: text }), shape({ type: text, entries: array })),
   folio_resources: choice(shape({ revisionId: text }), shape({ revision: object }), shape({ selectionRevision: text })),

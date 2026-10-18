@@ -58,6 +58,7 @@ export function applyDecision(run, steps, { action, feedback = '', reason = '' }
   } else if (action === 'request_revision') {
     if (!String(feedback).trim()) throw new FolioError('FEEDBACK_REQUIRED', 'a revision request needs feedback');
     // 다시 커밋 중 파일이 바뀐 질문은 건너뛰기만 받는다. 고쳐 쓰기로 넘어가면 계획·초안 단계가 비어 실행이 멈춘다.
+    if (question.code === 'ASSET_SCOPE_MISMATCH') throw new FolioError('REVISION_UNAVAILABLE', 'skip this run, correct the asset scope or reference, and run again');
     if (question.code === 'RECOMMIT_TEXT_CHANGED') throw new FolioError('REVISION_UNAVAILABLE', 'the file changed during this recommit run; skip it and run recommit again');
     // 보통 실행 중 노드 파일이 손으로 바뀐 질문도 건너뛰기만 받는다 — 고쳐 써도 커밋이 그 파일을 덮게 된다(C0).
     if (question.code === 'NODE_TEXT_CHANGED') throw new FolioError('REVISION_UNAVAILABLE', 'the node file was edited during this run; skip it and run the node again');

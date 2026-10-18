@@ -53,3 +53,5 @@
 - `SOURCE_NOT_FOUND`·`SOURCES_ARGS_INVALID`: id나 인자를 확인한다.
 - `FEATURE_DISABLED`: 작가가 끈 기능이다. 켤지는 작가에게 묻는다.
 - `SOURCES_DIR_INVALID`·`SOURCE_FILE_INVALID`·`SOURCE_META_INVALID`: `sources/`가 링크거나, 원본이 링크(하드 링크 포함 — 이름이 둘 이상인 파일)거나, 설명서(yaml) 모양이 틀렸다. `openWork`가 `WORK_INVALID`로 던져 **작품 전체**가 열리지 않는다 — `features.sources: false`로도 풀리지 않는다. 작가에게 `sources/`를 보통 폴더·보통 파일로 고치라고 알린다.
+
+세계관 주장 채택·관점·의존성·미해결 질문은 [정본 흐름](lore.md)의 별도 작가 승인 판본으로 관리한다. 자료 인용 연결이나 추적 관찰만으로 정본을 채택하지 않는다.

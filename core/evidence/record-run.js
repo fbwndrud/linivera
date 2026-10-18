@@ -19,7 +19,7 @@ export async function recordRunEvidence({ ledger, ctx, run, receiptId }) {
   if (typeof text !== 'string' || sha256(text) !== run.draftHash) {
     throw new FolioError('EVIDENCE_INVALID', `${run.runId}: committed text no longer matches the run's draftHash`);
   }
-  const { claims, errors } = validateClaims(ctx.work, text, events.claims);
+  const { claims, errors } = validateClaims(ctx.work, text, events.claims, { requireBound: true });
   if (errors.length) throw new FolioError('EVIDENCE_INVALID', `${run.runId}: claims failed re-validation against the committed text`, { errors: errors.slice(0, 50) });
   return ledger.append({ type: 'evidence', nodeId: run.nodeId, textHash: run.draftHash, claims, origin: 'extract', receiptId });
 }
