@@ -25,6 +25,17 @@ const decisions = [
 
 export const OPERATION_ARGUMENTS = {
   ...RESOURCE_ARGUMENTS,
+  folio_lore: {
+    get: { allowed: ['revision', 'proposalId'] }, history: { allowed: [] },
+    propose: { required: ['expectedRev', 'snapshot'], allowed: ['expectedRev', 'snapshot'] },
+    decide: { required: ['expectedRev', 'proposalId', 'action', 'decision'], allowed: ['expectedRev', 'proposalId', 'action', 'decision'] },
+  },
+  folio_interview: {
+    get: { allowed: ['revision'] }, history: { allowed: [] },
+    context: { required: ['expectedRev', 'brief'], allowed: ['expectedRev', 'brief'] },
+    answer: { required: ['expectedRev', 'answers'], allowed: ['expectedRev', 'answers'] },
+    confirm: { required: ['expectedRev', 'fields', 'confirmation'], allowed: ['expectedRev', 'fields', 'confirmation'] },
+  },
   folio_structure: {
     add: { required: ['level', 'id'], allowed: ['level', 'id', 'parentId', 'title', 'brief', 'index'] },
     move: { required: ['nodeId'], allowed: ['nodeId', 'parentId', 'index'] },

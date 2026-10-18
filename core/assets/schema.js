@@ -18,6 +18,15 @@ export function readBrief(brief, work = null) {
   const ids = brief.entities ?? [];
   if (!Array.isArray(ids) || ids.length > 200 || ids.some((id) => typeof id !== 'string') || new Set(ids).size !== ids.length) throw invalid('brief.entities must be unique IDs');
   for (const id of ids) { assertId(id, 'brief.entities'); if (work && !work.entities.has(id)) throw invalid(`entity not found: ${id}`); }
+  if (brief.scope !== undefined) {
+    const scope = brief.scope;
+    if (!object(scope) || Object.keys(scope).some((k) => k !== 'nodeIds') || !Array.isArray(scope.nodeIds)
+      || scope.nodeIds.length === 0 || scope.nodeIds.length > 500 || new Set(scope.nodeIds).size !== scope.nodeIds.length) throw invalid('brief.scope needs non-empty unique nodeIds');
+    for (const id of scope.nodeIds) {
+      assertId(id, 'brief.scope.nodeIds');
+      if (work && !work.tree.nodes.has(id)) throw invalid(`scope node not found: ${id}`);
+    }
+  }
   return JSON.parse(JSON.stringify(brief));
 }
 

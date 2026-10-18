@@ -1,3 +1,4 @@
+import { contextPayload, contextRefs } from '../work/context.js';
 import { FolioError } from '../errors.js';
 import { variantLabel, variantOf } from './model.js';
 import { originalOf, variantTextOf } from './original.js';
@@ -39,9 +40,9 @@ export function variantScope(ctx, run) {
   const terms = ctx.work.variants?.get(spec.id)?.terms ?? { rev: null, pairs: [] };
   return {
     nodeId: run.nodeId, ordered: Boolean(position?.ordered), unorderedBy: position?.unorderedBy ?? null,
-    appearances: [], entityIds: [], prerequisiteIds: [], priorEvents: [], linkedNodeIds: [], linkedEvents: [], upperPlans: [],
+    ambiguousReferences: [], appearances: [], entityIds: [], prerequisiteIds: [], priorEvents: [], linkedNodeIds: [], linkedEvents: [], upperPlans: [],
     parentPlan: null, upperMentions: [], assets: [], sources: [], claims: [],
-    refs: [{ kind: 'original', id: run.nodeId, rev: found.original.committedHash }, { kind: 'terms', id: spec.id, rev: terms.rev }],
+    refs: [{ kind: 'original', id: run.nodeId, rev: found.original.committedHash }, { kind: 'terms', id: spec.id, rev: terms.rev }, ...contextRefs(ctx.work)],
     original: found.text, variant: { id: spec.id, kind: spec.kind, lang: spec.lang }, terms: terms.pairs,
     current: variantTextOf(ctx.work, spec.id, run.nodeId)?.body ?? null,
   };
@@ -57,6 +58,7 @@ export function variantScope(ctx, run) {
 export function variantPayload(ctx, run, step, scope = variantScope(ctx, run)) {
   const node = ctx.work.tree.nodes.get(run.nodeId);
   return {
+    ...contextPayload(ctx.work),
     step: step.id, produces: step.produces ?? null, prompt: step.prompt ?? null, mode: run.mode,
     node: { id: node.id, level: node.level, kind: node.kind, role: node.role, title: node.title, brief: node.data.brief ?? null },
     variant: scope.variant, original: scope.original, terms: scope.terms, current: scope.current,

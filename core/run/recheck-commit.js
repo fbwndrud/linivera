@@ -1,3 +1,4 @@
+import { assertWritingContext, assertContextRefs } from '../work/context.js';
 import { FolioError } from '../errors.js';
 import { sha256 } from '../util/hash.js';
 import { pipelineDigest } from '../pipeline/define.js';
@@ -43,6 +44,8 @@ export async function recordRecheck({ work, ledgers, pipeline, record }) {
     if (same.recheckId === record.recheckId) return { recheckId: same.recheckId, alreadyRecorded: true };
     throw new FolioError('LOCK_RUN_ALREADY_COMMITTED', `${record.runId} already recorded ${same.recheckId}`, { runId: record.runId, recheckId: same.recheckId });
   }
+  assertWritingContext(work, record.nodeId);
+  assertContextRefs(work, record.refs);
   const receiptLike = { ...record, draftHash: record.committedHash };
   if (record.steps.some((s) => (s.checks ?? []).some((c) => c.status === 'error'))) {
     throw new FolioError('LOCK_RECEIPT_INVALID', 'a recheck with errored checks is not complete', { problems: [{ code: 'RECHECK_INCOMPLETE' }] });

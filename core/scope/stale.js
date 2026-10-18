@@ -1,3 +1,4 @@
+import { contextReasons } from '../work/context.js';
 import { branchScope } from '../branching/scope.js';
 import { buildBranchGraph } from '../branching/graph.js';
 import { sha256 } from '../util/hash.js';
@@ -48,11 +49,12 @@ export function findStale({ work, receiptRecords, events, applied = null, marks 
     const branchingBaseline = hasBranchingContext(receipt) || hasBranchingContext(recheck);
     const refs = branchingBaseline ? (recheck?.refs ?? receipt.refs) : receipt.refs;
     for (const ref of refs ?? []) {
-      if (isTrackingRef(ref)) continue;
+      if (isTrackingRef(ref) || ['lore', 'interview'].includes(ref.kind)) continue;
       if (ref.kind === 'asset' && work.assets.get(ref.id)?.managed) continue;
       const now = currentRev({ work, events, ref, nodeId, receiptRecords });
       if (now !== ref.rev) reasons.push({ ...ref, was: ref.rev, now });
     }
+    reasons.push(...contextReasons(work, recheck?.refs ?? receipt.refs));
     const node = work.tree.nodes.get(nodeId);
     if (work.tracking) reasons.push(...trackingStale(work, receiptRecords, node));
     reasons.push(...managedAssetReasons({ work, events, node, receipt, recheck, marks }));

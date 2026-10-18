@@ -34,7 +34,7 @@ export async function listSources(root) {
     assertFeature(work.config, 'sources');
     return {
       sources: [...work.sources.values()].sort(byId).map((s) => ({
-        id: s.id, title: s.title, file: s.file, date: s.date, reliability: s.reliability, spans: s.spans.length, text: s.text !== null,
+        id: s.id, title: s.title, rev: s.rev, contentHash: s.contentHash, file: s.file, date: s.date, reliability: s.reliability, spans: s.spans.length, text: s.text !== null,
       })),
       evidence: await evidenceStatus(root, work),
     };
@@ -54,11 +54,11 @@ export async function getSource(root, id) {
     if (!source) throw new FolioError('SOURCE_NOT_FOUND', String(id).slice(0, 200));
     const { states, ledger } = await statesOf(root, work);
     const links = states?.filter((s) => s.sources.some((l) => l.sourceId === source.id)).map((s) => ({
-      nodeId: s.nodeId, quote: s.quote, status: s.status, reason: /** @type {{ reason?: string }} */ (s).reason ?? null, sources: s.sources.filter((l) => l.sourceId === source.id),
+      nodeId: s.nodeId, quote: s.quote, status: s.status, ...(s.basis !== undefined ? { basis: s.basis } : {}), ...(s.perspectiveId !== undefined ? { perspectiveId: s.perspectiveId } : {}), reason: /** @type {{ reason?: string }} */ (s).reason ?? null, sources: s.sources.filter((l) => l.sourceId === source.id),
     })) ?? null;
     return {
       source: {
-        id: source.id, title: source.title, file: source.file, date: source.date, reliability: source.reliability, spans: source.spans, rev: source.rev,
+        id: source.id, title: source.title, file: source.file, date: source.date, reliability: source.reliability, spans: source.spans, rev: source.rev, contentHash: source.contentHash,
         text: source.text === null ? null : source.text.slice(0, MAX_TEXT_CHARS), truncated: source.text !== null && source.text.length > MAX_TEXT_CHARS,
       },
       links,

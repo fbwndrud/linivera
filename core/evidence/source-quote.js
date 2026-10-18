@@ -13,7 +13,7 @@ const nfc = (text) => text.normalize('NFC');
  */
 export function checkSourceQuote(source, quote) {
   if (!source) return { ok: false, code: 'CLAIM_SOURCE_UNKNOWN' };
-  if (typeof quote !== 'string' || quote.trim().length < 2 || quote.length > MAX_SOURCE_QUOTE) return { ok: false, code: 'CLAIM_SOURCE_QUOTE_INVALID' };
+  if (typeof quote !== 'string' || quote.trim().length < 2 || quote.length > MAX_SOURCE_QUOTE || /[\uD800-\uDFFF]/u.test(quote)) return { ok: false, code: 'CLAIM_SOURCE_QUOTE_INVALID' };
   const wanted = nfc(quote);
   const found = typeof source.text === 'string'
     ? nfc(source.text).includes(wanted)

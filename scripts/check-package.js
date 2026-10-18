@@ -28,6 +28,7 @@ try {
   assert.ok(packed.files.some((file) => file.path === 'viewer/dist/index.html'), 'installed linivera-view needs built screens');
   assert.ok(packed.files.some((file) => file.path === 'examples/run.js'));
   assert.ok(packed.files.some((file) => file.path === 'examples/assets.js'));
+  for (const path of ['examples/context.js', 'docs/lore-interview.md', 'skill/folio/references/lore.md', 'skill/folio/references/interview.md']) assert.ok(packed.files.some((file) => file.path === path));
   for (const path of ['adapters/embedding/index.js', 'adapters/embedding/worker.py', 'adapters/embedding/requirements.txt', 'docs/embeddings.md', 'skill/folio/references/embeddings.md', 'examples/tracking.js', 'examples/tracking-host.js', 'docs/tracking.md',
     'docs/tracking-verification.md', 'skill/folio/references/tracking.md']) {
     assert.ok(packed.files.some((file) => file.path === path), `package must include ${path}`);
@@ -76,9 +77,11 @@ try {
   assert.equal(production.editions.verified, true);
   for (const field of ['synthetic', 'viewerResourceVisible', 'epubVerified', 'resourceOnlyVerified', 'installedCliReady']) assert.equal(production[field], true);
   assert.equal(production.outputsRetained, false);
+  const context = JSON.parse(run(process.execPath, [join(installed, 'examples', 'context.js')], sandbox));
+  assert.equal(context.verified, true); assert.equal(context.interviewConfirmed, true); assert.equal(context.canonClaims, 1);
   const publicationLanguages = await verifyInstalledPublicationLanguages(installed, sandbox);
   console.log(JSON.stringify({ installedFromTarball: true, developmentDependenciesAbsent, npx,
-    production, publicationLanguages, doctor, legacyDoctor, documentation, benchmarkModuleVerified: true, entryCount: packed.entryCount, examples: examples.results.map((result) => result.example), assets, tracking }, null, 2));
+    production, publicationLanguages, doctor, legacyDoctor, documentation, benchmarkModuleVerified: true, entryCount: packed.entryCount, examples: examples.results.map((result) => result.example), assets, tracking, context }, null, 2));
 } finally {
   await rm(sandbox, { recursive: true, force: true });
 }

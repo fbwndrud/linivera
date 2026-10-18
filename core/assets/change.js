@@ -1,3 +1,6 @@
+import { assetUsages } from './view.js';
+import { assertAssetScope } from './scope.js';
+import { entityRefsFor } from './review-context.js';
 import { randomUUID } from 'node:crypto';
 import { FolioError } from '../errors.js';
 import { assertId } from '../store/ids.js';
@@ -54,6 +57,7 @@ export async function changeAsset(root, { op, ...args }, { hooks = {} } = {}) {
       const title = args.title ?? a?.title ?? '';
       if (typeof title !== 'string' || title.length > 200) throw invalid('invalid title');
       const brief = op === 'put' ? a.brief : readBrief(args.brief, work);
+      if (a) assertAssetScope({ id, managed: true, brief }, assetUsages(work, a).map((u) => u.nodeId));
       let output = a?.output ?? null;
       if (op === 'put') {
         if (args.contentHash !== undefined && !HASH.test(args.contentHash)) throw invalid('invalid contentHash');
@@ -65,16 +69,18 @@ export async function changeAsset(root, { op, ...args }, { hooks = {} } = {}) {
     } else if (op === 'attach') {
       const ids = args.nodeIds;
       if (!Array.isArray(ids) || ids.length > 500 || new Set(ids).size !== ids.length || ids.some((n) => !work.tree.nodes.has(n))) throw invalid('nodeIds must name existing unique nodes');
+      assertAssetScope(a, ids);
       record = { type: 'asset_binding', id, nodeIds: ids };
     } else if (op === 'review') {
       assertReady(a);
       if (args.contentHash !== a.output.contentHash) throw new FolioError('ASSET_HASH_MISMATCH', 'review must name the current contentHash');
+      readBrief(a.brief, work);
       const findings = readReview(args.checked, args.findings);
-      record = { type: 'asset_review', id, version: a.version, versionDigest: a.versionDigest, contentHash: a.output.contentHash,
+      record = { type: 'asset_review', id, entityRefs: entityRefsFor(a.brief, work.entities), version: a.version, versionDigest: a.versionDigest, contentHash: a.output.contentHash,
         reviewId: `arev-${randomUUID()}`, checked: [...args.checked], findings, reviewer: { sameHost: true, independent: false } };
     } else {
       assertReady(a);
-      if (!a.review || args.reviewId !== a.review.reviewId) throw new FolioError('ASSET_REVIEW_STALE', 'decide on the latest review of this version');
+      if (a.status === 'review_stale' || !a.review || args.reviewId !== a.review.reviewId) throw new FolioError('ASSET_REVIEW_STALE', 'decide on the latest review of this version');
       if (a.decision) throw new FolioError('ASSET_ALREADY_DECIDED', 'this review already has an author decision; submit a new review or version');
       assertDecision(a.review, args.action, args.reason, args.feedback);
       record = { type: 'asset_decision', id, version: a.version, versionDigest: a.versionDigest, contentHash: a.output.contentHash,

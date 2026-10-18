@@ -8,6 +8,8 @@ export const SERVER_INFO = Object.freeze({ name: manifest.name, version: manifes
 export const SERVER_INSTRUCTIONS = `${manifest.name} manages local resources, revisions, evidence and review records. `
   + 'The host writes text, generates images and runs model inference. Use user-confirmed absolute work folders. '
   + 'Ask about purpose, audience, language and the details to track before creating the work. '
+  + 'After initialization, use folio_interview to preserve actual answers and confirmation; read saved answers before asking again. '
+  + 'Use folio_lore for explicit author-approved lore and unresolved questions; tracking observations are not automatic adoption. '
   + 'Relay actual user decisions; do not turn self-review or an example approval into author acceptance. '
   + 'Use folio_init with the agreed manuscript language and folio_structure to prepare the agreed outline. Drive folio_run until idle; '
   + 'answer needs_model requests with folio_resume using the requested schema. At needs_user, '

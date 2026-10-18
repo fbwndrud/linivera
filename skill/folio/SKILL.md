@@ -49,6 +49,8 @@ description: Linivera MCP로 새 작품·이어쓰기·그림책·동화·게임
 | `folio_sources` | 자료 넣기(`add`: 글 또는 작가가 고른 파일 하나), 목록(`list`), 자료와 걸린 주장(`get`), 커밋된 노드의 주장 잇기(`link`). [references/sources.md](references/sources.md) |
 | `folio_config` | 고급. 레벨별 단계·검사 세트·검사 목록, `workKind`·`node`로 추천, 사용자 검사 초안 검증. 읽기 전용 |
 | `folio_assets` | 설명서·결과 인계·버전·사용 위치·자기검토·작가 결정과 조회. [references/assets.md](references/assets.md) |
+| `folio_lore` | 작가 승인 세계관 판본·근거·미해결 질문. [정본 흐름](references/lore.md) |
+| `folio_interview` | 원문 답·해석·작가 확인의 저장과 재개. [인터뷰 흐름](references/interview.md) |
 | `folio_tracking` | 추적 계획·대상·관찰·근거·이력. 입력·위임·보충 규약은 [추적 흐름](references/tracking.md) |
 | `folio_image` | 그림 한 장(`start`·`resume`·`decide`·`pending`). 노드 실행과 따로 돈다. [references/image.md](references/image.md) |
 | `folio_import_vibelore` | vibelore 작품 폴더를 새 작품으로 가져온다(원본은 읽기만). 노드는 모두 `imported`. [references/import.md](references/import.md) |
@@ -58,6 +60,7 @@ description: Linivera MCP로 새 작품·이어쓰기·그림책·동화·게임
 ## 흐름
 
 1. **새 작품**: 작가에게 제목·형식·본문 언어를 확인하고 `folio_init`의 `language`에 합의한 언어 태그를 전달한다. Studio UI 언어는 별도다. 저장 위치가 현재 대화에 없으면 작가가 선택·확인하도록 연결 환경에 맞게 안내한다. 제목만으로 작품 위치를 추측하지 않는다. 지식 책은 [references/knowledge.md](references/knowledge.md). 검사 세트는 [references/checks.md](references/checks.md)의 첫 설정 인터뷰로 맞춘다.
+   작품을 만든 뒤 [인터뷰 흐름](references/interview.md)으로 실제 원문 답과 확인을 보관한다. 재개할 때는 저장된 답을 먼저 읽고 pending만 묻는다. 세계관 설정 채택은 [정본 흐름](references/lore.md)을 따르며 추적 관찰을 자동 채택하지 않는다.
 2. **큰 틀**: 맨 위 노드를 `folio_structure { op: 'add', level, id, title }`로 만든다(예: `arc-1`). 아래 노드는 위 노드의 `children` 단계가 만든다.
 3. **쓰기 루프**: `folio_run { root }` → 결과에 따라
    - `needs_model`: `requests`마다 아래 "답하는 법"대로 답을 만들어 `folio_resume { root, runId, answers: { requestId: 답 } }`. 추출(extract) 요청의 `occurrences.wanted`가 true면 답에 등장 위치를 넣는다([references/occurrences.md](references/occurrences.md)). `evidence.wanted`가 true면 주장과 자료 인용(`claims`)을 넣는다([references/sources.md](references/sources.md)).

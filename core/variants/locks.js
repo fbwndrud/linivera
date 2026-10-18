@@ -6,7 +6,8 @@ import { MAIN, variantOf } from './model.js';
 export function assertVariantRefs(receipt) {
   if (variantOf(receipt) === MAIN) return;
   const [original, terms] = receipt.refs ?? [];
-  if (receipt.refs.length !== 2 || original?.kind !== 'original' || original.id !== receipt.nodeId
+  const context = (receipt.refs ?? []).slice(2);
+  if (context.some((ref) => !['lore', 'interview'].includes(ref.kind)) || new Set(context.map((ref) => ref.kind)).size !== context.length || original?.kind !== 'original' || original.id !== receipt.nodeId
     || original.rev !== receipt.original?.committedHash || terms?.kind !== 'terms' || terms.id !== receipt.variant) {
     throw new FolioError('LOCK_RECEIPT_INVALID', 'variant refs do not match the variant and original',
       { problems: [{ code: 'VARIANT_REFS_MISMATCH' }] });

@@ -94,7 +94,7 @@ export async function readSources(root) {
       id: meta.id, title: meta.title ?? '', file: meta.file, date: meta.date ?? null,
       reliability: meta.reliability ?? null, spans: Array.isArray(meta.spans) ? meta.spans : [],
       text: isTextSourceFile(meta.file) ? original.toString('utf8') : null,
-      meta, path, rev: sha256(`${text}\u0000${sha256(original)}`),
+      meta, path, contentHash: sha256(original), rev: sha256(`${text}\u0000${sha256(original)}`),
     });
   }
   return { sources, errors, warnings };

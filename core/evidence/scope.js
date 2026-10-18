@@ -1,8 +1,8 @@
 import { reanchor } from '../occurrences/anchor.js';
 import { latestByNode } from './records.js';
-import { checkSourceQuote } from './source-quote.js';
-import { isPlainObject } from '../util/plain.js';
+import { verifySourceLink } from './binding.js';
 
+import { isPlainObject } from '../util/plain.js';
 /** @param {unknown} link */
 const isLink = (link) => isPlainObject(link) && typeof (/** @type {any} */ (link)).sourceId === 'string' && typeof (/** @type {any} */ (link)).quote === 'string';
 /** 모양이 틀린 주장(객체가 아님, sources 가 배열이 아님)은 짐작하지 않고 건너뛴다 — 실행 파일을 믿지 않는다(record-run.js 와 같은 태도). @param {unknown} claim */
@@ -21,7 +21,8 @@ export function claimsFor({ work, records, nodeId, draft, extracted }) {
   if (!work.config.features.evidence) return [];
   const verified = (claim) => ({
     quote: claim.quote,
-    sources: claim.sources.filter(isLink).filter((link) => checkSourceQuote(work.sources.get(link.sourceId), link.quote).ok)
+    ...(claim.basis !== undefined ? { basis: claim.basis } : {}), ...(claim.perspectiveId !== undefined ? { perspectiveId: claim.perspectiveId } : {}),
+    sources: claim.sources.filter(isLink).filter((link) => verifySourceLink(work.sources.get(link.sourceId), link).ok)
       .map(({ sourceId, quote }) => ({ sourceId, quote })),
   });
   if (extracted?.submittedClaims === true) return (Array.isArray(extracted.claims) ? extracted.claims : []).filter(isClaim).map(verified);

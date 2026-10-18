@@ -26,7 +26,7 @@ async function* walk(dir) {
 
 test('the tool list keeps its fourteen names in order and each tool requires an absolute root', () => {
   assert.deepEqual(BASE_TOOL_NAMES, ['folio_init', 'folio_status', 'folio_run', 'folio_resume', 'folio_decide', 'folio_structure', 'folio_find', 'folio_view']);
-  assert.deepEqual(TOOLS.map((t) => t.name), [...BASE_TOOL_NAMES, 'folio_occurrences', 'folio_sources', 'folio_config', 'folio_assets', 'folio_tracking', 'folio_resources', 'folio_inputs', 'folio_policy', 'folio_operations', 'folio_resource_query', 'folio_embeddings', 'folio_image', 'folio_import_vibelore', 'folio_export']);
+  assert.deepEqual(TOOLS.map((t) => t.name), [...BASE_TOOL_NAMES, 'folio_occurrences', 'folio_sources', 'folio_config', 'folio_assets', 'folio_tracking', 'folio_resources', 'folio_inputs', 'folio_policy', 'folio_operations', 'folio_resource_query', 'folio_embeddings', 'folio_image', 'folio_import_vibelore', 'folio_export', 'folio_lore', 'folio_interview']);
   for (const tool of TOOLS) {
     assert.ok(tool.inputSchema.required.includes('root'), tool.name);
     assert.equal(tool.inputSchema.additionalProperties, false, tool.name);

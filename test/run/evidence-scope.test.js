@@ -51,7 +51,9 @@ test('requests carry the sources of the node and its ancestors (description and 
   const chapter = join(root, 'tree', '01-part-basics', '01-chapter-cells', '_node.md');
   await writeFile(chapter, (await readFile(chapter, 'utf8')).replace('title: 세포\n', 'title: 세포\nsources: [cell-notes, ghost, 7]\n'));
   const first = await makeRunner(root)().run({ node: 'membranes' });
-  assert.deepEqual(first.requests[0].payload.sources, [
+  assert.match(first.requests[0].payload.sources[0].rev, /^sha256:/);
+  assert.match(first.requests[0].payload.sources[0].contentHash, /^sha256:/);
+  assert.deepEqual(first.requests[0].payload.sources.map(({ rev: _rev, contentHash: _hash, ...source }) => source), [
     { id: 'cell-notes', title: '세포 강의 메모', date: '2026-01-10', reliability: 'medium', spans: [{ id: 's1', quote: NOTE }] },
   ]);
   const off = await copyFixture('knowledge-book');
@@ -69,7 +71,7 @@ test('claimsFor: the run\'s extracted claims, else the recorded claims when the 
   const records = [{ type: 'evidence', nodeId: 'atp-section', claims: [{ ...claim, sources: [...claim.sources, gone] }, { quote: '없는 문장', before: '', after: '', sources: [] }] }];
   const base = { work, records, nodeId: 'atp-section', draft: body, extracted: null };
   assert.deepEqual(claimsFor(base), [{ quote: 'ATP는 세포가 쓰는 에너지 화폐다', sources: [{ sourceId: 'cell-notes', quote: NOTE }] }]);
-  const extracted = { submittedClaims: true, claims: [{ quote: '에너지 화폐', before: '', after: '', sources: [{ sourceId: 'cell-notes', quote: NOTE }, { sourceId: 'cell-notes', quote: '바뀐 인용' }] }] };
+  const extracted = { submittedClaims: true, claims: [{ quote: '에너지 화폐', before: '', after: '', sources: [claim.sources[0], { ...claim.sources[0], quote: '바뀐 인용' }] }] };
   assert.deepEqual(claimsFor({ ...base, extracted }), [{ quote: '에너지 화폐', sources: [{ sourceId: 'cell-notes', quote: NOTE }] }]);
   assert.deepEqual(claimsFor({ ...base, draft: '새로 쓴 원고' }), []);
   assert.deepEqual(claimsFor({ ...base, nodeId: 'ghost' }), []);
@@ -80,7 +82,8 @@ test('claimsFor: the run\'s extracted claims, else the recorded claims when the 
 test('claimsFor tolerates a malformed run claim (not an object, sources not an array, a link not an object): it skips them instead of throwing', async () => {
   const work = await openWork(await copyFixture('knowledge-book'));
   const body = work.tree.nodes.get('atp-section').body;
-  const good = { quote: 'ATP는 세포가 쓰는 에너지 화폐다', sources: [{ sourceId: 'cell-notes', quote: NOTE }, 'not-a-link', 3] };
+  const [bound] = validateClaims(work, body, [{ quote: 'ATP는 세포가 쓰는 에너지 화폐다', sources: [{ sourceId: 'cell-notes', quote: NOTE }] }]).claims;
+  const good = { ...bound, sources: [...bound.sources, 'not-a-link', 3] };
   const extracted = { submittedClaims: true, claims: [good, 'not-a-claim', null, { quote: 'x', sources: 'not-an-array' }, { sources: [] }] };
   assert.deepEqual(claimsFor({ work, records: [], nodeId: 'atp-section', draft: body, extracted }), [
     { quote: 'ATP는 세포가 쓰는 에너지 화폐다', sources: [{ sourceId: 'cell-notes', quote: NOTE }] },

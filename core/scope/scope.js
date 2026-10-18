@@ -1,12 +1,14 @@
+import { contextRefs } from '../work/context.js';
 import { FolioError } from '../errors.js';
 import { ancestorsOf } from '../store/tree.js';
 import { assetRefsInBody } from '../store/assets.js';
 import { eventsBefore } from '../ledger/events.js';
-import { scanMentions } from '../index/scan.js';
+import { scanReferences } from '../index/scan.js';
 import { canonicalJson, sha256 } from '../util/hash.js';
 import { PROMISE_KIND } from '../promise.js';
 import { branchScope } from '../branching/scope.js';
 import { buildBranchGraph, graphView } from '../branching/graph.js';
+import { assetAllowsNode } from '../assets/scope.js';
 import { linkedScope } from './linked.js';
 
 const uniqueSorted = (ids) => [...new Set(ids)].sort();
@@ -51,7 +53,8 @@ export function gatherScope({ work, events, nodeId, draftText = '', extracted = 
   if (!node) throw new FolioError('NODE_NOT_FOUND', nodeId);
   const known = (id) => work.entities.has(id);
   const appearances = uniqueSorted([...node.entities, ...(extracted?.appearances ?? [])].filter(known));
-  const scanned = [...scanMentions(draftText, work.entities.values()).keys()];
+  const scan = scanReferences(draftText, work.entities.values());
+  const scanned = scan.matches.flatMap((m) => m.entityIds);
   const fromEvents = (extracted?.events ?? []).map((e) => e.entityId);
   const nodeText = node.body;
   // occurrenceScope(M4): 기록된 등장 위치는 범위를 더하기만 한다. 이 노드의 기록은 지금 원고가 파일 본문과 같을 때만(재검사·다시 커밋) 쓴다.
@@ -79,12 +82,16 @@ export function gatherScope({ work, events, nodeId, draftText = '', extracted = 
     .filter((n) => n.kind === 'branch' && n.id !== nodeId && !ancestorIds.has(n.id) && n.body.trim())
     .map((n) => {
       const marked = (marks ?? []).filter((m) => m.surface.kind === 'node' && m.surface.id === n.id).map((m) => m.entityId);
-      const found = new Set([...scanMentions(n.body, work.entities.values()).keys(), ...marked]);
+      const found = new Set([...scanReferences(n.body, work.entities.values()).matches.flatMap((m) => m.entityIds), ...marked]);
       return { nodeId: n.id, entityIds: [...found].filter((id) => entityIds.includes(id)).sort() };
     })
     .filter((m) => m.entityIds.length > 0);
   const assetIds = new Set([...node.assets, ...assetRefsInBody(draftText)]);
-  const assets = [...work.assets.values()].filter((a) => assetIds.has(a.id) || (a.nodeIds ?? []).includes(nodeId) || a.entities.some((id) => entityIds.includes(id))
+  for (const id of assetIds) {
+    const asset = work.assets.get(id);
+    if (asset && !assetAllowsNode(asset, nodeId)) throw new FolioError('ASSET_SCOPE_MISMATCH', id, { nodeId, assetId: id });
+  }
+  const assets = [...work.assets.values()].filter((a) => assetAllowsNode(a, nodeId)).filter((a) => assetIds.has(a.id) || (a.nodeIds ?? []).includes(nodeId) || a.entities.some((id) => entityIds.includes(id))
     || (marks ?? []).some((m) => m.surface.kind === 'asset' && m.surface.id === a.id && entityIds.includes(m.entityId)));
   // 자료(N2 결정 7): 이 노드 앞머리 sources, 윗노드 앞머리 sources(가까운 것부터), 이 원고의 주장이 연결한 자료. 알려진 것만, 한 번씩.
   const listed = (n) => (Array.isArray(n.data.sources) ? n.data.sources.filter((id) => typeof id === 'string') : []);
@@ -100,11 +107,12 @@ export function gatherScope({ work, events, nodeId, draftText = '', extracted = 
     ...scopedIds.map((id) => ({ kind: 'entity', id, rev: entityRevAt({ work, events, entityId: id, nodeId, receiptRecords, branching }) })),
     ...assets.map((a) => ({ kind: 'asset', id: a.id, rev: a.rev })),
     ...sources.map((s) => ({ kind: 'source', id: s.id, rev: s.rev })),
+    ...contextRefs(work),
   ];
   const parent = upperPlans.find((p) => p.nodeId === node.parentId);
   return {
     nodeId, ordered: before.applicable, unorderedBy: work.positions.get(nodeId)?.unorderedBy ?? null,
-    appearances, entityIds, prerequisiteIds, priorEvents, linkedNodeIds: [...linked.nodeIds], linkedEvents, upperPlans,
+    appearances, ambiguousReferences: scan.ambiguities, entityIds, prerequisiteIds, priorEvents, linkedNodeIds: [...linked.nodeIds], linkedEvents, upperPlans,
     ...(branching.applicable ? { branching: { ...branching, paths: branching.paths.map((p) => ({ ...p, events: p.events.filter((e) => inScope.has(e.entityId)) })) } } : {}),
     ...(branchGraph ? { branchGraph } : {}),
     parentPlan: parent?.text ?? null, upperMentions, assets, sources, claims, refs,

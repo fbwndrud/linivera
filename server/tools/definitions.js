@@ -1,3 +1,4 @@
+import { contextToolDefinitions } from './context-definitions.js';
 import { embeddingsDefinition } from './embeddings.js';
 import { resourcesDefinition } from './resources.js';
 import { inputsDefinition } from './inputs.js';
@@ -25,7 +26,7 @@ const SPAN = { type: 'object', additionalProperties: false, required: ['id', 'qu
 const LINK = { type: 'object', additionalProperties: false, required: ['sourceId', 'quote'], properties: { sourceId: ID, quote: QUOTE } };
 const CLAIM = {
   type: 'object', additionalProperties: false, required: ['quote', 'sources'],
-  properties: { quote: QUOTE, before: TEXT, after: TEXT, sources: { type: 'array', items: LINK, maxItems: 20 } },
+  properties: { basis: { type: 'string', enum: ['explicit', 'attributed', 'inferred'] }, perspectiveId: ID, quote: QUOTE, before: TEXT, after: TEXT, sources: { type: 'array', items: LINK, maxItems: 20 } },
 };
 
 const tool = (name, description, properties = {}, required = []) => ({
@@ -39,6 +40,7 @@ export const BASE_TOOL_NAMES = Object.freeze([
 ]);
 
 export const TOOLS = Object.freeze([
+  // New author context tools retain the compatible folio_* API prefix.
   tool('folio_init', "Create a new writing work. The first pack provides the starting structure and writing steps; novel is the default. Choose a preset such as serial, novel, scene, textbook, history, guide, sourcebook, reference, picturebook, fairytale or gamebook from the first pack. Unknown presets return details.packPresets. Existing work.yaml is preserved and returns created:false. Optional features control extra capabilities, never the required safeguards.",
     { title: ID, preset: ID, language: { type: 'string', minLength: 1, maxLength: 35 }, packs: { type: 'array', items: ID, minItems: 1 }, features: { type: 'object', additionalProperties: { type: 'boolean' } } }, ['title', 'preset']),
   tool('folio_status', "Show the next section, work in progress and pending questions. Identify sections needing another review, new checks, must-fix issues, or review and finalization of edited text. Include version status, appearance and evidence links needing relinking, and activity-record verification. Finalized means reviewed and recorded, not published online."),
@@ -110,4 +112,5 @@ export const TOOLS = Object.freeze([
     { from: { type: 'string', minLength: 1, maxLength: 4096 }, title: { type: 'string', maxLength: 200 } }, ['from']),
   tool('folio_export', "Check publication inputs or export a read-only web or EPUB edition. op check writes nothing; export is the default and requires a new output folder outside the work with an existing parent. Never overwrite an output folder. variant defaults to main; missing version text is not replaced with original text. Web supports page layouts and browser printing to PDF; the engine does not generate PDF directly. EPUB uses flowing pages. Export does not change the manuscript or create a review record. Report draft, imported, edited text and layout warnings; inspect target/temp when cleanupPending is true.",
     { op: { type: 'string', enum: ['export', 'check'] }, format: { type: 'string', enum: ['web', 'epub'] }, variant: ID, language: { type: 'string', minLength: 1, maxLength: 35 }, output: { type: 'string', minLength: 1, maxLength: 4096 } }),
+  ...contextToolDefinitions(tool),
 ]);

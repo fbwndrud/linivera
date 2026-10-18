@@ -22,7 +22,7 @@ test('submitEvidence records all of a node\'s claims or nothing', async () => {
   const body = (await openWork(root)).tree.nodes.get('atp-section').body;
   assert.deepEqual(out, { nodeId: 'atp-section', textHash: sha256(body), accepted: 1, seq: 1 });
   const [record] = await readEvidence(root);
-  assert.deepEqual([record.type, record.origin, record.at, record.claims[0].sources], ['evidence', 'tool', '2026-09-28T00:00:00.000Z', GOOD.sources]);
+  assert.deepEqual([record.type, record.origin, record.at, record.claims[0].sources.map(({ sourceId, quote }) => ({ sourceId, quote }))], ['evidence', 'tool', '2026-09-28T00:00:00.000Z', GOOD.sources]);
   assert.equal((await submitEvidence(root, { nodeId: 'atp-section', claims: [] })).accepted, 0);
   assert.equal((await readEvidence(root)).length, 2);
 });

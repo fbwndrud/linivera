@@ -80,8 +80,19 @@ export function createRunner({ root, packs, now = () => new Date().toISOString()
       // 판본(N6): 실행이 본 원본이 그 뒤 바뀌었으면(다시 커밋·손수정) 옛 원본에 맞춘 판본을 이어가지 않는다(건너뛰기만).
       if (isVariantRun(run) && !variantLocked(ctx, run) && originalChanged(ctx, run)) return ask(run, originalChangedQuestion(run, step));
       const handler = step.loop ? reviseStep : HANDLERS[step.kind];
-      const outcome = parkForChildren(ctx, run, steps, now)
-        ?? await handler({ ctx, run, step, steps, pipeline, env });
+      let outcome;
+      try {
+        outcome = parkForChildren(ctx, run, steps, now)
+          ?? await handler({ ctx, run, step, steps, pipeline, env });
+      } catch (error) {
+        if (error?.code !== 'ASSET_SCOPE_MISMATCH' || (run.state === 'committing' && receiptRecorded(ctx.receiptRecords, run))) throw error;
+        outcome = awaitUser(run, {
+          kind: 'blocked', code: error.code, stepId: step.id, draft: run.outputs.draft ?? '',
+          canApprove: false, advisories: [],
+          blocking: [{ checkId: 'asset.scope', code: error.code, severity: 'hard', message: error.message }],
+          hint: 'skip this run, correct the reference or asset scope, and run again; the draft is preserved in this run',
+        });
+      }
       run.updatedAt = now();
       await runs.save(run);
       if (outcome) return outcome;

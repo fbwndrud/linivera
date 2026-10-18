@@ -11,7 +11,7 @@ import { illustratedWork, createImageHost } from '../support/image-work.js';
 import { PNG_A, placeImage } from '../support/images.js';
 import { VIBELORE_FIXTURE } from '../support/import-source.js';
 
-test('실제 MCP의 22개 도구는 카탈로그·성공·오류·모델 대기·null 출력 계약을 지킨다', async (t) => {
+test('실제 MCP의 24개 도구는 카탈로그·성공·오류·모델 대기·null 출력 계약을 지킨다', async (t) => {
   const folio = await connectFolio(), dir = await tempDir('folio-contract-');
   const renamedRoot = await copyFixture('serial-2level'), imageRoot = await illustratedWork();
   t.after(async () => { await folio.close(); await Promise.all([dir, renamedRoot, imageRoot].map((path) => rm(path, { recursive: true, force: true }))); });

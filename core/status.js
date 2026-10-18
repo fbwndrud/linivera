@@ -82,6 +82,8 @@ export async function workStatus(root, { packs }) {
     // 판본(N6): 판본마다 커밋 수·다시 확인 필요(원본·용어 대응표·검사가 바뀜)·손수정·아직 없는 잎. 원본(main)의 stale·drift 와 섞지 않는다. 기능이 꺼지면 null.
     variants: variantsStatus({ work, receiptRecords, events, applied }),
     ...([...work.assets.values()].some((a) => a.managed) ? { assets: assetsSummary(work) } : {}),
+    ...(work.lore ? { lore: work.lore } : {}),
+    ...(work.interview ? { interview: work.interview } : {}),
     warnings,
   };
 }

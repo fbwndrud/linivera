@@ -1,3 +1,4 @@
+import { contextPayload } from '../work/context.js';
 import { levelIndex } from '../work/config.js';
 import { gatherScope } from '../scope/scope.js';
 import { claimsFor } from '../evidence/scope.js';
@@ -33,8 +34,8 @@ export function scopeFor(ctx, run) {
 }
 
 /** 요청에 싣는 자료 설명(N2 §4). 원본 글은 싣지 않는다 — 호스트가 필요하면 folio_sources get 으로 읽는다. */
-const sourceView = ({ id, title, date, reliability, spans }) => ({
-  id, title, date, reliability, spans: spans.map((span) => ({ id: span?.id ?? null, quote: span?.quote ?? null })),
+const sourceView = ({ id, title, date, reliability, spans, rev, contentHash }) => ({
+  id, title, date, reliability, rev, contentHash, spans: spans.map((span) => ({ id: span?.id ?? null, quote: span?.quote ?? null })),
 });
 
 const eventView = ({ eventId, nodeId, entityId, kind, data }) => ({ eventId, nodeId, entityId, kind, data: data ?? null });
@@ -49,6 +50,7 @@ export function basePayload(ctx, run, step, scope = scopeFor(ctx, run)) {
   const tracking = run.mode === 'recheck' && step.produces === 'events' ? null : trackingPayload(ctx.work, run, node, scope.entityIds);
   return {
     ...(tracking ? { tracking } : {}),
+    ...contextPayload(work),
     ...(run.mode === 'tracking-backfill' ? { feedback: run.userRevision ?? null } : {}),
     step: step.id, produces: step.produces ?? null, prompt: step.prompt ?? null, mode: run.mode,
     node: { id: node.id, level: node.level, kind: node.kind, role: node.role, title: node.title, brief: node.data.brief ?? null, ...(run.mode === 'tracking-backfill' ? { body: node.body } : {}) },
@@ -59,6 +61,7 @@ export function basePayload(ctx, run, step, scope = scopeFor(ctx, run)) {
       const entity = work.entities.get(id);
       return { id, kind: entity.kind, name: entity.name, aliases: entity.aliases, body: entity.body, ...(trackingEffective(ctx.work) ? { data: entity.data } : {}) };
     }),
+    ambiguousReferences: scope.ambiguousReferences ?? [],
     priorEvents: scope.priorEvents.map(eventView),
     ...branchPayload(scope),
     // 순서 없는 노드(N4)의 연결된 노드 사건. 있을 때만 싣는다 — 없는 노드의 요청(과 그 digest)은 N4 전과 같다.

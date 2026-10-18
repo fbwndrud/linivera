@@ -62,9 +62,9 @@ async function fileHashOf(path) {
  * 보통 파일이 아닌 것이어도 작품 열기를 막지 않고 경고(ASSET_FILE_NOT_REGULAR)만 한다.
  * hashFiles: false 면 이미지 파일을 읽지 않는다(rev 는 null) — 설명서만 필요한 곳(뷰어 그림 요청)이 요청마다 모든 그림을 다시 읽지 않게.
  * @param {string} root
- * @param {{ hashFiles?: boolean }} [options]
+ * @param {{ hashFiles?: boolean, entities?: Map<string, any> }} [options]
  */
-export async function readAssets(root, { hashFiles = true } = {}) {
+export async function readAssets(root, { hashFiles = true, entities = null } = {}) {
   const assets = new Map();
   const errors = [];
   const warnings = [];
@@ -91,7 +91,7 @@ export async function readAssets(root, { hashFiles = true } = {}) {
     });
   }
   try {
-    const managed = await readManagedAssets(root);
+    const managed = await readManagedAssets(root, entities);
     for (const [id, asset] of managed.assets) {
       if (assets.has(id)) { errors.push({ code: 'DUPLICATE_ASSET_ID', id }); continue; }
       assets.set(id, asset);

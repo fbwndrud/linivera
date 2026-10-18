@@ -11,15 +11,19 @@ import { publishedEvents } from '../ledger/event-visibility.js';
 import { sha256, canonicalJson } from '../util/hash.js';
 import { OCCURRENCES_LEDGER } from '../occurrences/records.js';
 import { occurrenceStates } from '../occurrences/state.js';
-import { scanMentions } from './scan.js';
+import { scanReferences } from './scan.js';
 import { SCHEMA_SQL, TABLES } from './schema.js';
 
 export const indexPath = (root) => join(root, '.folio', 'index.db');
 
 function insertOccurrences(insert, text, entities, surfaceKind, surfaceId, skipId = null) {
-  for (const [entityId, count] of scanMentions(text, entities.values())) {
+  const scan = scanReferences(text, entities.values());
+  for (const [entityId, count] of scan.counts) {
     if (entityId !== skipId) insert.run(entityId, surfaceKind, surfaceId, 'scan', count);
   }
+  const ambiguous = new Map();
+  for (const m of scan.ambiguities) for (const id of m.entityIds) ambiguous.set(id, (ambiguous.get(id) ?? 0) + 1);
+  for (const [id, count] of ambiguous) if (id !== skipId) insert.run(id, surfaceKind, surfaceId, 'ambiguous', count);
 }
 
 /** 작품 폴더와 기록장에서 index.db 를 처음부터 만든다. */

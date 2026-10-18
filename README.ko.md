@@ -134,3 +134,5 @@ MCP 연결 때 기본 작업 규칙을 보냅니다. MCP 리소스를 지원하�
 - **개발:** [기여 안내](CONTRIBUTING.md), [테스트](docs/testing.md), [보안](SECURITY.md). `npm run check`와 기여 안내의 검증을 실행하세요. 문제 신고에는 합성 재현 데이터를 사용하고 개인 작품이나 인증 정보를 올리지 마세요.
 
 리니베라 코드는 [Apache-2.0](LICENSE)입니다. 별도 예시의 자체 제작 원고·그림·노트는 CC0-1.0이며, 제3자 인용·코드·상표는 제외합니다. Studio에는 제3자 라이선스와 소스 위치를 적은 `THIRD-PARTY-NOTICES.txt`를 포함합니다. [NOTICE](NOTICE)를 참고하세요.
+
+작가 승인 정본·근거·미해결 질문과 인터뷰 답/확인 저장은 [사용 안내](docs/lore-interview.md)를 참고한다.
