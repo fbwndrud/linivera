@@ -1,6 +1,7 @@
 import { FolioError } from '../errors.js';
 import { viewWorkspaceMode } from './workspace-mode.js';
 import { readResourceSnapshot } from './resources.js';
+import { readResourceGraph } from '../query/resource-graph.js';
 import { withResourceViewCheckpoint } from './resource-checkpoint.js';
 import { assertFeature } from '../work/features.js';
 import { viewOutline } from './outline.js';
@@ -51,6 +52,7 @@ export async function buildSnapshot(root, { packs }) {
     const workspace = await viewWorkspaceMode(root);
     if (workspace.mode === 'writing') assertFeature(workspace.config, 'viewerExport');
     const resources = await readResourceSnapshot(root, state);
+    resources.resourceGraph = await readResourceGraph(root, {}, state);
     if (workspace.mode === 'resources') return { version: SNAPSHOT_VERSION, work: await viewOutline(root, { packs }),
       nodes: {}, entities: {}, receipts: null, receiptNodes: {}, stages: null, checkSets: null, graph: null, promises: null,
       blocks: null, sources: null, sourceDetails: {}, evidence: {}, ...resources };

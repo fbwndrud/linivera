@@ -128,6 +128,8 @@ description: Linivera MCP로 새 작품·이어쓰기·그림책·동화·게임
 
 집필 원고 실행과 독립인 자원 등록·입력 봉인·복수 결과·판본 조회를 요청받으면 [references/resources.md](references/resources.md)를 읽고 그 경로를 사용한다.
 
+공통 자산 재사용·포즈/레이어 모션·낭독 영상 제작은 [모션 실행](references/motion.md)을 읽는다. 컷·타임라인·영상은 같은 자원·작업 계약을 쓰며 입력 선택과 품질 승인을 구분한다.
+
 선택 원본의 의미 검색·벡터 색인 요청은 [references/embeddings.md](references/embeddings.md)를 읽는다.
 - `folio_view` 오류와 화면 안 오류: [references/viewer.md](references/viewer.md)의 "오류일 때".
 - `folio_image` 오류와 그림 잠금 오류: [references/image.md](references/image.md)의 "오류일 때".

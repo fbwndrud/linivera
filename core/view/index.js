@@ -11,6 +11,7 @@ export { setStageMode } from './stage-toggle.js';
 export { readAssetFile } from './asset-file.js';
 export { viewerStillOn, viewerTarget } from './viewer-target.js';
 export { viewGraph } from './graph-view.js';
+export { viewResourceGraph } from './resource-graph.js';
 export { viewPromiseBoard } from './promise-board.js';
 export { viewCheckSets } from './check-sets-view.js';
 export { viewNodeEvidence, viewSource, viewSources } from './evidence-view.js';

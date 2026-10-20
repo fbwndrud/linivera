@@ -76,3 +76,8 @@
 - User approval covers supplied designs and implementation order; no repeated design permission requested. Routine implementation details are implementer calls.
 - Fresh reviewer checks complete diff and concrete failure cases; critical/important fixes receive RED→GREEN and full verification. Same host role separation is not independent creative perception.
 - Worktree is managed/detached from codex/production-ready e7516d1. Preserve it for review; no merge/push/publication without separate authorization.
+
+## 실행 중 구체화
+
+- 컷 선택 뒤 compile 단계를 분리했다. 타임라인 자체도 실제 컷 판본을 공통 Input으로 고정해야 하므로 render→컷 검토/선택→compile→타임라인 검토/선택→assemble 순서다. JSON 안의 컷 이름만으로 계보를 대신하지 않는다.
+- 다른 제작 흐름은 별도 낭독 pipeline 정의와 프로젝트를 사용한다. 동일 포즈 revision을 공유하고 음성은 합성 fixture로만 검증한다.

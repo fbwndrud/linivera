@@ -55,12 +55,16 @@ async function readGraph(root, state) {
 
 /** Verified, bounded traversal over existing resource and operation records. */
 export async function queryResourceGraph(root, input = {}) {
+  return withWorkspaceStateTransaction(root, ({ state }) => readResourceGraph(root, input, state));
+}
+
+/** Read-only view/export seam, with the caller's already verified workspace checkpoint. */
+export async function readResourceGraph(root, input, state) {
   const { resourceId, direction = 'both', depth = 20, limit = 1000 } = input;
   if (Object.keys(input).some((k) => !['resourceId', 'direction', 'depth', 'limit'].includes(k))
     || !['upstream', 'downstream', 'both'].includes(direction) || !Number.isInteger(depth) || depth < 0 || depth > 100
     || !Number.isInteger(limit) || limit < 1 || limit > 5000) throw new FolioError('RESOURCE_GRAPH_INVALID', 'invalid graph scope or traversal budget');
   if (resourceId !== undefined) assertResourceId(resourceId);
-  return withWorkspaceStateTransaction(root, async ({ state }) => {
     const graph = await readGraph(root, state);
     const seeds = resourceId === undefined ? graph.nodes : graph.nodes.filter((n) => n.resourceId === resourceId);
     const adjacency = new Map();
@@ -77,5 +81,4 @@ export async function queryResourceGraph(root, input = {}) {
     }
     return { nodes: graph.nodes.filter((n) => selected.has(n.id)), edges: graph.edges.filter((e) => selected.has(e.source) && selected.has(e.target)),
       checkpoint: state.checkpoint, truncated, scope: { resourceId: resourceId ?? null, direction, depth, limit } };
-  });
 }

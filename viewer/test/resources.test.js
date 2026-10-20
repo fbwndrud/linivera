@@ -67,8 +67,9 @@ test('resources routes and resource-only navigation hide writing pages and prese
   assert.equal(navGroup('resource').name, 'Library');
   const resourceWork = { mode: 'resources', capabilities: { writing: false } };
   const nav = workspaceNavigation(resourceWork);
-  assert.deepEqual(nav.map((group) => [group.name, group.screen, group.items]), [['Library', 'resources', [['resources', 'Resources'], ['examples', 'Examples']]]]);
+  assert.deepEqual(nav.map((group) => [group.name, group.screen, group.items]), [['Library', 'resources', [['resources', 'Resources'], ['graph', 'Connections'], ['examples', 'Examples']]]]);
   assert.equal(writingScreenUnavailable(resourceWork, 'examples'), false);
+  assert.equal(writingScreenUnavailable(resourceWork, 'graph'), false);
   assert.equal(writingScreenUnavailable(resourceWork, 'read'), true);
   assert.equal(writingScreenUnavailable(resourceWork, 'stages'), true);
   assert.equal(writingScreenUnavailable(resourceWork, 'home'), false);

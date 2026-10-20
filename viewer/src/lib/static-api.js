@@ -28,6 +28,7 @@ export function createStaticApi(data) {
       }
       case 'work': return data.work;
       case 'resources': return id === null ? whole(data.resources) : pick(data.resourceDetails, 'RESOURCE_NOT_VISIBLE');
+      case 'resource-graph': return whole(data.resourceGraph);
       case 'nodes': return pick(data.nodes, 'NODE_NOT_FOUND');
       case 'entities': return pick(data.entities, 'ENTITY_NOT_FOUND');
       case 'receipts': return id === null ? data.receipts : pick(data.receiptNodes, 'NODE_NOT_FOUND');
