@@ -11,7 +11,7 @@ import { illustratedWork, createImageHost } from '../support/image-work.js';
 import { PNG_A, placeImage } from '../support/images.js';
 import { VIBELORE_FIXTURE } from '../support/import-source.js';
 
-test('실제 MCP의 22개 도구는 카탈로그·성공·오류·모델 대기·null 출력 계약을 지킨다', async (t) => {
+test('실제 MCP의 모든 도구는 카탈로그·성공·오류·모델 대기·null 출력 계약을 지킨다', async (t) => {
   const folio = await connectFolio(), dir = await tempDir('folio-contract-');
   const renamedRoot = await copyFixture('serial-2level'), imageRoot = await illustratedWork();
   t.after(async () => { await folio.close(); await Promise.all([dir, renamedRoot, imageRoot].map((path) => rm(path, { recursive: true, force: true }))); });
@@ -85,6 +85,7 @@ test('실제 MCP의 22개 도구는 카탈로그·성공·오류·모델 대기�
   const input = await call('folio_inputs', { root, op: 'prepare', revisionIds: [revisions.document],
     profileRevisionId: revisions.profile, pipelineRevisionId: revisions.pipeline, policyRevisionId: revisions.policy });
   await call('folio_operations', { root, op: 'start', inputSnapshotId: input.inputSnapshotId, idempotencyKey: 'synthetic', actor: 'user' });
+  await call('folio_motion', { root, op: 'plan', inputSnapshotId: input.inputSnapshotId }, 'MOTION_INPUT_INVALID');
   assert.equal(await call('folio_policy', { root, op: 'status', grantId: 'absent' }), null);
   await call('folio_resource_query', { root, op: 'refresh' });
   await call('folio_embeddings', { root, op: 'index' }, 'EMBEDDING_RUNTIME_UNAVAILABLE');

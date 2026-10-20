@@ -1,6 +1,7 @@
 const rule = (required, optional = []) => ({ required, allowed: [...required, ...optional] });
 /** Declarative operation shapes mirror the public command boundaries. */
 export const RESOURCE_ARGUMENTS = {
+  folio_motion: { plan: rule(['inputSnapshotId']), render: rule(['inputSnapshotId', 'idempotencyKey', 'actor'], ['grantId']), compile: rule(['inputSnapshotId', 'idempotencyKey', 'actor'], ['grantId']), assemble: rule(['inputSnapshotId', 'idempotencyKey', 'actor'], ['grantId']) },
   folio_assets: {
     add: rule(['id', 'brief'], ['title']), update: rule(['id', 'expectedRev', 'brief'], ['title']),
     put: rule(['id', 'expectedRev', 'mediaType'], ['path', 'uri', 'contentHash', 'origin']),

@@ -57,3 +57,17 @@ export async function verifyInput(root, inputSnapshotId) {
   if (canonicalJson(rebuilt) !== canonicalJson(manifest)) invalid('input snapshot references differ');
   return { inputSnapshotId, manifest };
 }
+
+/** Derive a smaller sealed input at the original user-selection checkpoint. */
+export async function restrictInput(root, inputSnapshotId, revisionIds) {
+  return withWorkspaceStateTransaction(root, async () => {
+    const { manifest: original } = await verifyInput(root, inputSnapshotId);
+    if (!Array.isArray(revisionIds) || revisionIds.some((id) => !original.revisionIds.includes(id))) invalid('subset must retain pinned revisions only');
+    const state = await readWorkspaceState(root, { checkpoint: original.workspaceCheckpoint });
+    const manifest = await buildManifest(root, { revisionIds, profileRevisionId: original.profileRevisionId,
+      pipelineRevisionId: original.pipelineRevisionId, policyRevisionId: original.policyRevisionId, externalMode: original.externalMode }, state);
+    const bytes = canonicalJson(manifest); const id = sha256(bytes);
+    await writeImmutable(root, path(root, id), bytes);
+    return { inputSnapshotId: id, manifest };
+  });
+}
