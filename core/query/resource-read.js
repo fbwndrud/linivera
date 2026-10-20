@@ -3,7 +3,7 @@ import { canonicalJson } from '../util/hash.js';
 import { readWorkspaceState, sameCheckpoint } from '../publications/state.js';
 import { fail } from '../operations/objects.js';
 import { listGenerations } from '../projections/manifest.js';
-import { metadataEntries, metadataManifest, checkpointFreshness } from '../projections/metadata.js';
+import { METADATA_GENERATOR_REVISION, metadataEntries, metadataManifest, checkpointFreshness } from '../projections/metadata.js';
 /** Pure verified read shared by locked queries and read-only views. Null means no matching generation. */
 export async function readResourceQuery(root, input, state) {
   const { resourceId, selector, freshness } = input;
@@ -13,10 +13,12 @@ export async function readResourceQuery(root, input, state) {
     selector.type === 'atRevision' ? g.entries.some((e) => e.revisionId === selector.revisionId && (resourceId === undefined || e.resourceId === resourceId)) : true);
   if (!generation) return null;
   const prefix = await readWorkspaceState(root, { checkpoint: generation.manifest.workspaceCheckpoint });
-  const verified = await metadataEntries(root, prefix);
+  const legacy = generation.manifest.generatorRevision === 'folio-metadata-v1';
+  const verified = await metadataEntries(root, prefix, { transitive: !legacy });
   const { generationId: _generationId, ...actualManifest } = generation.manifest;
-  if (canonicalJson(actualManifest) !== canonicalJson(metadataManifest(verified, prefix)) || canonicalJson(verified) !== canonicalJson(generation.entries)) fail('PROJECTION_INTEGRITY_FAILURE', 'generation entries differ from verified authoritative prefix');
+  if (canonicalJson(actualManifest) !== canonicalJson(metadataManifest(verified, prefix, legacy ? 'folio-metadata-v1' : METADATA_GENERATOR_REVISION)) || canonicalJson(verified) !== canonicalJson(generation.entries)) fail('PROJECTION_INTEGRITY_FAILURE', 'generation entries differ from verified authoritative prefix');
   let status = checkpointFreshness(generation.manifest, state);
+  if (legacy) status = 'stale';
   let entries = verified.filter((e) => (resourceId === undefined || e.resourceId === resourceId) && (selector.type !== 'atRevision' || e.revisionId === selector.revisionId));
   if (status === 'current' && entries.some((e) => e.storageStatus === 'external_unobserved')) status = 'unknown';
   if (freshness === 'requireCurrent' && status !== 'current') throw new FolioError('PROJECTION_NOT_CURRENT', 'metadata does not cover the current verified checkpoint', { freshness: status, projectionCheckpoint: prefix.checkpoint, currentCheckpoint: state.checkpoint });

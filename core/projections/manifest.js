@@ -36,7 +36,8 @@ export async function listGenerations(root) {
     if (!/^[a-f0-9]{64}\.json$/.test(name)) fail('PROJECTION_INTEGRITY_FAILURE', 'unsupported generation filename');
     values.push(await readGeneration(root, 'sha256:' + name.slice(0, -5)));
   }
-  return values.sort((a, b) => b.manifest.workspaceCheckpoint.seq - a.manifest.workspaceCheckpoint.seq);
+  return values.sort((a, b) => b.manifest.workspaceCheckpoint.seq - a.manifest.workspaceCheckpoint.seq
+    || b.manifest.generatorRevision.localeCompare(a.manifest.generatorRevision));
 }
 
 export function assertProjectionCheckpoint(checkpoint) {

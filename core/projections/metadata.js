@@ -3,9 +3,10 @@ import { sha256, canonicalJson } from '../util/hash.js';
 import { copy, fail } from '../operations/objects.js';
 import { sourceEvidence, publicationEvidence } from './evidence.js';
 import { saveGeneration, assertProjectionCheckpoint } from './manifest.js';
+import { applyReviewImpact } from './review-impact.js';
 
-export const METADATA_GENERATOR_REVISION = 'folio-metadata-v1';
-export async function metadataEntries(root, state) {
+export const METADATA_GENERATOR_REVISION = 'folio-metadata-v2';
+export async function metadataEntries(root, state, { transitive = true } = {}) {
   const entries = [];
   for (const selection of Object.values(state.sourceSelections)) {
     const revision = await sourceEvidence(root, selection);
@@ -22,7 +23,7 @@ export async function metadataEntries(root, state) {
       receiptId: publication.receiptId, publicationCheckpoint: publication.checkpoint, selfReview: true, findings: receipt.findings,
       inputRefs: manifest.resources, inputCheckpoint: manifest.workspaceCheckpoint, reviewRequired: reviewReasons.length > 0, reviewReasons });
   }
-  return entries;
+  return transitive ? applyReviewImpact(entries) : entries;
 }
 /** Explicit refresh; generation does not append an authoritative workspace marker. */
 export async function buildMetadataProjection(root, input = {}) {
@@ -38,9 +39,9 @@ export async function buildMetadataProjection(root, input = {}) {
 }
 export function checkpointFreshness(generation, state) { return sameCheckpoint(generation.workspaceCheckpoint, state.checkpoint) ? 'current' : 'stale'; }
 
-export function metadataManifest(entries, state) {
+export function metadataManifest(entries, state, generatorRevision = METADATA_GENERATOR_REVISION) {
   const unknown = entries.filter((e) => e.storageStatus === 'external_unobserved').map((e) => ({ resourceId: e.resourceId, revisionId: e.revisionId, reason: 'external-unobserved' }));
-  const manifest = { version: 1, projectionId: 'metadata', kind: 'metadata', workspaceCheckpoint: state.checkpoint, generatorRevision: METADATA_GENERATOR_REVISION,
+  const manifest = { version: 1, projectionId: 'metadata', kind: 'metadata', workspaceCheckpoint: state.checkpoint, generatorRevision,
       definitionRevision: null, parametersHash: sha256(canonicalJson({})), inputManifestId: sha256(canonicalJson(state.markers)), status: 'complete',
       coverage: { layers: ['metadata'], resourceIds: [...new Set(entries.map((e) => e.resourceId))].sort(), missing: [], unknown }, outputHashes: [sha256(canonicalJson(entries))] };
   return manifest;

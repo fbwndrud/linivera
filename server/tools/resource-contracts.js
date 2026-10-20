@@ -15,6 +15,7 @@ export const RESOURCE_ARGUMENTS = {
   folio_resources: {
     propose: rule(['resourceId', 'kind'], ['parents', 'owned', 'external', 'schemaRef']), read: rule(['revisionId']),
     decideSource: rule(['revisionId', 'expectedSelectionRevision', 'action']),
+    importFile: rule(['resourceId', 'kind', 'path', 'mediaType'], ['parents', 'schemaRef', 'contentHash']), importAsset: rule(['assetId', 'expectedRev']),
   },
   folio_inputs: {
     prepare: rule(['revisionIds', 'profileRevisionId', 'pipelineRevisionId', 'policyRevisionId'], ['externalMode']), verify: rule(['inputSnapshotId']),
@@ -29,6 +30,6 @@ export const RESOURCE_ARGUMENTS = {
     review: rule(['operationId', 'outputHashes', 'findings', 'reviewer']),
     decide: rule(['operationId', 'receiptId', 'expectedCheckpoint', 'action', 'actor'], ['grantId']),
   },
-  folio_resource_query: { query: rule([], ['resourceId', 'selector', 'freshness']), refresh: rule([], ['checkpoint']) },
+  folio_resource_query: { query: rule([], ['resourceId', 'selector', 'freshness']), refresh: rule([], ['checkpoint']), graph: rule([], ['resourceId', 'direction', 'depth', 'limit']) },
   folio_embeddings: { index: rule([], ['dimension', 'freshness']), search: rule(['generationId', 'text'], ['freshness', 'limit']) },
 };

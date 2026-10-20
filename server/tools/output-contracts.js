@@ -33,7 +33,7 @@ const RESULTS = {
   folio_inputs: shape({ inputSnapshotId: text, manifest: object }),
   folio_policy: nullable(shape({ grantId: text, revoked: { type: 'boolean' } })),
   folio_operations: choice(shape({ operationId: text }), text),
-  folio_resource_query: choice(shape({ generationId: text }), shape({ entries: array, freshness: text })),
+  folio_resource_query: choice(shape({ generationId: text }), shape({ entries: array, freshness: text }), shape({ nodes: array, edges: array, checkpoint: object, truncated: { type: 'boolean' } })),
   folio_embeddings: choice(shape({ generationId: text }), shape({ results: array, freshness: text })),
   folio_init: shape({ created: { type: 'boolean' }, root: text, config: object }, ['created', 'root']),
   folio_status: shape({ ledger: object, next: nullable(object), activeRun: nullable(object), pending: nullable(run),
