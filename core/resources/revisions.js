@@ -23,21 +23,7 @@ export function createResourceStore(root) {
   async function propose(input) {
     validateProposal(input);
     input = { ...input, parents: [...(input.parents ?? [])], ...(input.owned ? { owned: { ...input.owned, bytes: Buffer.from(input.owned.bytes) } } : { external: { ...input.external } }) };
-    return withWorkLock(root, async () => {
-      for (const parentId of input.parents ?? []) {
-        const parent = await readRevision(parentId);
-        if (parent.resourceId !== input.resourceId) throw new FolioError('RESOURCE_PARENT_INVALID', 'parent belongs to another resource');
-      }
-      const envelope = { version: 1, resourceId: input.resourceId, kind: input.kind, parents: input.parents ?? [], ...(input.schemaRef === undefined ? {} : { schemaRef: input.schemaRef }) };
-      if (input.owned) {
-        const bytes = Buffer.from(input.owned.bytes);
-        Object.assign(envelope, { storageStatus: 'owned_snapshot', contentHash: sha256(bytes), byteLength: bytes.length, mediaType: input.owned.mediaType });
-        await writeImmutable(root, resourceObjectPath(root, sha256(bytes), 'content'), bytes);
-      } else Object.assign(envelope, { storageStatus: 'external_unobserved', contentHash: null, external: input.external });
-      const revisionId = sha256(canonicalJson(envelope));
-      await writeImmutable(root, resourceObjectPath(root, revisionId, 'revisions'), canonicalJson(envelope));
-      return { ...envelope, revisionId };
-    });
+    return withWorkLock(root, () => proposeResourceLocked(root, input));
   }
   async function readSourceSelection(resourceId) {
     assertResourceId(resourceId);
@@ -49,7 +35,6 @@ export function createResourceStore(root) {
     return selection;
   }
   async function decideSource({ revisionId, expectedSelectionRevision, action }) {
-    // 공개 async 경계에서 한 번 읽은 결정 사본만 검증·기록한다.
     action = action && typeof action === 'object' && !Array.isArray(action) ? { ...action } : null;
     if (!action || action.actor !== 'user' || !['select', 'deselect'].includes(action.type) || Object.keys(action).some((key) => !['type', 'actor', 'reason'].includes(key)) || (action.reason !== undefined && (typeof action.reason !== 'string' || action.reason.length > 8192)) || (action.type === 'deselect' && !action.reason?.trim())) throw new FolioError('SOURCE_DECISION_INVALID', 'explicit caller-attested user action is required; deselect needs a reason');
     return withWorkspaceStateTransaction(root, async ({ state, append }) => {
@@ -63,4 +48,23 @@ export function createResourceStore(root) {
     });
   }
   return Object.freeze({ propose, readRevision, readContent, decideSource, readSourceSelection });
+}
+
+/** Internal write seam: caller must already hold the workspace lock. */
+export async function proposeResourceLocked(root, input) {
+  validateProposal(input);
+  const store = createResourceStore(root);
+  for (const parentId of input.parents ?? []) {
+    const parent = await store.readRevision(parentId);
+    if (parent.resourceId !== input.resourceId) throw new FolioError('RESOURCE_PARENT_INVALID', 'parent belongs to another resource');
+  }
+  const envelope = { version: 1, resourceId: input.resourceId, kind: input.kind, parents: input.parents ?? [], ...(input.schemaRef === undefined ? {} : { schemaRef: input.schemaRef }) };
+  if (input.owned) {
+    const bytes = Buffer.from(input.owned.bytes);
+    Object.assign(envelope, { storageStatus: 'owned_snapshot', contentHash: sha256(bytes), byteLength: bytes.length, mediaType: input.owned.mediaType });
+    await writeImmutable(root, resourceObjectPath(root, sha256(bytes), 'content'), bytes);
+  } else Object.assign(envelope, { storageStatus: 'external_unobserved', contentHash: null, external: input.external });
+  const revisionId = sha256(canonicalJson(envelope));
+  await writeImmutable(root, resourceObjectPath(root, revisionId, 'revisions'), canonicalJson(envelope));
+  return { ...envelope, revisionId };
 }
