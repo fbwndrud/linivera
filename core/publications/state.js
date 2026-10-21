@@ -4,11 +4,12 @@ import { withWorkLock } from '../run/work-lock.js';
 import { canonicalJson } from '../util/hash.js';
 
 export const INITIAL_WORKSPACE_CHECKPOINT = Object.freeze({ seq: 0, hash: 'genesis' });
-const KINDS = new Set(['source-selection', 'result-publication', 'grant-issued', 'grant-revoked']);
+const KINDS = new Set(['source-selection', 'result-publication', 'result-group-publication', 'grant-issued', 'grant-revoked']);
 export function sameCheckpoint(a, b) { return a?.seq === b?.seq && a?.hash === b?.hash; }
 function fold(markers) {
   const sourceSelections = Object.create(null);
   const publications = [];
+  const groupPublications = [];
   const grants = Object.create(null);
   for (const marker of markers) {
     if (!KINDS.has(marker.type) || !marker.payload || typeof marker.payload !== 'object') throw new FolioError('WORKSPACE_STATE_INVALID', 'invalid state marker');
@@ -17,11 +18,12 @@ function fold(markers) {
       const payload = marker.payload;
       sourceSelections[payload.resourceId] = { ...payload, selectionRevision: marker.hash, checkpoint };
     } else if (marker.type === 'result-publication') publications.push({ ...marker.payload, checkpoint });
+    else if (marker.type === 'result-group-publication') groupPublications.push({ ...marker.payload, checkpoint });
     else if (marker.type === 'grant-issued') grants[marker.payload.grantId] = { ...marker.payload, revoked: false, checkpoint };
     else grants[marker.payload.grantId] = { ...(grants[marker.payload.grantId] ?? {}), revoked: true, revocation: marker.payload, checkpoint };
   }
   const last = markers.at(-1);
-  return { checkpoint: last ? { seq: last.seq, hash: last.hash } : { ...INITIAL_WORKSPACE_CHECKPOINT }, markers, sourceSelections, publications, grants };
+  return { checkpoint: last ? { seq: last.seq, hash: last.hash } : { ...INITIAL_WORKSPACE_CHECKPOINT }, markers, sourceSelections, publications, groupPublications, grants };
 }
 /** 검증한 기록장 prefix만 fold한다. 도메인별 참조 검증은 caller가 맡는다. */
 /** @param {string} root @param {{checkpoint?: {seq:number, hash:string}}} [options] */

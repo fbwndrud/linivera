@@ -5,15 +5,18 @@ import { createResourceStore } from '../resources/revisions.js';
 import { copy, fail, get, put } from './objects.js';
 import { normalizeTrace } from './trace.js';
 import { checkAuthority } from './authority.js';
+import { assertOperationContract, readProductionRequest } from './production-request.js';
 export async function startOperation(root, input) {
   input = copy(input);
-  if (!input || typeof input.idempotencyKey !== 'string' || !input.idempotencyKey.length || input.idempotencyKey.length > 256 || Object.keys(input).some((k) => !['inputSnapshotId', 'idempotencyKey', 'actor', 'grantId'].includes(k))) fail('OPERATION_INVALID', 'invalid operation request');
+  if (!input || typeof input.idempotencyKey !== 'string' || !input.idempotencyKey.length || input.idempotencyKey.length > 256 || Object.keys(input).some((k) => !['inputSnapshotId', 'idempotencyKey', 'actor', 'grantId', 'operationContractVersion', 'requestRevisionId'].includes(k)) || (input.operationContractVersion !== undefined && input.operationContractVersion !== 2) || (input.operationContractVersion === 2 ? typeof input.requestRevisionId !== 'string' : input.requestRevisionId !== undefined)) fail('OPERATION_INVALID', 'invalid operation request');
   const operationId = sha256(canonicalJson({ idempotencyKey: input.idempotencyKey }));
   const requestId = sha256(canonicalJson(input));
   return withWorkspaceStateTransaction(root, async ({ state }) => {
     const old = await get(root, 'requests', operationId, true);
     if (old) { if (old.requestId !== requestId) fail('IDEMPOTENCY_CONFLICT', 'key already binds a different request'); return { operationId, requestId }; }
     const { manifest } = await verifyInput(root, input.inputSnapshotId);
+    if (input.operationContractVersion === 2) await readProductionRequest(root, input, manifest);
+    else for (const resource of manifest.resources) if ((await createResourceStore(root).readRevision(resource.revisionId)).kind === 'generation-request') fail('OPERATION_CONTRACT_MISMATCH', 'generation requests require operation contract v2');
     checkAuthority(manifest, state, input.actor, input.grantId, 'create-candidate');
     await put(root, 'requests', { ...input, operationId, requestId }, operationId);
     return { operationId, requestId };
@@ -42,6 +45,7 @@ export async function submitResult(root, input) {
   if (!input || Object.keys(input).some((k) => !['operationId', 'requestId', 'inputSnapshotId', 'resultRevisionIds', 'reportedTrace'].includes(k))) fail('RESULT_INVALID', 'unsupported submission fields');
   return withWorkspaceStateTransaction(root, async ({ state }) => {
     const request = await readOperation(root, input.operationId);
+    assertOperationContract(request, 1);
     if (input.requestId !== request.requestId || input.inputSnapshotId !== request.inputSnapshotId) fail('REQUEST_MISMATCH', 'result must bind exact request and input');
     if (state.publications.some((p) => p.operationId === input.operationId)) fail('LATE_RESULT', 'operation already finalized');
     const { manifest } = await verifyInput(root, request.inputSnapshotId);

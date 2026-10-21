@@ -6,6 +6,7 @@ import { createResourceStore } from './revisions.js';
 import { assertRevisionId } from './schema.js';
 import { readObject, writeImmutable } from './files.js';
 import { validateDefinition } from './definitions.js';
+import { collectBundleClosure } from './bundles.js';
 function invalid(message) { throw new FolioError('INPUT_INVALID', message); }
 function path(root, id) { assertRevisionId(id); return join(root, '.folio', 'resources', 'inputs', id.slice(7) + '.json'); }
 function copy(value) { try { return JSON.parse(canonicalJson(value)); } catch { invalid('JSON input required'); } }
@@ -28,7 +29,8 @@ async function buildManifest(root, input, state) {
     definitions[kind] = { revisionId: revision.revisionId, contentHash: revision.contentHash, definitionHash: sha256(canonicalJson(value)), byteLength: revision.byteLength, value };
   }
   const resources = []; let totalBytes = Object.values(definitions).reduce((total, definition) => total + definition.byteLength, 0);
-  for (const id of input.revisionIds) {
+  const expanded = await collectBundleClosure(root, input.revisionIds);
+  for (const { revisionId: id } of expanded) {
     const revision = await selected(id);
     if (resources.some((item) => item.resourceId === revision.resourceId) || !definitions.profile.value.scope.includes(revision.resourceId) || !definitions.policy.value.scope.includes(revision.resourceId)) invalid('input exceeds scope or duplicates a resource');
     if (revision.storageStatus === 'external_unobserved' && input.externalMode !== 'reference-only') invalid('external input requires explicit reference-only');
