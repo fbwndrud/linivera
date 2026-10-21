@@ -1,10 +1,11 @@
 import { randomUUID } from 'node:crypto';
-import { canonicalJson } from '../../core/util/hash.js';
+import { canonicalJson, sha256 } from '../../core/util/hash.js';
 import { invalid, requireTransport, prepareRequest, fixedGroups, assertHandle, selectedKeys, resourceIdentity, submissionGate } from './common.js';
 import { nativeRecord } from './native-records.js';
 import { textBindings } from './input-bindings.js';
 import { normalizeCharacterAlignment } from './alignment.js';
 import { validateSpeechParameters } from './request-schemas.js';
+import { capturedFile, MAX_INLINE_CAPTURE_BYTES } from './file-transfer.js';
 
 export const ELEVENLABS_SCHEMA_SOURCE = 'https://elevenlabs.io/docs/api-reference/text-to-speech/convert-with-timestamps';
 const endpointPattern = /^\/v1\/text-to-speech\/([A-Za-z0-9_-]+)\/with-timestamps$/;
@@ -16,10 +17,19 @@ function audioType(format) {
   invalid('first adapter supports MP3, WAV and PCM output formats');
 }
 function audioBytes(base64) {
-  if (typeof base64 !== 'string' || !base64.length || !/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(base64)) invalid('speech response requires canonical audio_base64');
+  if (typeof base64 !== 'string' || !base64.length || base64.length % 4 !== 0 || /[^A-Za-z0-9+/=]/.test(base64)) invalid('speech response requires canonical audio_base64');
   const bytes = Buffer.from(base64, 'base64');
   if (bytes.toString('base64') !== base64) invalid('invalid audio encoding');
   return bytes;
+}
+async function captureAudio(transport, bytes) {
+  if (bytes.length <= MAX_INLINE_CAPTURE_BYTES) return capturedFile(bytes);
+  if (typeof transport.captureAudio !== 'function') invalid('large speech requires transport.captureAudio to retain a local file');
+  const contentHash = sha256(bytes);
+  const file = capturedFile(await transport.captureAudio(bytes));
+  if (!('path' in file)) invalid('large speech capture must return a local file descriptor');
+  if (file.contentHash && file.contentHash !== contentHash) invalid('speech capture hash differs from the synchronous response');
+  return { ...file, contentHash };
 }
 
 /** @param {{transport?: any, accountAlias?: string}} options */
@@ -72,13 +82,12 @@ export function createElevenLabsAdapter({ transport, accountAlias } = {}) {
       const textRevisionId = handle.request.inputBindings.find((binding) => binding.fieldPath === 'text')?.revisionId;
       const timing = normalizeCharacterAlignment(data, { requestText: handle.request.parameters.text, textRevisionId, audioResourceId });
       const format = handle.request.parameters.output_format ?? 'mp3_44100_128';
-      /** @type {Array<{artifactKey:string,groupId:string,role:string,resourceId:string,mediaType:string,bytes:Buffer,metadata:Record<string,unknown>}>} */
-      const all = [
-        { artifactKey: 'audio', groupId, role: 'audio', resourceId: audioResourceId, mediaType: audioType(format), bytes: audioBytes(data.audio_base64), metadata: { outputFormat: format } },
-      ];
-      if (timing.original || timing.normalized) all.push({ artifactKey: 'alignment', groupId, role: 'alignment', resourceId: resourceIdentity(handle, 'alignment'), mediaType: 'application/json', bytes: Buffer.from(canonicalJson(timing)), metadata: { sourceArtifactKey: 'audio', ...(textRevisionId ? { textRevisionId } : {}) } });
-      const keys = selectedKeys(all.map((item) => item.artifactKey), artifactKeys);
-      return { status: timing.original ? 'complete' : 'partial', artifacts: all.filter((item) => keys.includes(item.artifactKey)), nativeRecords: [nativeRecord('result', response)], observation: 'host-reported', unavailableFields: ['modelInternalReasoning', 'normalizationMap', ...(handle.jobIdSource === 'local-correlation' ? ['providerJobId'] : []), ...(timing.original ? [] : ['alignment'])] };
+      const keys = selectedKeys(['audio', ...(timing.original || timing.normalized ? ['alignment'] : [])], artifactKeys);
+      /** @type {Array<{artifactKey:string,groupId:string,role:string,resourceId:string,mediaType:string,bytes?:Buffer,path?:string,contentHash?:string,metadata:Record<string,unknown>}>} */
+      const all = [];
+      if (keys.includes('audio')) all.push({ artifactKey: 'audio', groupId, role: 'audio', resourceId: audioResourceId, mediaType: audioType(format), ...await captureAudio(transport, audioBytes(data.audio_base64)), metadata: { outputFormat: format } });
+      if (keys.includes('alignment')) all.push({ artifactKey: 'alignment', groupId, role: 'alignment', resourceId: resourceIdentity(handle, 'alignment'), mediaType: 'application/json', bytes: Buffer.from(canonicalJson(timing)), metadata: { sourceArtifactKey: 'audio', ...(textRevisionId ? { textRevisionId } : {}) } });
+      return { status: timing.original ? 'complete' : 'partial', artifacts: all, nativeRecords: [nativeRecord('result', response)], observation: 'host-reported', unavailableFields: ['modelInternalReasoning', 'normalizationMap', ...(handle.jobIdSource === 'local-correlation' ? ['providerJobId'] : []), ...(timing.original ? [] : ['alignment'])] };
     },
   });
 }

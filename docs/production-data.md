@@ -48,7 +48,7 @@ SRT/VTT/XML/AAF, 모델·텍스처·rig/clip, 소스·build 등도 파일로 보
 }
 ```
 
-멤버별 ID·판본·상대 경로·역할을 보존한다. 기본 상한은 4096개 멤버와 8GiB다. 필수 파일 누락은 `incomplete`로 남고 다음 Input 준비를 막는다. `completeness`, `dependencyCoverage`, `restorability`는 별개다. 선언 파일을 모두 보존해도 숨은 외부 의존이나 편집 재개 가능성을 자동 확정하지 않는다.
+멤버별 ID·판본·상대 경로·역할을 보존한다. 기본 상한은 4096개 멤버와 8GiB다. 필수 파일 누락은 `incomplete`로 남고 다음 Input 준비를 막는다. 필수 멤버가 외부 URL 판본뿐이면 보존 파일로 세지 않으며 `reference-only`도 이 차단을 우회하지 않는다. `a`, `a-b`, `a/child`처럼 다른 이름이 끼어 있어도 파일·디렉터리 경로 충돌을 거절한다. `completeness`, `dependencyCoverage`, `restorability`는 별개다. 선언 파일을 모두 보존해도 숨은 외부 의존이나 편집 재개 가능성을 자동 확정하지 않는다.
 
 중첩 묶음은 모든 멤버의 선택·scope·실제 파일 크기를 Input에서 검사한다. 묶음 하나를 선택했다는 이유로 내부 파일의 선택·권한·예산 검사를 건너뛰지 않는다.
 
@@ -61,6 +61,8 @@ SRT/VTT/XML/AAF, 모델·텍스처·rig/clip, 소스·build 등도 파일로 보
 실행 기록은 `recordExecution {operationId,executionId,expectedExecutionHead,event}`로 추가한다. `expectedExecutionHead`는 최초 `null`, 이후 정확한 `{seq,hash}`다. `inspect`는 실행 상태와 페이지 단위 이벤트를 반환한다. `executionHead`를 지정하면 과거의 검증된 prefix를 읽는다.
 
 상태는 `prepared → submitting → accepted/running → outputs-observed → complete`를 기본으로 한다. 실패·취소·부분 회수·응답 불명은 별도로 남는다. `complete` 보고만으로 승인되지 않으며 선언한 모든 출력 slot이 있어야 complete가 성립한다. 원래 공급자 상태, 관측하지 못한 필드, 가린 필드 경로도 보존한다. 모든 실행 증거의 수준은 `host-reported`다.
+
+완료 후 같은 파일을 다시 관측하면 complete를 유지한다. 새 파일 때문에 출력 개수가 달라지면 현재 실행은 partial이 되며 complete 재보고도 거절한다. 이미 봉인한 후보의 과거 execution prefix와 영수증은 그대로 검증한다.
 
 고정 후보는 `outputSpec.groups`에 미리 선언한다. 동적 복합 실행은 `groupRules`의 native key 필드·최대 그룹·종류와 `slotsSchema`를 고정하고, `group-discovered` 이벤트로만 새 그룹을 발견한다. 현재 두 공급자 Adapter는 고정 후보를 사용한다.
 
@@ -84,7 +86,13 @@ SRT/VTT/XML/AAF, 모델·텍스처·rig/clip, 소스·build 등도 파일로 보
 
 `collect`는 `{artifacts,nativeRecords,observation,unavailableFields}`를 반환한다. 파일 ID는 provider/accountAlias/endpoint/jobId/artifactKey로 안정 대응한다. signed URL에서 이미 회수한 파일은 이후 URL 만료와 무관하게 보존된다. 실패한 다운로드 재시도는 같은 job을 회수하며 새 생성과 구별한다.
 
+fal의 `download`는 6MiB 이하 Uint8Array 또는 `{path,contentHash?}`를 반환한다. base64 인코딩과 JSON 여유를 고려한 전송 한도이며 Resource 자체의 8MiB 인라인 저장 한도와 구별한다. 큰 결과는 정규화된 절대 로컬 경로로 전달하고 기존 `importFile` 경로에서 스트리밍으로 보관·검증한다. 큰 bytes를 인라인 MCP 메시지로 보내기 전에 거절하므로 같은 job을 파일로 다시 회수할 수 있다.
+
+ElevenLabs는 6MiB 초과 음원을 위해 `transport.captureAudio(bytes)`를 제공한다. 호스트가 임시 일반 파일에 기록하고 `{path,contentHash?}`를 반환하면 Adapter는 원래 응답의 hash를 고정하고 MCP가 파일을 검증·보관한다. 경로 파일은 호스트가 보관 완료 후 정리한다. sink가 없거나 실패해도 동기 응답과 handle은 살아 있는 Adapter에 유지되므로 새 생성 POST 없이 같은 응답을 다시 회수한다. 수 MB의 정상 base64 음원은 재귀성 정규식 없이 검사한다.
+
 `server/production/recorder.js`의 `createProductionRecorder({call,root,operationId,executionId})`가 이 관측을 기존 MCP 도구로 보존한다. `call`은 raw tool result를 반환하는 호스트 함수다. 사용 예는 실행 예제를 따른다. 준비와 제출 양쪽에서 실제 MCP에 봉인된 generation-request 및 text Resource를 다시 읽고, 공급자 전송 payload의 prompt/text와 대조한다. 준비 뒤 payload를 바꾸는 경우도 제출 전에 거절한다.
+
+fal·ElevenLabs는 inputBindings가 비어 있어도 모든 native parameter를 봉인 요청에서 계산한 값과 대조한다. 호스트는 실제 전송값을, core는 가린 저장본을 검사한다. 이 순수 프로젝션과 redaction은 `packs/production/`에 있으며 네트워크를 호출하지 않는다. 임의 custom provider의 의미를 추정해 검증했다고 표시하지 않는다.
 
 `prepared` 후 `submit(adapter,prepared)`은 저장된 상태가 prepared인지 검사한 뒤 submitting을 먼저 기록한다. 응답 유실이나 프로세스 종료로 submitting/submission-unknown이 남으면 자동 재전송을 거절한다. provider job을 별도로 확인했다면 같은 실행에 accepted를 기록하고 회수한다. 새 생성은 새 Operation이다. `collect`는 이전 부분 관측과 합쳐 완전한 그룹만 제출하고 `incompleteGroups`에 누락 역할을 반환한다. 같은 후보를 다시 회수하면 기존 불변 제출을 재사용한다.
 

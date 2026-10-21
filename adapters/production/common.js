@@ -3,6 +3,7 @@ import { FolioError } from '../../core/errors.js';
 import { canonicalJson } from '../../core/util/hash.js';
 import { nativeRecord } from './native-records.js';
 
+/** @returns {never} */
 export function invalid(message) { throw new FolioError('PRODUCTION_INPUT_INVALID', message); }
 export function freezeJson(value) {
   if (value && typeof value === 'object') { Object.values(value).forEach(freezeJson); Object.freeze(value); }

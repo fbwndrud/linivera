@@ -2,6 +2,7 @@ import { invalid, resourceIdentity, requireTransport, prepareRequest, fixedGroup
 import { nativeRecord } from './native-records.js';
 import { textBindings } from './input-bindings.js';
 import { validateFalParameters } from './request-schemas.js';
+import { capturedFile } from './file-transfer.js';
 
 export const FAL_IMAGE_ENDPOINT = 'fal-ai/flux/schnell';
 export const FAL_SCHEMA_SOURCE = 'https://fal.ai/models/fal-ai/flux/schnell/api';
@@ -47,9 +48,8 @@ export function createFalAdapter({ transport, accountAlias } = {}) {
       for (const [index, image] of data.images.entries()) {
         const artifactKey = `image-${index}`;
         if (!keys.includes(artifactKey)) continue;
-        const bytes = await transport.download(image.url);
-        if (!(bytes instanceof Uint8Array)) invalid('download transport must return bytes');
-        artifacts.push({ artifactKey, groupId: groups[index], role: 'image', resourceId: resourceIdentity(handle, artifactKey), mediaType: image.content_type ?? 'image/jpeg', bytes: Buffer.from(bytes), metadata: { seed: data.seed ?? null, width: image.width ?? null, height: image.height ?? null } });
+        const actual = capturedFile(await transport.download(image.url));
+        artifacts.push({ artifactKey, groupId: groups[index], role: 'image', resourceId: resourceIdentity(handle, artifactKey), mediaType: image.content_type ?? 'image/jpeg', ...actual, metadata: { seed: data.seed ?? null, width: image.width ?? null, height: image.height ?? null } });
       }
       const missing = Array.from({ length: count }, (_, index) => `image-${index}`).slice(data.images.length);
       return { status: missing.length ? 'partial' : 'complete', artifacts, nativeRecords: [nativeRecord('result', response)], observation: 'host-reported', unavailableFields: ['modelInternalReasoning', ...(data.seed == null ? ['seed'] : []), ...missing] };

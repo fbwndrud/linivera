@@ -1,4 +1,5 @@
 import { FolioError } from '../../core/errors.js';
+import { MAX_INLINE_CAPTURE_BYTES } from '../../adapters/production/file-transfer.js';
 
 /** Retain observed files first; bind timing metadata to exact retained audio/text. */
 export async function retainProductionArtifacts({ invoke, json, prepared, collection, priorArtifacts = [] }) {
@@ -6,6 +7,7 @@ export async function retainProductionArtifacts({ invoke, json, prepared, collec
   const retained = [];
   const ordered = [...collection.artifacts].sort((a, b) => Number(Boolean(a.metadata?.sourceArtifactKey)) - Number(Boolean(b.metadata?.sourceArtifactKey)));
   for (const artifact of ordered) {
+    if (artifact.bytes?.byteLength > MAX_INLINE_CAPTURE_BYTES) throw new FolioError('PRODUCTION_CAPTURE_INVALID', 'large captures require a local file path');
     let revision;
     if (artifact.metadata?.sourceArtifactKey) {
       const audio = [...retained, ...priorArtifacts].find((item) => item.artifactKey === artifact.metadata.sourceArtifactKey && item.groupId === artifact.groupId);

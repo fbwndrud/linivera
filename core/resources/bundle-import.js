@@ -29,6 +29,8 @@ export async function importResourceBundle(root, input) {
       revision = await importResourceFile(root, { resourceId: member.resourceId, kind: 'artifact-file', path: mapping.path, mediaType: mapping.mediaType, ...(mapping.contentHash === undefined ? {} : { contentHash: mapping.contentHash }) });
     }
     if (revision.resourceId !== member.resourceId) throw new FolioError('BUNDLE_INVALID', 'member identity differs');
+    if (member.required && revision.storageStatus !== 'owned_snapshot') unavailable.push({ resourceId: member.resourceId, role: member.role, required: true,
+      reason: 'Required member bytes have not been retained: ' + member.relativePath });
     totalBytes += revision.byteLength ?? 0;
     if (totalBytes > MAX_BUNDLE_BYTES) throw new FolioError('BUNDLE_INVALID', 'bundle exceeds 8GiB');
     members.push({ ...member, revisionId: revision.revisionId });

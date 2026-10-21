@@ -1,12 +1,16 @@
 import { createResourceStore } from '../../resources/revisions.js';
 import { canonicalJson, sha256 } from '../../util/hash.js';
 import { fail } from '../objects.js';
+import { providerNativeRequest } from '../../../packs/production/native-request.js';
+import { nativeRecord } from '../../../packs/production/native-records.js';
 export async function verifyNativeRequest(root, request, event) {
   const store = createResourceStore(root);
   const revision = await store.readRevision(event.nativeRecordRevisionId);
   if (revision.storageStatus !== 'owned_snapshot' || revision.mediaType !== 'application/json') fail('EXECUTION_BINDING_INVALID', 'native request JSON must be owned');
   const record = JSON.parse((await store.readContent(revision.revisionId)).toString('utf8'));
   if (sha256(canonicalJson(record)) !== event.requestDigest) fail('EXECUTION_BINDING_INVALID', 'native request digest differs');
+  const expectedNative = providerNativeRequest(request);
+  if (expectedNative && canonicalJson(nativeRecord('request', expectedNative).record) !== canonicalJson(record)) fail('EXECUTION_BINDING_INVALID', 'native request differs from sealed provider parameters');
   const expected = request.inputBindings.map((binding) => ({ fieldPath: binding.fieldPath, revisionId: binding.transformRevisionId ?? binding.revisionId })).sort((a, b) => a.fieldPath.localeCompare(b.fieldPath));
   const actual = event.remoteInputBindings.map((binding) => ({ fieldPath: binding.fieldPath, revisionId: binding.revisionId })).sort((a, b) => a.fieldPath.localeCompare(b.fieldPath));
   if (canonicalJson(expected) !== canonicalJson(actual)) fail('EXECUTION_BINDING_INVALID', 'native mappings must match every sealed input binding');

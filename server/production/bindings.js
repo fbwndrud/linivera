@@ -1,5 +1,6 @@
 import { FolioError } from '../../core/errors.js';
 import { canonicalJson, sha256 } from '../../core/util/hash.js';
+import { providerNativeRequest } from '../../packs/production/native-request.js';
 
 const textFields = new Set(['prompt', 'text', 'previous_text', 'next_text']);
 function invalid(message) { throw new FolioError('PRODUCTION_INPUT_BINDING_INVALID', message); }
@@ -8,6 +9,8 @@ function invalid(message) { throw new FolioError('PRODUCTION_INPUT_BINDING_INVAL
 export async function verifyPreparedBindings({ invoke, prepared, inspected }) {
   const sealed = await invoke('folio_resources', { op: 'read', revisionId: inspected.requestRevisionId });
   if (canonicalJson(JSON.parse(sealed.content)) !== canonicalJson(prepared.request)) invalid('prepared request differs from the sealed generation request');
+  const expectedNative = providerNativeRequest(prepared.request);
+  if (expectedNative && canonicalJson(expectedNative) !== canonicalJson(prepared.nativeRequest)) invalid('native payload differs from sealed provider parameters');
   const current = inspected.executions.find((item) => item.executionId === inspected.selectedExecutionId);
   const mappings = prepared.inputMapping.map(({ fieldPath, revisionId }) => ({ fieldPath, revisionId }));
   const signature = (values) => canonicalJson([...values].sort((a, b) => a.fieldPath.localeCompare(b.fieldPath)));
