@@ -4,4 +4,5 @@ import part2 from './ko-3.js';
 import part3 from './ko-4.js';
 import examples from './ko-examples.js';
 import motion from './ko-motion.js';
-export const korean = Object.freeze(Object.assign({}, part0, part1, part2, part3, examples, motion));
+import production from './ko-production.js';
+export const korean = Object.freeze(Object.assign({}, part0, part1, part2, part3, examples, motion, production));

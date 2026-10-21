@@ -1,0 +1,21 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { scopedFixture } from '../resources/scoped-fixture.js';
+import { selectInput } from '../../core/resources/input-selections.js';
+import { prepareInput, verifyInput, restrictInput } from '../../core/resources/input-snapshots.js';
+test('an iteration keeps selected previous revisions and exact change text in the next sealed input', async (t) => {
+  const f = await scopedFixture(t);
+  const previous = await selectInput(f.root, { scopeId: 'episode-8', expectedScopeSelectionRevision: null, actor: 'user', reason: 'use original face', bindings: [f.binding('face', f.face1, 'fixed')], ...f.definitions });
+  const change = await f.resource('change', 'synthetic: change only the expression'); await f.select(change);
+  const value = { version: 1, scopeId: 'episode-8', baseRevisionIds: [f.face1.revisionId], preserveRefs: [f.face2.revisionId], changeRequestRevisionId: change.revisionId, previousSelection: { scopeId: 'episode-8', scopeSelectionRevision: previous.scopeSelectionRevision } };
+  const iteration = await f.resource('iteration', value, 'iteration');
+  const chosen = await selectInput(f.root, { scopeId: 'episode-8', expectedScopeSelectionRevision: previous.scopeSelectionRevision, actor: 'user', reason: 'change expression only', bindings: [f.binding('face', f.face1, 'fixed'), f.binding('iteration', iteration)], ...f.definitions });
+  const snapshot = await prepareInput(f.root, { version: 2, scopeId: 'episode-8', scopeSelectionRevision: chosen.scopeSelectionRevision, ...f.definitions });
+  assert.ok(snapshot.manifest.resources.some((resource) => resource.revisionId === change.revisionId));
+  assert.ok(snapshot.manifest.resources.some((resource) => resource.revisionId === f.face2.revisionId));
+  assert.deepEqual((await verifyInput(f.root, snapshot.inputSnapshotId)).manifest, snapshot.manifest);
+  const subset = await restrictInput(f.root, snapshot.inputSnapshotId, [iteration.revisionId]);
+  assert.ok(subset.manifest.resources.some((resource) => resource.revisionId === f.face1.revisionId));
+  assert.ok(subset.manifest.selectionDependencies.some((dependency) => dependency.mode === 'fixed' && dependency.revisionId === f.face1.revisionId));
+  await assert.rejects(f.resource('iteration', { ...value, previousSelection: { scopeId: 'episode-8', scopeSelectionRevision: 'sha256:' + 'f'.repeat(64) } }, 'iteration'), { code: 'ITERATION_INVALID' });
+});

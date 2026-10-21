@@ -18,14 +18,16 @@ export function createProductionRecorder({ call, root, operationId, executionId 
     return result;
   }
   async function retainRecords(nativeRecords = []) {
-    const records = [];
-    for (const native of nativeRecords) {
+    if (!nativeRecords.length) return [];
+    const observations = nativeRecords.map((native) => {
       const safe = nativeRecord(native.stage, native.record);
       const omittedPaths = [...new Set([...(native.omittedPaths ?? []), ...safe.omittedPaths])];
-      const revision = await json(identity('observation', safe), safe.record, 'execution-observation');
-      records.push({ revisionId: revision.revisionId, stage: native.stage, omittedPaths });
-    }
-    return records;
+      return { stage: native.stage, record: safe.record, omittedPaths };
+    });
+    const value = observations.length === 1 ? observations[0].record : { version: 1, observations };
+    const revision = await json(identity('observation', observations), value, 'execution-observation');
+    const omittedPaths = observations.flatMap((item, index) => item.omittedPaths.map((path) => observations.length === 1 ? path : `observations[${index}].record.${path}`));
+    return [{ revisionId: revision.revisionId, stage: observations.length === 1 ? observations[0].stage : 'batch', omittedPaths }];
   }
   async function resume() {
     const result = await invoke('folio_operations', { op: 'inspect', operationId, executionId });
@@ -86,10 +88,11 @@ export function createProductionRecorder({ call, root, operationId, executionId 
       return submission;
     },
     async collect(prepared, collection, { inputSnapshotId }) {
-      const nativeRecords = await retainRecords(collection.nativeRecords);
       const previous = (await resume()).executions.find((item) => item.executionId === executionId);
-      const artifacts = await retainProductionArtifacts({ invoke, json, prepared, collection, priorArtifacts: previous?.artifacts });
-      await record({ type: 'outputs-observed', artifacts: artifacts.map(({ artifactKey, groupId, role, revisionId }) => ({ artifactKey, groupId, role, revisionId })),
+      const { artifacts, bundleObservations } = await retainProductionArtifacts({ invoke, json, prepared, collection, priorArtifacts: previous?.artifacts });
+      const nativeRecords = await retainRecords([...(collection.nativeRecords ?? []), ...bundleObservations.map((observation) => ({ stage: 'incomplete-bundle', record: observation }))]);
+      await record({ type: artifacts.length ? 'outputs-observed' : 'partial',
+        ...(artifacts.length ? { artifacts: artifacts.map(({ artifactKey, groupId, role, revisionId }) => ({ artifactKey, groupId, role, revisionId })) } : {}),
         ...(nativeRecords[0] ? { nativeRecordRevisionId: nativeRecords[0].revisionId, omittedPaths: nativeRecords[0].omittedPaths } : {}),
         unavailableFields: collection.unavailableFields ?? [] });
       const groups = [];
@@ -121,7 +124,7 @@ export function createProductionRecorder({ call, root, operationId, executionId 
           executionId, executionHead: head, requestDigest: prepared.requestDigest,
           resultRevisionIds: members.map((member) => member.revisionId), groupManifestRevisionId: manifest.revisionId }));
       }
-      return { artifacts, groups, incompleteGroups, executionHead: head };
+      return { artifacts, groups, incompleteGroups, bundleObservations, executionHead: head };
     },
   });
 }

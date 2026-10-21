@@ -1,5 +1,6 @@
 import { createResourceStore } from '../resources/revisions.js';
 import { fail } from './objects.js';
+import { verifyAlignmentBindings } from '../resources/alignment-bindings.js';
 /** Timing names exact retained audio and exact source text, never a group label alone. */
 export async function verifyGroupAlignments(root, members, request) {
   const store = createResourceStore(root);
@@ -8,6 +9,7 @@ export async function verifyGroupAlignments(root, members, request) {
     if (member.role !== 'alignment' && envelope.kind !== 'audio-alignment') continue;
     if (envelope.mediaType !== 'application/json') fail('ALIGNMENT_BINDING_INVALID', 'typed alignment JSON required');
     const value = JSON.parse((await store.readContent(member.revisionId)).toString('utf8'));
+    if (value.normalizedTextRevisionId || value.normalizationMapRevisionId) await verifyAlignmentBindings(root, { version: 1, ...value });
     const audio = members.find((candidate) => candidate.role === 'audio' && candidate.revisionId === value.audioRevisionId);
     const inputAudio = request.inputBindings.find((binding) => ['audio', 'audio_url', 'file'].includes(binding.fieldPath) && binding.revisionId === value.audioRevisionId);
     const text = request.inputBindings.find((binding) => ['text', 'script', 'transcript'].includes(binding.fieldPath) && binding.revisionId === value.textRevisionId);

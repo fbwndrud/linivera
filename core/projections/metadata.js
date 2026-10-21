@@ -7,7 +7,7 @@ import { applyReviewImpact } from './review-impact.js';
 import { readOperationLineage, operationImpactFacts, selectionChanges } from '../operations/lineage.js';
 import { groupPublicationEvidence } from '../operations/group-publications.js';
 
-export const METADATA_GENERATOR_REVISION = 'folio-metadata-v4';
+export const METADATA_GENERATOR_REVISION = 'folio-metadata-v5';
 export async function metadataEntries(root, state, { transitive = true, includeSubmitted = true } = {}) {
   const entries = [];
   for (const selection of Object.values(state.sourceSelections)) {

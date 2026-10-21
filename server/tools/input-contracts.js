@@ -53,6 +53,11 @@ export function inputConditions(name, properties) {
   if (name === 'folio_assets') rules.push(when('op', 'put', { oneOf: [{ required: ['path'] }, { required: ['uri'] }] }));
   if (name === 'folio_tracking') rules.push(when('op', 'propose', { oneOf: [{ required: ['plan'] }, { required: ['changes'] }] }));
   if (name === 'folio_resources') rules.push(when('op', 'propose', { oneOf: [{ required: ['owned'] }, { required: ['external'] }] }));
+  if (name === 'folio_inputs') rules.push(when('op', 'prepare', {
+    if: { properties: { version: { const: 2 } }, required: ['version'] },
+    then: { required: ['scopeId', 'scopeSelectionRevision'], properties: { revisionIds: false } },
+    else: { required: ['revisionIds'], properties: { scopeId: false, scopeSelectionRevision: false, bindingKeys: false } },
+  }));
   if (name === 'folio_operations') rules.push(
     when('operationContractVersion', 2, { required: ['requestRevisionId'] }),
     { if: { required: ['requestRevisionId'] }, then: { required: ['operationContractVersion'], properties: { operationContractVersion: { const: 2 } } } },

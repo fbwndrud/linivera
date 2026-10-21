@@ -24,11 +24,11 @@ test('a nested generation request cannot smuggle an unselected input past the sn
   const snapshot = await prepareInput(f.root, { revisionIds: [f.source.revisionId, request.revisionId], profileRevisionId: f.ids.profile, pipelineRevisionId: f.ids.pipeline, policyRevisionId: f.ids.policy });
   await assert.rejects(startOperation(f.root, { ...f.start, idempotencyKey: 'unbound', inputSnapshotId: snapshot.inputSnapshotId, requestRevisionId: request.revisionId }), { code: 'INPUT_REFERENCE_OUTSIDE_SNAPSHOT' });
 });
-test('v3 metadata retains historical verification and v4 refresh becomes current', async (t) => {
+test('v4 metadata retains historical verification and v5 refresh becomes current', async (t) => {
   const f = await productionFixture(t); const state = await readWorkspaceState(f.root);
   const entries = await metadataEntries(f.root, state, { transitive: false });
-  await saveGeneration(f.root, metadataManifest(entries, state, 'folio-metadata-v3'), entries);
+  await saveGeneration(f.root, metadataManifest(entries, state, 'folio-metadata-v4'), entries);
   assert.equal((await queryResources(f.root, { freshness: 'allowStale' })).freshness, 'stale');
-  assert.equal((await buildMetadataProjection(f.root)).generatorRevision, 'folio-metadata-v4');
+  assert.equal((await buildMetadataProjection(f.root)).generatorRevision, 'folio-metadata-v5');
   assert.equal((await queryResources(f.root, {})).freshness, 'current');
 });

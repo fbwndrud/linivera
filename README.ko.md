@@ -132,6 +132,7 @@ MCP 연결 때 기본 작업 규칙을 보냅니다. MCP 리소스를 지원하�
 - **집필:** [첫 작품](docs/writing-guide.md), [그림](docs/assets.md), [자료](docs/resources.md), [Studio](docs/studio.md), [내보내기](docs/export.md).
 - **설치와 복구:** [연결](docs/connect.md), [설치](docs/production.md), [운영](docs/operations.md).
 - **생성 도구의 데이터 연결:** [파일·묶음·실행·후보별 검토와 후속 제작](docs/production-data.md).
+- **반복 제작과 회차 연결:** [판본 선택·수정 의도·지식 묶음·추가 데이터 유형](docs/continuity.md).
 - **개발:** [기여 안내](CONTRIBUTING.md), [테스트](docs/testing.md), [보안](SECURITY.md). `npm run check`와 기여 안내의 검증을 실행하세요. 문제 신고에는 합성 재현 데이터를 사용하고 개인 작품이나 인증 정보를 올리지 마세요.
 
 리니베라 코드는 [Apache-2.0](LICENSE)입니다. 별도 예시의 자체 제작 원고·그림·노트는 CC0-1.0이며, 제3자 인용·코드·상표는 제외합니다. Studio에는 제3자 라이선스와 소스 위치를 적은 `THIRD-PARTY-NOTICES.txt`를 포함합니다. [NOTICE](NOTICE)를 참고하세요.

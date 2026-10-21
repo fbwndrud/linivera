@@ -2,7 +2,7 @@
 export function applyReviewImpact(entries, intermediates = []) {
   const outputs = [...entries.filter((e) => e.role === 'output'), ...intermediates];
   const causes = new Map(); const dependents = new Map(); const queue = [];
-  const causeKey = (r) => JSON.stringify([r.resourceId, r.inputRevisionId, r.currentRevisionId]);
+  const causeKey = (r) => JSON.stringify([r.resourceId, r.inputRevisionId, r.currentRevisionId, r.scopeId ?? null, r.bindingKey ?? null]);
   for (const e of outputs) {
     if (!causes.has(e.revisionId)) causes.set(e.revisionId, new Map());
     for (const ref of e.inputRefs) {

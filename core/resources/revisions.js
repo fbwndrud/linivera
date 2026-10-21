@@ -7,6 +7,8 @@ import { readObject, readOwnedContent, resourceObjectPath, writeImmutable } from
 import { verifyStoredBlob, materializeResourceFile } from './blob-files.js';
 import { contentValidation } from './media-types.js';
 import { collectBundleClosure, readBundle, validateBundleManifest } from './bundles.js';
+import { verifyContextResource } from './context-references.js';
+import { validateIteration } from '../operations/iteration.js';
 
 export function createResourceStore(root) {
   async function readRevision(revisionId) {
@@ -77,6 +79,11 @@ export function createResourceStore(root) {
 /** Internal write seam: caller must already hold the workspace lock. */
 export async function proposeResourceLocked(root, input) {
   validateProposal(input);
+  await verifyContextResource(root, input);
+  if (input.kind === 'iteration') {
+    if (input.owned?.mediaType !== 'application/json') throw new FolioError('ITERATION_INVALID', 'iteration requires owned JSON');
+    await validateIteration(root, JSON.parse(Buffer.from(input.owned.bytes).toString('utf8')));
+  }
   if (input.kind === 'artifact-bundle') {
     if (input.owned?.mediaType !== 'application/json') throw new FolioError('BUNDLE_INVALID', 'bundle must contain owned JSON');
     validateBundleManifest(JSON.parse(Buffer.from(input.owned.bytes).toString('utf8')));

@@ -15,6 +15,8 @@
 | folio_resources decideSource | revisionId, expectedSelectionRevision:null 또는 마지막 selectionRevision, action:{type:select 또는 deselect,actor:user,reason?}; deselect 이유 필수 |
 | folio_inputs prepare | revisionIds, profileRevisionId, pipelineRevisionId, policyRevisionId, externalMode?:reject 또는 reference-only |
 | folio_inputs verify | inputSnapshotId |
+| folio_inputs select/getSelection | scopeId와 명시적 사용자 bindings를 선택하거나 현재/과거 checkpoint의 선택을 읽는다. [회차별 선택 계약](continuity.md) |
+| folio_inputs prepare version:2 | scopeId, scopeSelectionRevision, bindingKeys?, profileRevisionId, pipelineRevisionId, policyRevisionId; 같은 자원의 다중 판본과 typed 참조 폐쇄 봉인 |
 | folio_policy issue | grantId, policyRevisionId, profileRevisionId, pipelineRevisionId, actor:host, actions:[create-candidate 또는 publish], resourceIds, expiresAt:양의 정수, expectedCheckpoint, authority:{actor:user,attested:true} |
 | folio_policy revoke | grantId, expectedCheckpoint, authority:{actor:user,attested:true} |
 | folio_policy status | grantId; 현재 위임 또는 null |
@@ -25,6 +27,7 @@
 | folio_resource_query refresh | checkpoint?; 지정 없으면 현재 상태. 완성 ProjectionManifest 반환 |
 | folio_resource_query query | resourceId?, selector?, freshness? |
 | folio_resource_query graph | resourceId?, direction?:upstream/downstream/both, depth?:0..100(기본20), limit?:1..5000(기본1000); nodes/edges/checkpoint/truncated/scope |
+| folio_resource_query context/indexGraph | context는 scopeId/purpose/budget에 맞는 지식 묶음 후보. indexGraph는 명시적 부분 탐색 generation 생성. graph의 cursor·경계·예산·unknown은 [회차 연결 안내](continuity.md) |
 
 정의도 owned JSON 후보 등록 후 사용자 선택한다. profile은 `{version:1,scope:[resourceId],maxInputBytes:양의정수}`, pipeline은 `{version:1,steps:[{id,capability:transform 또는 analyze}]}`, policy는 `{version:1,mode?:Balanced 또는 Strict,scope:[resourceId],allowedActions:[create-candidate,publish,select-source,issue-grant,revoke-grant 중 필요한 것],expiresAt?,maxInputBytes?}`이다. 자료와 세 정의의 모든 봉인 bytes가 예산에 포함된다. 외부 참조 길이는 unknown이다. 과거 입력 verify 성공이 현재 host 권한을 의미하지 않는다. 위임은 정확한 세 정의 판본과 정의 hash, scope/action/만료/철회에 결속한다.
 

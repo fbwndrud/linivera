@@ -1,0 +1,55 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { scopedFixture } from './scoped-fixture.js';
+import { selectInput, readInputSelection } from '../../core/resources/input-selections.js';
+import { prepareInput, verifyInput, restrictInput } from '../../core/resources/input-snapshots.js';
+test('a scope compares two revisions without changing global sources and verifies its past checkpoint', async (t) => {
+  const f = await scopedFixture(t);
+  const selection = await selectInput(f.root, { scopeId: 'episode-8', expectedScopeSelectionRevision: null, actor: 'user', reason: 'compare faces', ...f.definitions,
+    bindings: [f.binding('before', f.face1, 'fixed'), f.binding('after', f.face2), f.binding('music', f.music, 'global')] });
+  const snapshot = await prepareInput(f.root, { version: 2, scopeId: 'episode-8', scopeSelectionRevision: selection.scopeSelectionRevision, ...f.definitions });
+  assert.deepEqual(snapshot.manifest.revisionIds, [f.face1.revisionId, f.face2.revisionId, f.music.revisionId]);
+  assert.equal((await f.store.readSourceSelection('face')).revisionId, f.face2.revisionId);
+  const subset = await restrictInput(f.root, snapshot.inputSnapshotId, [f.face1.revisionId]);
+  assert.deepEqual(subset.manifest.bindingKeys, ['before']);
+  await selectInput(f.root, { scopeId: 'episode-8', expectedScopeSelectionRevision: selection.scopeSelectionRevision, actor: 'user', reason: 'restore original', ...f.definitions, bindings: [f.binding('before', f.face1, 'fixed')] });
+  assert.deepEqual((await verifyInput(f.root, snapshot.inputSnapshotId)).manifest, snapshot.manifest);
+  await assert.rejects(selectInput(f.root, { scopeId: 'episode-8', expectedScopeSelectionRevision: selection.scopeSelectionRevision, actor: 'user', reason: 'stale edit', ...f.definitions, bindings: [f.binding('before', f.face1)] }), { code: 'INPUT_SELECTION_CONFLICT' });
+});
+test('scoped source dependencies retain exact meaning across scopes and reject unauthorized selections', async (t) => {
+  const f = await scopedFixture(t);
+  const initial = { expectedScopeSelectionRevision: null, actor: 'user', reason: 'synthetic scope choice', ...f.definitions };
+  const source = await selectInput(f.root, { ...initial, scopeId: 'episode-1', bindings: [f.binding('face', f.face1)] });
+  const linked = { ...f.binding('face', f.face1), sourceScopeId: 'episode-1', sourceBindingKey: 'face' };
+  const child = await selectInput(f.root, { ...initial, scopeId: 'episode-8', bindings: [linked] });
+  const input = { version: 2, scopeId: 'episode-8', scopeSelectionRevision: child.scopeSelectionRevision, ...f.definitions };
+  const snapshot = await prepareInput(f.root, input);
+  assert.ok(snapshot.manifest.selectionDependencies.some((dependency) => dependency.scopeId === 'episode-1'));
+  await selectInput(f.root, { ...initial, scopeId: 'episode-1', expectedScopeSelectionRevision: source.scopeSelectionRevision, bindings: [f.binding('face', f.face2)] });
+  await assert.rejects(prepareInput(f.root, input), { code: 'INPUT_INVALID' });
+  await assert.rejects(readInputSelection(f.root, 'episode-8', { validateDependencies: true, bindingKeys: ['face'] }), { code: 'INPUT_INVALID' });
+  assert.equal((await readInputSelection(f.root, 'episode-1', { checkpoint: snapshot.manifest.workspaceCheckpoint })).bindings[0].revisionId, f.face1.revisionId);
+  await assert.rejects(selectInput(f.root, { ...initial, scopeId: 'host-choice', actor: 'host', bindings: [f.binding('face', f.face1)] }), { code: 'INPUT_INVALID' });
+  const outside = await f.resource('outside', 'synthetic out of scope');
+  await assert.rejects(selectInput(f.root, { ...initial, scopeId: 'outside-choice', bindings: [f.binding('outside', outside)] }), { code: 'INPUT_INVALID' });
+  const policy = await f.resource('policy', { version: 1, scope: ['face'], allowedActions: ['select-source'], expiresAt: 1 }, 'policy'); await f.select(policy);
+  await assert.rejects(selectInput(f.root, { ...initial, policyRevisionId: policy.revisionId, scopeId: 'expired-choice', bindings: [f.binding('face', f.face1)] }), { code: 'POLICY_DENIED' });
+});
+test('multiple roles share one retained byte charge and v2 closures cannot bypass missing nested choices', async (t) => {
+  const f = await scopedFixture(t);
+  const selection = await selectInput(f.root, { scopeId: 'comparison', expectedScopeSelectionRevision: null, actor: 'user', reason: 'compare two roles', ...f.definitions, bindings: [f.binding('identity', f.face1, 'fixed'), f.binding('style', f.face1, 'fixed')] });
+  const input = { version: 2, scopeId: 'comparison', scopeSelectionRevision: selection.scopeSelectionRevision, ...f.definitions };
+  const one = await prepareInput(f.root, { ...input, bindingKeys: ['identity'] });
+  const two = await prepareInput(f.root, input);
+  assert.equal(two.manifest.totalBytes, one.manifest.totalBytes); assert.equal(two.manifest.resources.length, 1); assert.equal(two.manifest.bindings.length, 2);
+  const value = { version: 1, provider: 'synthetic', product: 'fixture', endpoint: '/generate', capability: 'image', schemaVersion: '1', parameters: {}, inputBindings: [{ fieldPath: 'image', role: 'identity', revisionId: f.face1.revisionId }], outputSpec: { groupPolicy: 'fixed', groups: [{ groupId: 'A', slots: [{ role: 'image', required: true, acceptableMediaTypes: ['image/png'] }] }] } };
+  const request = await f.resource('request', value, 'generation-request');
+  const chosen = await selectInput(f.root, { scopeId: 'request-only', expectedScopeSelectionRevision: null, actor: 'user', reason: 'select request', ...f.definitions, bindings: [f.binding('request', request)] });
+  await assert.rejects(prepareInput(f.root, { ...input, scopeId: 'request-only', scopeSelectionRevision: chosen.scopeSelectionRevision }), { code: 'INPUT_INVALID' });
+  const fixed = await selectInput(f.root, { scopeId: 'request-only', expectedScopeSelectionRevision: chosen.scopeSelectionRevision, actor: 'user', reason: 'explicitly include old identity', ...f.definitions, bindings: [f.binding('request', request), f.binding('identity', f.face1, 'fixed')] });
+  const complete = await prepareInput(f.root, { ...input, scopeId: 'request-only', scopeSelectionRevision: fixed.scopeSelectionRevision });
+  assert.ok(complete.manifest.resources.some((resource) => resource.revisionId === f.face1.revisionId));
+  const malformed = await f.resource('request', { ...value, inputBindings: {} }, 'generation-request');
+  const bad = await selectInput(f.root, { scopeId: 'bad-request', expectedScopeSelectionRevision: null, actor: 'user', reason: 'synthetic invalid schema', ...f.definitions, bindings: [f.binding('request', malformed)] });
+  await assert.rejects(prepareInput(f.root, { ...input, scopeId: 'bad-request', scopeSelectionRevision: bad.scopeSelectionRevision }), { code: 'PRODUCTION_REQUEST_INVALID' });
+});
