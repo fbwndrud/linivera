@@ -15,7 +15,7 @@ test('single package entry connects as MCP and serves only bundled guides', asyn
   t.after(() => client.close());
   await client.connect(new StdioClientTransport({ command: process.execPath, args: [cli], stderr: 'pipe' }));
   assert.equal(client.getServerVersion().name, 'linivera');
-  assert.equal((await client.listTools()).tools.length, 22);
+  assert.equal((await client.listTools()).tools.length, 23);
   assert.match(client.getInstructions().slice(0, 512), /actual user decisions/);
   const { resources } = await client.listResources();
   assert.ok(resources.some(r => r.uri === 'linivera://guides/getting-started'));

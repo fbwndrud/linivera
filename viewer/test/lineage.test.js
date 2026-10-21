@@ -4,10 +4,16 @@ import { createServer } from 'vite';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { createStaticApi } from '../src/lib/static-api.js';
-let server, ResourceLineageContent;
+let server, ResourceLineageContent, Provider;
 before(async () => {
   server = await createServer({ root: new URL('..', import.meta.url).pathname, server: { middlewareMode: true }, appType: 'custom' });
   ({ ResourceLineageContent } = await server.ssrLoadModule('/src/components/ResourceLineage.jsx'));
+  ({ I18nProvider: Provider } = await server.ssrLoadModule('/src/i18n/context.jsx'));
+});
+test('resource lineage follows the Studio language while preserving authored resource IDs', () => {
+  const data = { nodes: [{ id: 'pose', type: 'resource', resourceId: 'Authored pose', revisionId: 'sha256:pose', states: ['approved'], reviewRequired: true }], edges: [], checkpoint: { seq: 1 }, truncated: true };
+  const html = renderToStaticMarkup(React.createElement(Provider, { initialLocale: 'ko' }, React.createElement(ResourceLineageContent, { data })));
+  for (const text of ['자산 이력', '재검토 필요', '부분 그래프', 'Authored pose', 'sha256:pose']) assert.ok(html.includes(text), text);
 });
 after(async () => { await server?.close(); });
 test('lineage distinguishes candidates, submitted results and review impact and escapes source labels', async () => {
