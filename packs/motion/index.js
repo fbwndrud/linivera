@@ -53,6 +53,6 @@ export async function assembleMotion(root, input, adapter) {
   const result = await motionOperation(root, operationArgs(input, 'assemble'), {
     resourceId: plan.outputResourceId, kind: 'motion-video', schemaRef: 'folio.motion.v1.video:' + specRevisionId,
   }, async () => adapter.assemble({ ...plan, shots: await Promise.all(plan.shots.map(async (s) => ({ ...s, bytes: await store.readContent(s.revisionId) }))),
-    audio: await Promise.all(plan.audio.filter((a) => a.revisionId).map(async (a) => ({ ...a, bytes: await store.readContent(a.revisionId) }))) }));
+    audio: await Promise.all(plan.audio.filter((a) => a.revisionId).map(async (a) => ({ ...a, mediaType: (await store.readRevision(a.revisionId)).mediaType, bytes: await store.readContent(a.revisionId) }))) }));
   return { status: 'submitted', operationIds: [result.operationId], resultRevisionIds: result.resultRevisionIds, creativeReview: 'not-performed', technical: result.trace.reported.technical };
 }

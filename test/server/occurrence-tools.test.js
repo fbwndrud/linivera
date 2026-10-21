@@ -9,8 +9,8 @@ import { copyFixture, fakePacks, useFakePack } from '../support/fixtures.js';
 const ok = (out) => { assert.equal(out.ok, true, JSON.stringify(out.error)); return out.result; };
 const code = (out) => out.error?.code;
 
-test('twenty-two tools, and folio_occurrences is one of them', () => {
-  assert.equal(TOOLS.length, 22);
+test('twenty-three tools, and folio_occurrences is one of them', () => {
+  assert.equal(TOOLS.length, 23);
   assert.ok(TOOLS.some((t) => t.name === 'folio_occurrences'));
 });
 

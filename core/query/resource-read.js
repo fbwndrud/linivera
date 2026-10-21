@@ -13,10 +13,11 @@ export async function readResourceQuery(root, input, state) {
     selector.type === 'atRevision' ? g.entries.some((e) => e.revisionId === selector.revisionId && (resourceId === undefined || e.resourceId === resourceId)) : true);
   if (!generation) return null;
   const prefix = await readWorkspaceState(root, { checkpoint: generation.manifest.workspaceCheckpoint });
-  const legacy = generation.manifest.generatorRevision === 'folio-metadata-v1';
-  const verified = await metadataEntries(root, prefix, { transitive: !legacy });
+  const generator = generation.manifest.generatorRevision;
+  const legacy = generator !== METADATA_GENERATOR_REVISION;
+  const verified = await metadataEntries(root, prefix, { transitive: generator === 'folio-metadata-v2', includeSubmitted: false });
   const { generationId: _generationId, ...actualManifest } = generation.manifest;
-  if (canonicalJson(actualManifest) !== canonicalJson(metadataManifest(verified, prefix, legacy ? 'folio-metadata-v1' : METADATA_GENERATOR_REVISION)) || canonicalJson(verified) !== canonicalJson(generation.entries)) fail('PROJECTION_INTEGRITY_FAILURE', 'generation entries differ from verified authoritative prefix');
+  if (!['folio-metadata-v1', 'folio-metadata-v2', METADATA_GENERATOR_REVISION].includes(generator) || canonicalJson(actualManifest) !== canonicalJson(metadataManifest(verified, prefix, generator)) || canonicalJson(verified) !== canonicalJson(generation.entries)) fail('PROJECTION_INTEGRITY_FAILURE', 'generation entries differ from verified authoritative prefix');
   let status = checkpointFreshness(generation.manifest, state);
   if (legacy) status = 'stale';
   let entries = verified.filter((e) => (resourceId === undefined || e.resourceId === resourceId) && (selector.type !== 'atRevision' || e.revisionId === selector.revisionId));

@@ -17,7 +17,7 @@ async function output(directory, args, spec, duration, audio) {
     '-t', String(duration), '-c:v', 'libx264', '-threads', '1', '-preset', 'ultrafast', '-crf', '24', '-pix_fmt', 'yuv420p',
     ...(audio ? ['-c:a', 'aac', '-b:a', '96k'] : ['-an']), '-map_metadata', '-1', '-movflags', '+faststart', '-fs', String(MAX_RESOURCE_BYTES + 1), target]);
   if ((await stat(target)).size > MAX_RESOURCE_BYTES) throw new FolioError('RESOURCE_TOO_LARGE', 'render exceeds 8MiB; shorten the clip or reduce resolution');
-  const probe = JSON.parse((await command('ffprobe', ['-v', 'error', '-show_streams', '-show_format', '-of', 'json', target])).stdout);
+  const probe = JSON.parse((await command('ffprobe', ['-v', 'error', '-protocol_whitelist', 'file', '-f', 'mov', '-show_streams', '-show_format', '-of', 'json', target])).stdout);
   const video = probe.streams.find((s) => s.codec_type === 'video'); const hasAudio = probe.streams.some((s) => s.codec_type === 'audio');
   const observedDuration = Number(probe.format.duration);
   if (!video || video.width !== spec.width || video.height !== spec.height || Math.abs(observedDuration - duration) > Math.max(0.2, 1 / spec.fps) || hasAudio !== audio) throw new FolioError('MOTION_RENDER_INVALID', 'rendered technical properties differ from the plan');
@@ -27,12 +27,17 @@ async function scratch(run) { const directory = await mkdtemp(join(tmpdir(), 'fo
 export const ffmpegMotion = {
   renderShot: (spec) => scratch(async (directory) => {
     const args = ['-f', 'lavfi', '-i', `color=c=0x${spec.backgroundColor.slice(1)}:s=${spec.width}x${spec.height}:r=${spec.fps}:d=${spec.durationSeconds}`];
-    for (const [i, layer] of spec.layers.entries()) { const path = join(directory, `layer-${i}.image`); await writeFile(path, layer.bytes); args.push('-loop', '1', '-framerate', String(spec.fps), '-i', path); }
+    for (const [i, layer] of spec.layers.entries()) { const path = join(directory, `layer-${i}.image`); await writeFile(path, layer.bytes); args.push('-protocol_whitelist', 'file', '-f', 'image2', '-pattern_type', 'none', '-loop', '1', '-framerate', String(spec.fps), '-i', path); }
     args.push('-filter_complex', shotFilters(spec), '-map', '[out]'); return output(directory, args, spec, spec.durationSeconds, false);
   }),
   assemble: (spec) => scratch(async (directory) => {
     const args = [];
-    for (const [i, item] of [...spec.shots, ...spec.audio].entries()) { const path = join(directory, `input-${i}.media`); await writeFile(path, item.bytes); args.push('-i', path); }
+    for (const [i, item] of [...spec.shots, ...spec.audio].entries()) {
+      const path = join(directory, `input-${i}.media`); await writeFile(path, item.bytes);
+      const format = i < spec.shots.length ? 'mov' : { 'audio/wav': 'wav', 'audio/mpeg': 'mp3' }[item.mediaType];
+      if (!format) throw new FolioError('MOTION_INPUT_INVALID', 'supported declared audio media type required');
+      args.push('-protocol_whitelist', 'file', '-f', format, ...(format === 'mov' ? ['-enable_drefs', '0', '-use_absolute_path', '0'] : []), '-i', path);
+    }
     args.push('-filter_complex', assemblyFilters(spec), '-map', '[out]'); if (spec.audio.length) args.push('-map', '[audio]');
     return output(directory, args, spec, spec.shots.reduce((n, s) => n + s.durationSeconds, 0), spec.audio.length > 0);
   }),

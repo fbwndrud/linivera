@@ -40,12 +40,14 @@ evidence는 반환 entry별 정확한 revisionId/contentHash와 sourceCheckpoint
 
 ## 저장 계약
 
-`.folio/projections/metadata/<generation hex>.json`은 추가 전용 `{manifest,entries}`다. generationId는 generationId 필드를 뺀 `{manifest,entries}`의 canonical JSON sha256이다. manifest는 `{version:1,projectionId:metadata,kind:metadata,generationId,inputManifestId,workspaceCheckpoint,generatorRevision:folio-metadata-v2,definitionRevision:null,parametersHash,status:complete,coverage,outputHashes}`다. inputManifestId는 검증된 prefix markers hash, parametersHash는 빈 설정 hash, outputHashes는 canonical entries hash 목록이다. builtAt은 생성 identity의 재현성을 위해 포함하지 않는다. 미완성 generation 공개와 mutable HEAD는 없으며 기존 generation을 지우지 않는다. source/result/grant만 workspace marker를 추가하고 refresh는 checkpoint를 바꾸지 않는다.
+`.folio/projections/metadata/<generation hex>.json`은 추가 전용 `{manifest,entries}`다. generationId는 generationId 필드를 뺀 `{manifest,entries}`의 canonical JSON sha256이다. manifest는 `{version:1,projectionId:metadata,kind:metadata,generationId,inputManifestId,workspaceCheckpoint,generatorRevision:folio-metadata-v3,definitionRevision:null,parametersHash,status:complete,coverage,outputHashes}`다. inputManifestId는 검증된 prefix markers hash, parametersHash는 빈 설정 hash, outputHashes는 canonical entries hash 목록이다. builtAt은 생성 identity의 재현성을 위해 포함하지 않는다. 미완성 generation 공개와 mutable HEAD는 없으며 기존 generation을 지우지 않는다. source/result/grant만 workspace marker를 추가하고 refresh는 checkpoint를 바꾸지 않는다.
+
+v3 generation에는 checkpoint에 결속된 선택·승인 entry와 직접 영향만 저장한다. 전이 영향은 조회할 때 검증된 모든 제출 Operation에서 계산한다. 제출 자체에는 workspace marker가 없으므로, 같은 checkpoint에서 뒤늦게 추가된 생산 이력 때문에 과거 generation이 손상으로 오판되지 않게 한다. `freshness`는 선택/발행 checkpoint의 최신성이다. 반환하는 review 상태는 현재 검증 가능한 모든 제출 이력을 보수적으로 반영한다. 요청의 입력 연결과 host-reported 제출은 실제 모델 내부 사용의 인증과 구분한다.
 
 현재 단일 로컬 사용자/기록자 슬라이스이며 fsync·정전 내구성, 원격 접근 권한, 제공자 비용 검증을 보장하지 않는다. 보고 trace는 host-reported이며 비공개 모델 추론을 관측했다고 주장하지 않는다.
 
 ## 공통 그래프·전이 영향·모션 확장
 
-그래프는 공통 revision과 Operation을 검증해 input/output/revision 연결로 돌려준다. 미선택 후보·제출·거절도 포함하며, 선택 여부와 품질 승인 상태를 구분한다. 제한으로 잘린 관계는 truncated:true다. 승인 결과의 reviewRequired는 정확한 판본 의존을 따라 후속 승인 결과까지 전파된다. 원본 변경은 결과 bytes나 영수증을 자동 교체하지 않는다. 메타데이터 v1은 allowStale로 읽을 수 있으나 current를 위해 v2 refresh가 필요하다.
+그래프는 공통 revision과 Operation을 검증해 input/output/revision 연결로 돌려준다. 미선택 후보·제출·거절도 포함하며, 선택 여부와 품질 승인 상태를 구분한다. 제한으로 잘린 관계는 truncated:true다. reviewRequired는 정확한 판본 의존과 미승인 중간 결과를 지나 후속 결과까지 전파된다. 프로필·파이프라인·정책 정의도 공통 입력 연결에 포함한다. 원본 변경은 결과 bytes나 영수증을 자동 교체하지 않는다. 메타데이터 v1/v2는 기존 계산 방식으로 검증해 allowStale로 읽을 수 있으나 current를 위해 v3 refresh가 필요하다.
 
 [모션 확장](motion.md)은 이 자원·입력·작업 계약으로 컷, 타임라인, 영상을 만든다. 포즈는 다른 파이프라인에서도 같은 ID/판본으로 재사용한다. 로컬 뷰어와 정적 내보내기의 Connections에서 공통 그래프를 확인할 수 있다.

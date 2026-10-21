@@ -1,6 +1,6 @@
 /** Propagate changed-source reasons through exact revisions; retain historical bytes and receipts. */
-export function applyReviewImpact(entries) {
-  const outputs = entries.filter((e) => e.role === 'output');
+export function applyReviewImpact(entries, intermediates = []) {
+  const outputs = [...entries.filter((e) => e.role === 'output'), ...intermediates];
   const causes = new Map(); const dependents = new Map(); const queue = [];
   const causeKey = (r) => JSON.stringify([r.resourceId, r.inputRevisionId, r.currentRevisionId]);
   for (const e of outputs) {

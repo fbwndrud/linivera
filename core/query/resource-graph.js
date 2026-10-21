@@ -1,12 +1,9 @@
-import { join } from 'node:path';
 import { FolioError } from '../errors.js';
-import { canonicalJson } from '../util/hash.js';
 import { withWorkspaceStateTransaction } from '../publications/state.js';
-import { objectIds, listResourceRevisions } from '../resources/catalog.js';
+import { listResourceRevisions } from '../resources/catalog.js';
 import { assertResourceId } from '../resources/schema.js';
-import { verifyInput } from '../resources/input-snapshots.js';
-import { readOperation, outputBindings } from '../operations/requests.js';
-import { get } from '../operations/objects.js';
+import { readOperationLineage, operationImpactFacts } from '../operations/lineage.js';
+import { applyReviewImpact } from '../projections/review-impact.js';
 import { metadataEntries } from '../projections/metadata.js';
 
 const resourceNode = (id) => `revision:${id}`;
@@ -14,10 +11,12 @@ const operationNode = (id) => `operation:${id}`;
 
 async function readGraph(root, state) {
   const revisions = await listResourceRevisions(root);
-  const entries = await metadataEntries(root, state); // Revalidates publications and selected source bytes.
+  await metadataEntries(root, state, { transitive: false }); // Revalidates publications and selected source bytes.
+  const records = await readOperationLineage(root);
+  const impact = applyReviewImpact(revisions.map((r) => ({ ...r, role: 'output', inputRefs: [], reviewReasons: [] })), operationImpactFacts(records, state));
   const nodes = revisions.map((r) => ({ id: resourceNode(r.revisionId), type: 'resource', ...r,
     selected: state.sourceSelections[r.resourceId]?.revisionId === r.revisionId, states: [],
-    reviewRequired: entries.some((e) => e.revisionId === r.revisionId && e.reviewRequired) }));
+    reviewRequired: impact.some((e) => e.revisionId === r.revisionId && e.reviewRequired) }));
   const byId = new Map(nodes.map((n) => [n.id, n])); const edges = [];
   function edge(source, target, kind) {
     if (!byId.has(source) || !byId.has(target)) throw new FolioError('RESOURCE_INTEGRITY_FAILURE', 'graph references a missing revision');
@@ -27,19 +26,14 @@ async function readGraph(root, state) {
     if (byId.get(resourceNode(parent))?.resourceId !== r.resourceId) throw new FolioError('RESOURCE_PARENT_INVALID', 'revision parent belongs to another resource');
     edge(resourceNode(parent), resourceNode(r.revisionId), 'revision');
   }
-  const requests = await objectIds(root, join(root, '.folio', 'operations', 'requests'));
-  for (const id of requests) {
-    const request = await readOperation(root, id); const { manifest } = await verifyInput(root, request.inputSnapshotId);
+  for (const { request, manifest, result, outputs } of records) {
+    const id = request.operationId;
     const publication = state.publications.find((p) => p.operationId === id);
-    const result = await get(root, 'results', id, true);
     const op = { id: operationNode(id), type: 'operation', operationId: id, requestId: request.requestId,
       inputSnapshotId: request.inputSnapshotId, status: publication?.action === 'approve' ? 'approved' : publication?.action === 'reject' ? 'rejected' : result ? 'submitted' : 'pending' };
     nodes.push(op); byId.set(op.id, op);
-    for (const input of manifest.resources) edge(resourceNode(input.revisionId), op.id, 'input');
+    for (const input of manifest.selections) edge(resourceNode(input.revisionId), op.id, 'input');
     if (!result) continue;
-    const outputs = await outputBindings(root, result.resultRevisionIds);
-    if (result.operationId !== id || result.requestId !== request.requestId || result.inputSnapshotId !== request.inputSnapshotId
-      || canonicalJson(outputs) !== canonicalJson(result.outputs)) throw new FolioError('RESULT_MISMATCH', 'graph result does not bind its exact request');
     for (const output of outputs) {
       edge(op.id, resourceNode(output.revisionId), 'output');
       byId.get(resourceNode(output.revisionId)).states.push(op.status);

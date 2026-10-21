@@ -50,11 +50,11 @@
 
 로컬 뷰어의 **Connections → Resource history**와 정적 뷰어 내보내기도 같은 그래프를 보여 준다. 기존 집필 관계도는 그 아래에서 유지된다. 자원 전용 작업 공간에서도 Connections를 열 수 있다.
 
-세계관 선택이 바뀌면 세계관→포즈→컷→타임라인→영상의 **승인 결과**에 전이 `reviewRequired`가 붙는다. 후보/제출 결과의 입력 이력도 그래프에 남는다. 기존 bytes·영수증·승인을 지우거나 자동 재생성하지 않는다. 실행 원가/창작 품질은 별도 관찰 대상이다. `local-ffprobe` 결과는 해상도·길이·오디오 스트림의 기술 검사이며 창작 검토가 아니다.
+세계관 선택이 바뀌면 세계관→포즈→컷→타임라인→영상에 전이 `reviewRequired`가 붙는다. 미승인 중간 결과도 경로를 잇는다. 승인 결과의 metadata 조회에도 같은 영향이 표시된다. 후보/제출 결과의 입력 이력과 상태도 그래프에 남는다. 기존 bytes·영수증·승인을 지우거나 자동 재생성하지 않는다. 실행 원가/창작 품질은 별도 관찰 대상이다. `local-ffprobe` 결과는 해상도·길이·오디오 스트림의 기술 검사이며 창작 검토가 아니다.
 
 ## 현재 한도와 검증
 
-- 로컬 PATH에 `ffmpeg`, `ffprobe`, FFmpeg의 `libx264`/AAC가 필요하다. 없으면 `MOTION_RENDERER_UNAVAILABLE`, 렌더 실패는 `MOTION_RENDER_FAILED`다. 원격 파일을 가져오지 않는다.
+- 로컬 PATH에 `ffmpeg`, `ffprobe`, FFmpeg의 `libx264`/AAC가 필요하다. 없으면 `MOTION_RENDERER_UNAVAILABLE`, 렌더 실패는 `MOTION_RENDER_FAILED`다. 입력 demuxer는 image2/mov/wav/mp3로 제한하고 file protocol만 허용한다. MP4의 외부 data reference는 끈다. DASH/playlist 위장 파일로 봉인되지 않은 소재를 읽지 않는다.
 - 입력 이미지 PNG/JPEG/WebP, 오디오 WAV/MP3, 출력 MP4. 기존 관리 SVG/AVIF는 현재 Resource 반입 지원 대상이 아니다.
 - 16..1920의 짝수 크기, 1..60fps, 1..20컷, 컷당 최대8레이어, 총1..120초, 최대8오디오, 자원당8MiB. 각 컷은 최소0.25초다. 큰 결과는 저장 성공으로 위장하지 않고 실패한다. 더 큰 파일의 blob 저장은 후속 공통 계층 확장이다.
 - 프로젝트·컷·타임라인의 판본 결속은 유지한다. 직접 작성한 타임라인은 JSON 스키마와 선택된 미디어 검증을 거치지만 FFmpeg로 이미지를 만들었다는 창작적 사실을 인증하지 않는다.
