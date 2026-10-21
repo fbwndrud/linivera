@@ -21,8 +21,7 @@ test('a nested generation request cannot smuggle an unselected input past the sn
   const f = await productionFixture(t);
   const request = await f.resource('request', 'generation-request', { ...f.requestValue, inputBindings: [{ fieldPath: 'image', role: 'identity', revisionId: 'sha256:' + 'f'.repeat(64) }] });
   await f.select(request);
-  const snapshot = await prepareInput(f.root, { revisionIds: [f.source.revisionId, request.revisionId], profileRevisionId: f.ids.profile, pipelineRevisionId: f.ids.pipeline, policyRevisionId: f.ids.policy });
-  await assert.rejects(startOperation(f.root, { ...f.start, idempotencyKey: 'unbound', inputSnapshotId: snapshot.inputSnapshotId, requestRevisionId: request.revisionId }), { code: 'INPUT_REFERENCE_OUTSIDE_SNAPSHOT' });
+  await assert.rejects(prepareInput(f.root, { revisionIds: [f.source.revisionId, request.revisionId], profileRevisionId: f.ids.profile, pipelineRevisionId: f.ids.pipeline, policyRevisionId: f.ids.policy }), { code: 'RESOURCE_OBJECT_MISSING' });
 });
 test('v4 metadata retains historical verification and v5 refresh becomes current', async (t) => {
   const f = await productionFixture(t); const state = await readWorkspaceState(f.root);

@@ -8,8 +8,7 @@ import { readObject, writeImmutable } from './files.js';
 import { validateDefinition } from './definitions.js';
 import { collectBundleClosure } from './bundles.js';
 import { buildInputManifestV2 } from './input-snapshots-v2.js';
-import { collectInputClosure } from './input-closure.js';
-import { CONTEXT_KINDS } from './context-records.js';
+import { collectInputClosure, hasInputReferences } from './input-closure.js';
 function invalid(message) { throw new FolioError('INPUT_INVALID', message); }
 function path(root, id) { assertRevisionId(id); return join(root, '.folio', 'resources', 'inputs', id.slice(7) + '.json'); }
 function copy(value) { try { return JSON.parse(canonicalJson(value)); } catch { invalid('JSON input required'); } }
@@ -36,7 +35,7 @@ async function buildManifest(root, input, state, { historical = false, reference
   const resources = []; let totalBytes = Object.values(definitions).reduce((total, definition) => total + definition.byteLength, 0);
   let expanded = await collectBundleClosure(root, input.revisionIds);
   if (referenceClosureVersion !== undefined && referenceClosureVersion !== 1) invalid('unsupported reference closure version');
-  const typedClosure = referenceClosureVersion === 1 || (!historical && expanded.some((revision) => CONTEXT_KINDS.has(revision.kind) || revision.kind === 'iteration'));
+  const typedClosure = referenceClosureVersion === 1 || (!historical && expanded.some((revision) => hasInputReferences(revision.kind)));
   if (typedClosure) expanded = await collectInputClosure(root, input.revisionIds);
   for (const { revisionId: id } of expanded) {
     const revision = await selected(id);

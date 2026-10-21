@@ -55,7 +55,7 @@ scopeId와 bindingKey는 안전한 ID다. 경로/회차 설명은 별도의 맥�
 
 v2는 실제 내부 참조를 펼쳐 내용·scope·선택 근거·예산을 검사한다. 명시적 binding의 고정 근거는 내부 참조에도 재사용한다. 그 밖의 내부 원본은 정확한 전역 사용자 선택이 있어야 한다. bytes는 동일 판본을 중복 계산하지 않는다. `verify`는 봉인 당시 checkpoint에서 재생한다. 모션의 `restrictInput`도 이 고정 근거를 유지한다.
 
-기존 v1의 선택 의미와 과거 hash는 유지한다. 새 context/iteration을 v1으로 준비하면 `referenceClosureVersion:1`을 봉인한다. 옛 snapshot을 읽는 것과 새 작업에 다시 사용하는 권한은 구별한다. 새 typed 참조가 들어간 오래된 v1은 fresh prepare 또는 v2 prepare를 사용한다.
+기존 v1의 선택 의미와 과거 hash는 유지한다. context/iteration/audio-alignment/normalization-map/generation-request를 새 v1 입력으로 준비하면 내부 참조 전체를 검사하고 `referenceClosureVersion:1`을 봉인한다. 옛 snapshot을 읽는 것과 새 작업에 다시 사용하는 권한은 구별한다. 이 typed 참조가 들어간 오래된 v1은 새 작업 시작 전에 fresh prepare 또는 v2 prepare를 사용한다. 이미 시작한 작업의 재개는 유지한다.
 
 ## 수정 의도 보존
 
@@ -97,7 +97,7 @@ package를 kind `context-package`로 propose하고 명시적으로 다음 입력
 
 coverage의 missing/unknown/truncated를 확인한다. item/text/manifest 예산으로 제외한 항목은 누락 근거로 남기며 실제 제공한 원본으로 표시하지 않는다. sourceContextRevisionId는 맥락 출처이고 실제 입력 참조와 구분한다. package 반입은 원문·hash·원래 상태·excerpt·tracking 근거를 재검증한다. 요약을 만들려면 별도의 파생 Resource/Operation과 근거를 보존한다.
 
-kind `resource-usage`는 실제 artifact/context 판본과 역할·구간을 연결한다. 초/문자/프레임 단위·원점을 명시하고 프레임에는 fps가 필요하다. 기존 원고/추적 대상은 node ID·body hash·보존 Resource의 판본으로 bridge를 검증한다. 현재 원고가 달라졌거나 근거가 없으면 unknown으로 남기며, 과거 package의 보존된 검토 근거를 새 원고의 현재 관측이라고 표시하지 않는다.
+kind `resource-usage`는 실제 artifact/context 판본과 역할·구간을 연결한다. 초/문자/프레임 단위·원점을 명시하고 프레임에는 fps가 필요하다. 기존 원고/추적 대상은 node ID·body hash·보존 Resource의 판본으로 bridge를 검증한다. 현재 원고가 달라졌거나 근거가 없으면 unknown으로 남기며, 과거 package의 보존된 검토 근거를 새 원고의 현재 관측이라고 표시하지 않는다. 과거 입력과 package는 보존 본문·불변 추적 batch·영수증으로 검사하므로 현재 원고의 편집 오류에 의존하지 않는다. 새 맥락 반입에는 현재 원고와의 bridge 검증을 유지한다.
 
 audio-alignment는 정확한 audioRevisionId/textRevisionId, alignmentKind와 timebase를 가진다. normalizedTextRevisionId/normalizationMapRevisionId를 제공하면 두 텍스트와 Unicode code point 인덱스를 직접 검사한다. 대응표를 관측하지 못하면 unknown이다. 다른 음원·텍스트 판본의 정렬을 붙이거나 normalized 문자 인덱스를 원문 단어 인덱스로 추정하지 않는다.
 
@@ -115,7 +115,7 @@ audio-alignment는 정확한 audioRevisionId/textRevisionId, alignmentKind와 ti
 
 Meshy transport는 `submit(endpoint,input)`, `get(endpoint,taskId)`, `download(url)`을 주입한다. download는 작은 Uint8Array 또는 `{path,contentHash?}`를 반환한다. 8MiB를 넘는 파일은 로컬 파일 경로를 전달해 스트리밍으로 반입한다. 실제 credential·유료 호출은 호출 호스트가 별도로 관리한다.
 
-수동 export의 prepare 두 번째 인자는 `{files:[{artifactKey,role,relativePath,mediaType,bytes|path,contentHash?,required?}],native?,unavailable?}`다. 원래 생성 입력은 unknown으로 남는다. JSON inline export는 자격 키를 가리고 sourceContentHash와 omittedPaths를 남긴다. 실제 파일과 최종 bundle manifest는 같은 후보에 결속한다.
+수동 export의 prepare 두 번째 인자는 `{files:[{artifactKey,role,relativePath,mediaType,bytes|path,contentHash?,required?}],native?,unavailable?}`다. 원래 생성 입력은 unknown으로 남는다. 경로 파일도 prepare에서 실제 bytes를 스트리밍 hash로 고정하며 제공한 contentHash와 비교한다. 같은 captureId에 다른 내용은 제출할 수 없고, prepare 후 파일이 바뀌면 반입을 거절한다. JSON inline export는 자격 키를 가리고 sourceContentHash와 omittedPaths를 남긴다. 경로 JSON은 원본 파일 bytes를 보존한다. 실제 파일과 최종 bundle manifest는 같은 후보에 결속한다.
 
 불완전 bundle은 관측 Resource로 보존하고 최종 output slot으로 봉인하지 않는다. 실제 부분 파일은 관측 출력으로 남는다. 같은 job의 나머지 파일을 회수하면 정확한 파일 판본으로 완전 manifest를 만들고 그 그룹만 제출한다. 다수 native 관측은 한 정제된 batch Resource로 연결해 첫 관측만 남는 것을 방지한다.
 

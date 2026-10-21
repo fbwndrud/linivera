@@ -3,6 +3,7 @@ import { assertBundlePath } from '../../core/resources/bundles.js';
 import { invalid, prepareRequest, fixedGroups, assertHandle, selectedKeys, resourceIdentity } from './common.js';
 import { capturedFile } from './file-transfer.js';
 import { nativeRecord } from './native-records.js';
+import { fingerprintResourceFile } from '../../core/resources/blob-files.js';
 
 export const MANUAL_EXPORT_VERSION = 'linivera-manual-export-v1';
 
@@ -16,13 +17,19 @@ export function createVersionedExportAdapter({ provider, bundleType, requiredRol
       const [groupId] = fixedGroups(request, 1);
       if (!Array.isArray(capture.files) || !capture.files.length) invalid('explicit exported files required');
       const paths = new Set(); const keys = new Set();
-      const files = capture.files.map((file) => {
+      const files = [];
+      for (const file of capture.files) {
         assertBundlePath(file.relativePath);
         if (paths.has(file.relativePath) || typeof file.artifactKey !== 'string' || !file.artifactKey || keys.has(file.artifactKey)
           || typeof file.role !== 'string' || !file.role || typeof file.mediaType !== 'string') invalid('unique file keys, paths and explicit roles/media types required');
         paths.add(file.relativePath); keys.add(file.artifactKey);
         const actual = capturedFile(file.bytes ?? file);
         let omittedPaths = []; let sourceContentHash;
+        if ('path' in actual) {
+          const observed = await fingerprintResourceFile(actual.path);
+          if (actual.contentHash && actual.contentHash !== observed.contentHash) invalid('exported file differs from expected hash');
+          sourceContentHash = observed.contentHash; actual.contentHash = observed.contentHash;
+        }
         if (actual.bytes) {
           sourceContentHash = sha256(actual.bytes);
           if (file.contentHash && sourceContentHash !== file.contentHash) invalid('exported file differs from expected hash');
@@ -32,9 +39,9 @@ export function createVersionedExportAdapter({ provider, bundleType, requiredRol
             if (omittedPaths.length) actual.bytes = Buffer.from(canonicalJson(safe.record));
           }
         }
-        return { artifactKey: file.artifactKey, groupId, role: file.role, mediaType: file.mediaType, ...actual,
-          metadata: { relativePath: file.relativePath, required: file.required ?? true, sourceContentHash: sourceContentHash ?? file.contentHash ?? null, omittedPaths, generation: 'unknown' } };
-      });
+        files.push({ artifactKey: file.artifactKey, groupId, role: file.role, mediaType: file.mediaType, ...actual,
+          metadata: { relativePath: file.relativePath, required: file.required ?? true, sourceContentHash, omittedPaths, generation: 'unknown' } });
+      }
       const native = nativeRecord('manual-export', capture.native ?? {});
       const unavailable = [...(capture.unavailable ?? []), ...externalMissing];
       for (const role of requiredRoles) if (!files.some((file) => file.role === role)) unavailable.push({ role, required: true, reason: 'Required export was not supplied' });

@@ -203,3 +203,15 @@ A의 materialize는 판본별 단일 파일 사본이다. 전체 묶음 디렉�
 범위 구체화: Meshy 전체 모델/rigging/animation 호출, Rodin/Floyo/Martini의 자동 API 실행, 외부 live 제어, 모든 native 포맷 해석·프로젝트 복원은 지원으로 주장하지 않는다. 파일·원본/실행 graph·부분 결과·누락을 공통 계약으로 보존·검증하고 실제 공급자 실행은 별도 주입 transport로 분리한다. 게임의 DB/플랫폼 상태도 별도 미회수다.
 
 최종 검증: Node 24.19.0에서 `npm run check`의 ESLint·전체 타입 검사·테스트 **1,889/1,889 통과**(skip 0). viewer 전체 **73/73 통과**와 build를 확인했다. 전체 검사에 포함된 `package:verify`는 새 tarball을 개발 의존성 없이 설치해 scoped continuity 예제를 실행했다. 독립 검토에서 발견한 맥락 근거 바꿔치기·다른 경로의 중첩 참조·index 예산/관계 위조와 구형 입력의 typed 참조 우회는 회귀 검사와 실제 MCP 재현으로 차단을 확인했다. 수정 JS 파일은 300줄 이하이며 실제 작품·생성 결과는 커밋하지 않았다.
+
+## 10. PR #4 별도 세션 리뷰 반영
+
+사용자 요청으로 별도 세션에서 PR #4의 `2f9fde6`을 기준점 `7ebf6bc`과 비교했다. Standards 축의 중대한 표준 위반은 없었으며 Spec 축에서 재현된 세 결함을 수정했다.
+
+- v1 입력의 typed closure 감지를 공통화해 audio-alignment·normalization-map·generation-request의 내부 참조도 선택·scope·예산에 포함한다. 과거 snapshot hash와 기존 작업 재개는 유지하고, 불완전한 옛 typed snapshot으로 새 작업을 시작하는 경로는 fresh prepare를 요구한다.
+- 경로 export도 prepare에서 실제 내용을 스트리밍 hash로 검사해 capture ID와 결속한다. 같은 capture ID의 다른 파일 제출, 잘못된 제공 hash, prepare 후 파일 변조를 거절한다.
+- 보존 본문의 bridge와 현재 원고의 bridge를 분리했다. 과거 입력·추적 근거는 현재 원고의 누락 필드나 YAML 오류에 의존하지 않는다. 새 맥락의 현재 원고 검증은 유지한다.
+
+재검토에서 드러난 추적 활성화 경계도 보완했다. 역사적 조회는 기존 tracking replay의 위임 권한·정규화·활성화 시점 검사를 재사용한다. commit 이전 준비 batch를 승인된 근거로 허용하지 않으며, 영수증 직후 중단돼도 영수증에 기록된 기준의 노드 범위를 복원한다. 별도 세션의 동일 재현 및 최종 재검토에서 추가 결함은 발견되지 않았다. 실제 공급자 호출 없이 합성 fixture만 사용했다.
+
+검증: Node 24.19.0의 `npm run check`에서 ESLint·타입·전체 **1,895/1,895 통과**(skip 0). 이후 추가한 영수증 직후 중단 회귀까지 포함한 최종 표적 검사 **8/8 통과**와 최종 코드의 ESLint·타입 검사를 별도로 확인했다. 공개 stdio MCP에서 v1 내부 참조의 미선택 거절 및 완전 입력의 작업 시작을 검증했다. viewer 소스는 이번 수정에서 변경하지 않았다.

@@ -33,3 +33,20 @@ test('old typed v1 snapshots remain verifiable and replayable but new operations
   assert.deepEqual(await startOperation(f.root, old), { operationId, requestId });
   assert.ok((await startOperation(f.root, { inputSnapshotId: fresh.inputSnapshotId, idempotencyKey: 'fresh-closure', actor: 'user' })).operationId);
 });
+
+test('old alignment snapshots still verify but cannot start new work without referenced audio and text', async (t) => {
+  const f = await scopedFixture(t);
+  const audio = await f.store.propose({ resourceId: 'music', kind: 'production-artifact', owned: { bytes: Buffer.from('Synthetic audio'), mediaType: 'audio/mpeg' } }); await f.select(audio);
+  const alignment = await f.resource('iteration', { version: 1, audioRevisionId: audio.revisionId, textRevisionId: f.face2.revisionId,
+    alignmentKind: 'character', timebase: { unit: 'seconds', origin: 0 }, segments: [] }, 'audio-alignment'); await f.select(alignment);
+  const fresh = await prepareInput(f.root, { revisionIds: [alignment.revisionId], ...f.definitions });
+  const historical = JSON.parse(canonicalJson(fresh.manifest)); delete historical.referenceClosureVersion;
+  historical.resources = historical.resources.filter((resource) => resource.revisionId === alignment.revisionId);
+  const ids = new Set([alignment.revisionId, ...Object.values(f.definitions)]);
+  historical.selections = historical.selections.filter((selection) => ids.has(selection.revisionId)); historical.scope = ['iteration'];
+  historical.totalBytes = alignment.byteLength + Object.values(historical.definitions).reduce((total, definition) => total + definition.byteLength, 0);
+  const bytes = canonicalJson(historical); const inputSnapshotId = sha256(bytes);
+  await writeFile(join(f.root, '.folio/resources/inputs', inputSnapshotId.slice(7) + '.json'), bytes);
+  assert.deepEqual((await verifyInput(f.root, inputSnapshotId)).manifest, historical);
+  await assert.rejects(startOperation(f.root, { inputSnapshotId, idempotencyKey: 'old-alignment', actor: 'user' }), { code: 'INPUT_REFERENCE_CLOSURE_REQUIRED' });
+});

@@ -2,7 +2,7 @@ import { createResourceStore } from './revisions.js';
 import { CONTEXT_KINDS, validateUsageContext, usageContextReferences, contextInvalid } from './context-records.js';
 import { validateContextPackage } from '../context/package.js';
 import { validateResourceUsage } from './usage-bindings.js';
-import { verifyNodeBridge } from '../context/bridges.js';
+import { verifyNodeBridge, verifyRetainedNodeBridge } from '../context/bridges.js';
 import { verifyAlignmentBindings } from './alignment-bindings.js';
 import { verifyNormalizationMap } from './normalization-bindings.js';
 import { FolioError } from '../errors.js';
@@ -11,6 +11,7 @@ import { assertContextIsolation } from '../context/isolation.js';
 export async function verifyContextValue(root, kind, value, { requireCurrentBridges = false } = {}) {
   let refs = [];
   async function checkBridge(nodeRef) {
+    if (!requireCurrentBridges) { await verifyRetainedNodeBridge(root, nodeRef); return; }
     const bridge = await verifyNodeBridge(root, nodeRef);
     if (requireCurrentBridges && bridge.status !== 'verified') throw new FolioError('CONTEXT_BRIDGE_INVALID', 'new context must prove the exact current node/body/revision bridge');
   }

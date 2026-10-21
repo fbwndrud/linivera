@@ -7,13 +7,16 @@ import { assertRevisionId } from './schema.js';
 import { validateProductionRequest } from '../../packs/production/request-schema.js';
 import { CONTEXT_KINDS } from './context-records.js';
 import { FolioError } from '../errors.js';
+export function hasInputReferences(kind) {
+  return CONTEXT_KINDS.has(kind) || ['iteration', 'audio-alignment', 'normalization-map', 'generation-request'].includes(kind);
+}
 /** Historical snapshots still verify; new work must use the typed-reference closure contract. */
 export async function assertNewOperationInputClosure(root, manifest) {
   if (manifest.version !== 1 || manifest.referenceClosureVersion === 1) return;
   const store = createResourceStore(root);
   for (const resource of manifest.resources) {
     const revision = await store.readRevision(resource.revisionId);
-    if (CONTEXT_KINDS.has(revision.kind) || revision.kind === 'iteration') throw new FolioError('INPUT_REFERENCE_CLOSURE_REQUIRED', 'Prepare a fresh input snapshot or use version 2 before starting new work with typed context references.');
+    if (hasInputReferences(revision.kind)) throw new FolioError('INPUT_REFERENCE_CLOSURE_REQUIRED', 'Prepare a fresh input snapshot or use version 2 before starting new work with typed context references.');
   }
 }
 /** Expand only typed actual-input references; provenance-only references stay outside this closure. */
