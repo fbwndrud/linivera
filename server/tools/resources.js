@@ -3,8 +3,12 @@ import { createResourceStore } from '../../core/resources/revisions.js';
 import { importResourceFile } from '../../core/resources/intake.js';
 import { importManagedAsset } from '../../core/resources/asset-import.js';
 import { importResourceBundle } from '../../core/resources/bundle-import.js';
+import { inspectStructure, STRUCTURE_FORMATS } from '../../core/resources/structures.js';
+import { normalizeStructure } from '../../core/resources/structure-bindings.js';
 import { ID, ids, definition, argsFor, rule } from './resource-schema.js';
-export const resourcesDefinition = definition('folio_resources', '공통 자원 후보 등록·읽기·원본 선택. importFile은 최대2GiB 파일을 보존한다. 작은 read는8MiB까지이며 큰 파일은 describe/materialize를 사용한다. importBundle은 명시한 파일/판본을 묶는다. 반입은 승인/입력 선택을 자동 수행하지 않는다.', ['propose', 'read', 'decideSource', 'importFile', 'importAsset', 'describe', 'materialize', 'importBundle'], {
+export const resourcesDefinition = definition('folio_resources', '공통 자원 후보 등록·읽기·원본 선택. importFile은 최대2GiB 파일을 보존한다. 작은 read는8MiB까지이며 큰 파일은 describe/materialize를 사용한다. importBundle은 명시한 파일/판본을 묶는다. inspectStructure는 보관한 구조를 읽는다. 반입은 승인/입력 선택을 자동 수행하지 않는다.', ['propose', 'read', 'decideSource', 'importFile', 'importAsset', 'describe', 'materialize', 'importBundle', 'inspectStructure', 'normalizeStructure'], {
+  format: { type: 'string', enum: STRUCTURE_FORMATS, description: 'Explicit retained structure format; reads bytes without fetching references or executing a native project.' }, sourceRevisionId: ID,
+  structureBindings: { type: 'array', maxItems: 4096, items: { type: 'object', additionalProperties: false, required: ['referenceKey', 'revisionId'], properties: { referenceKey: ID, revisionId: ID } } },
   resourceId: ID, kind: ID, parents: { ...ids, minItems: 0 }, schemaRef: ID, revisionId: ID,
   path: { ...ID, description: 'Absolute path of one chosen regular local file, at most 2GiB. Symlinks are refused.' }, output: ID, mediaType: ID, contentHash: ID,
   manifest: { type: 'object', additionalProperties: true }, pathMappings: { type: 'array', maxItems: 4096, items: { type: 'object', additionalProperties: false, required: ['relativePath', 'path', 'mediaType'], properties: { relativePath: ID, path: ID, mediaType: ID, contentHash: ID } } },
@@ -15,9 +19,11 @@ export const resourcesDefinition = definition('folio_resources', '공통 자원 
   action: { type: 'object', additionalProperties: false, required: ['actor', 'type'], properties: { actor: { type: 'string', enum: ['user'] }, type: { type: 'string', enum: ['select', 'deselect'] }, reason: { type: 'string', maxLength: 8192 } } },
 });
 const rules = { propose: rule(['resourceId', 'kind'], ['parents', 'owned', 'external', 'schemaRef']), read: rule(['revisionId']), decideSource: rule(['revisionId', 'expectedSelectionRevision', 'action']),
-  importFile: rule(['resourceId', 'kind', 'path', 'mediaType'], ['parents', 'schemaRef', 'contentHash']), importAsset: rule(['assetId', 'expectedRev']), describe: rule(['revisionId']), materialize: rule(['revisionId', 'output']), importBundle: rule(['resourceId', 'manifest'], ['pathMappings', 'parents', 'schemaRef']) };
+  importFile: rule(['resourceId', 'kind', 'path', 'mediaType'], ['parents', 'schemaRef', 'contentHash']), importAsset: rule(['assetId', 'expectedRev']), describe: rule(['revisionId']), materialize: rule(['revisionId', 'output']), importBundle: rule(['resourceId', 'manifest'], ['pathMappings', 'parents', 'schemaRef']), inspectStructure: rule(['revisionId', 'format']), normalizeStructure: rule(['resourceId', 'sourceRevisionId', 'format', 'structureBindings']) };
 export async function resourcesTool(root, input) {
   const { op, values } = argsFor(input, rules); const store = createResourceStore(root);
+  if (op === 'inspectStructure') return inspectStructure(root, values);
+  if (op === 'normalizeStructure') return normalizeStructure(root, values);
   if (op === 'importFile') return importResourceFile(root, values);
   if (op === 'importAsset') return importManagedAsset(root, values);
   if (op === 'importBundle') return importResourceBundle(root, values);

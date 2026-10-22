@@ -7,6 +7,7 @@ import { verifyAlignmentBindings } from './alignment-bindings.js';
 import { verifyNormalizationMap } from './normalization-bindings.js';
 import { FolioError } from '../errors.js';
 import { assertContextIsolation } from '../context/isolation.js';
+import { readStructureRelations } from './structure-bindings.js';
 
 export async function verifyContextValue(root, kind, value, { requireCurrentBridges = false } = {}) {
   let refs = [];
@@ -46,6 +47,7 @@ export async function readContextReferences(root, revision) {
   return verifyContextValue(root, revision.kind, value);
 }
 export async function readResourceRelations(root, revision) {
+  if (revision.kind === 'structure-map') return readStructureRelations(root, revision);
   const refs = await readContextReferences(root, revision);
   const relations = refs.map((targetRevisionId) => ({ targetRevisionId, kind: revision.kind === 'context-package' ? 'context-input' : 'usage' }));
   if (revision.kind === 'context-package') {

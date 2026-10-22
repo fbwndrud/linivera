@@ -1,4 +1,5 @@
 export default Object.freeze({
+  'Structure source': '구조 원본', 'Linked structure file': '구조에 연결한 파일', 'File structure': '파일 구조',
   'Production input': '제작 입력', 'Production output': '제작 출력', 'Revision history': '판본 이력',
   'Included file': '포함 파일', 'Used in context': '사용 맥락', 'Provided context': '제공한 맥락',
   'Context evidence': '맥락 근거', 'Revision guidance': '수정 지침', 'Recorded command': '기록한 명령', 'Observed media': '관측한 미디어',

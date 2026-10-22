@@ -9,7 +9,9 @@ const schemaOf = (name) => TOOLS.find((tool) => tool.name === name).inputSchema;
 const VALID = {
   folio_motion: [{ op: 'plan', inputSnapshotId: 'snapshot' }, { op: 'render', inputSnapshotId: 'snapshot', idempotencyKey: 'movie', actor: 'user' }, { op: 'compile', inputSnapshotId: 'snapshot', idempotencyKey: 'timeline', actor: 'host', grantId: 'grant' }],
   folio_assets: [{ op: 'list' }], folio_tracking: [{ op: 'get' }],
-  folio_resources: [{ op: 'propose', resourceId: 'synthetic', kind: 'note', owned: { bytes: 'synthetic', mediaType: 'text/plain' } }],
+  folio_resources: [{ op: 'propose', resourceId: 'synthetic', kind: 'note', owned: { bytes: 'synthetic', mediaType: 'text/plain' } },
+    { op: 'inspectStructure', revisionId: 'source', format: 'glb' },
+    { op: 'normalizeStructure', resourceId: 'structure', sourceRevisionId: 'source', format: 'comfy-api', structureBindings: [{ referenceKey: '/1/inputs/image', revisionId: 'image' }] }],
   folio_inputs: [{ op: 'verify', inputSnapshotId: 'snapshot' }], folio_policy: [{ op: 'status', grantId: 'grant' }],
   folio_operations: [{ op: 'start', inputSnapshotId: 'snapshot', idempotencyKey: 'once', actor: 'user' }],
   folio_resource_query: [{ op: 'query' }], folio_embeddings: [{ op: 'index', dimension: 128 }],
@@ -26,6 +28,8 @@ const VALID = {
   folio_import_vibelore: [{ from: '/tmp/source' }], folio_export: [{ output: '/tmp/book' }, { op: 'export', output: '/tmp/book' }, { op: 'check' }],
 };
 const INVALID = {
+  folio_resources: [{ op: 'inspectStructure', revisionId: 'source', format: 'unknown' }, { op: 'normalizeStructure', resourceId: 'structure', sourceRevisionId: 'source', format: 'gltf' },
+    { op: 'inspectStructure', revisionId: 'source', format: 'srt', structureBindings: [] }],
   folio_motion: [{ op: 'render', inputSnapshotId: 'snapshot' }, { op: 'plan', inputSnapshotId: 'snapshot', actor: 'user' }, { op: 'assemble', inputSnapshotId: 'snapshot', idempotencyKey: 'movie', actor: 'user', width: 100 }],
   folio_structure: [{ op: 'add' }, { op: 'move', nodeId: 'a', title: 'extra' }, { op: 'wrap', nodeIds: [], level: 'chapter', id: 'c' }],
   folio_sources: [{ op: 'get' }, { op: 'list', text: 'extra' }, { op: 'add', id: 'ref' }, { op: 'add', id: 'ref', text: '자료', path: '/tmp/ref.txt' }, { op: 'link', nodeId: 'a' }],

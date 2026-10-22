@@ -74,6 +74,9 @@ try {
   const scopedContinuity = JSON.parse(run(process.execPath, [join(installed, 'examples', 'scoped-continuity.js')], sandbox));
   for (const field of ['verified', 'scopeIsolation', 'oldRevisionPreserved', 'selectionRestored', 'contextFeedsNextWork', 'videoAudio', 'transitiveReviewRequired']) assert.equal(scopedContinuity[field], true);
   assert.equal(scopedContinuity.actualModelGeneration, false);
+  const structureContinuity = JSON.parse(run(process.execPath, [join(installed, 'examples', 'structure-continuity.js')], sandbox));
+  for (const field of ['verified', 'serverRestarted', 'structureFeedsNextWork', 'exactDependencyClosure', 'indexedRelationsVerified', 'transitiveReviewRequired']) assert.equal(structureContinuity[field], true);
+  assert.equal(structureContinuity.actualModelGeneration, false);
   const tracking = JSON.parse(run(process.execPath, [join(installed, 'examples', 'tracking.js')], sandbox));
   assert.equal(tracking.verified, true);
   assert.deepEqual(tracking.scenarios, ['mystery', 'cookbook', 'picturebook']);
@@ -84,7 +87,7 @@ try {
   assert.equal(production.outputsRetained, false);
   const publicationLanguages = await verifyInstalledPublicationLanguages(installed, sandbox);
   console.log(JSON.stringify({ installedFromTarball: true, developmentDependenciesAbsent, npx,
-    production, continuity, scopedContinuity, publicationLanguages, doctor, legacyDoctor, documentation, benchmarkModuleVerified: true, entryCount: packed.entryCount, examples: examples.results.map((result) => result.example), assets, tracking }, null, 2));
+    production, continuity, scopedContinuity, structureContinuity, publicationLanguages, doctor, legacyDoctor, documentation, benchmarkModuleVerified: true, entryCount: packed.entryCount, examples: examples.results.map((result) => result.example), assets, tracking }, null, 2));
 } finally {
   await rm(sandbox, { recursive: true, force: true });
 }

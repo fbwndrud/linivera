@@ -1,5 +1,6 @@
 /** Declared data family, never a claim that a native project was decoded or restored. */
 export function resourceFamily(revision) {
+  if (revision.kind === 'structure-map') return 'structure';
   if (revision.kind === 'artifact-bundle') return 'bundle';
   if (['context-package', 'usage-context', 'resource-usage'].includes(revision.kind)) return 'context';
   if (revision.kind === 'iteration') return 'iteration';
