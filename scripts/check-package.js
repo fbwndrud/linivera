@@ -77,6 +77,11 @@ try {
   const structureContinuity = JSON.parse(run(process.execPath, [join(installed, 'examples', 'structure-continuity.js')], sandbox));
   for (const field of ['verified', 'serverRestarted', 'structureFeedsNextWork', 'exactDependencyClosure', 'indexedRelationsVerified', 'transitiveReviewRequired']) assert.equal(structureContinuity[field], true);
   assert.equal(structureContinuity.actualModelGeneration, false);
+  for (const args of [[], ['--contract']]) {
+    const timeline = JSON.parse(run(process.execPath, [join(installed, 'examples', 'timeline-continuity.js'), ...args], sandbox));
+    for (const field of ['verified', 'serverRestarted', 'timelineFeedsNextWork', 'dependencyClosure', 'transitiveReviewRequired']) assert.equal(timeline[field], true);
+    assert.equal(timeline.actualModelGeneration, false);
+  }
   const tracking = JSON.parse(run(process.execPath, [join(installed, 'examples', 'tracking.js')], sandbox));
   assert.equal(tracking.verified, true);
   assert.deepEqual(tracking.scenarios, ['mystery', 'cookbook', 'picturebook']);

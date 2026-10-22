@@ -1,6 +1,7 @@
 import { FolioError } from '../../../core/errors.js';
 
 export const MAX_STRUCTURE_BYTES = 6 * 1024 * 1024;
+/** @returns {never} */
 export function invalid(message) { throw new FolioError('STRUCTURE_INVALID', message); }
 export const object = (value) => value !== null && typeof value === 'object' && !Array.isArray(value);
 export const pointer = (value) => String(value).replaceAll('~', '~0').replaceAll('/', '~1');
