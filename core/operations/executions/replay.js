@@ -3,6 +3,12 @@ import { createResourceStore } from '../../resources/revisions.js';
 import { fail } from '../objects.js';
 import { validateExecutionEvent, assertTransition } from './schema.js';
 import { verifyNativeRequest, bindArtifacts } from './bindings.js';
+function slotsComplete(current) {
+  return current.groups.length > 0 && current.groups.every((group) => group.slots.every((slot) => {
+    const count = current.artifacts.filter((artifact) => artifact.groupId === group.groupId && artifact.role === slot.role).length;
+    return count === (slot.cardinality ?? 1) || (count === 0 && !slot.required);
+  }));
+}
 /** Rebuild from verified ledger records. Every retained artifact is revalidated. */
 export async function replayExecution(root, request, records) {
   const executions = new Map();
@@ -44,13 +50,10 @@ export async function replayExecution(root, request, records) {
       }
     }
     if (event.type === 'complete') {
-      if (!current.groups.length || (request.value.outputSpec.groupPolicy === 'dynamic' && event.enumerationComplete !== true)
-        || current.groups.some((group) => group.slots.some((slot) => {
-          const count = current.artifacts.filter((artifact) => artifact.groupId === group.groupId && artifact.role === slot.role).length;
-          return count !== (slot.cardinality ?? 1) && !(count === 0 && !slot.required);
-        }))) fail('EXECUTION_INCOMPLETE', 'complete requires final enumeration and every declared output slot');
+      if (!slotsComplete(current) || (request.value.outputSpec.groupPolicy === 'dynamic' && event.enumerationComplete !== true)) fail('EXECUTION_INCOMPLETE', 'complete requires final enumeration and every declared output slot');
     }
     if (event.type !== 'group-discovered' && !(event.type === 'outputs-observed' && ['failed', 'canceled', 'complete'].includes(current.status))) current.status = event.type;
+    if (event.type === 'outputs-observed' && current.status === 'complete' && !slotsComplete(current)) current.status = 'partial';
     if (event.reportedCost !== undefined) current.reportedCost = event.reportedCost;
     if (event.unavailableFields !== undefined) current.unavailableFields = event.unavailableFields;
     current.head = { seq: record.seq, hash: record.hash }; executions.set(executionId, current);

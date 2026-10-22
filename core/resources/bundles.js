@@ -31,8 +31,11 @@ export function validateBundleManifest(value, { draft = false } = {}) {
     if (missing.required !== undefined && typeof missing.required !== 'boolean') invalid('invalid missing required flag');
     if (typeof missing.reason !== 'string' || !missing.reason.trim() || missing.reason.length > 2048) invalid('missing member reason required');
   }
-  const ordered = [...paths].sort();
-  for (let i = 1; i < ordered.length; i += 1) if (ordered[i].startsWith(ordered[i - 1] + '/')) invalid('member paths conflict as file and directory');
+  for (const path of paths) {
+    for (let slash = path.indexOf('/'); slash !== -1; slash = path.indexOf('/', slash + 1)) {
+      if (paths.has(path.slice(0, slash))) invalid('member paths conflict as file and directory');
+    }
+  }
   if (!Array.isArray(value.entrypoints ?? []) || (value.entrypoints?.length ?? 0) > MAX_BUNDLE_MEMBERS) invalid('invalid entrypoints');
   for (const entry of value.entrypoints ?? []) {
     fields(entry, ['revisionId', 'role']); assertRevisionId(entry.revisionId); role(entry.role);
@@ -46,11 +49,23 @@ export function validateBundleManifest(value, { draft = false } = {}) {
   return { ...value, completeness, dependencyCoverage: value.dependencyCoverage ?? 'unknown', restorability: value.restorability ?? 'unknown' };
 }
 
+/** A URL identity cannot stand in for an actually retained required file. */
+export async function verifyBundleStorage(root, value) {
+  const store = createResourceStore(root);
+  for (const member of value.members) {
+    const revision = await store.readRevision(member.revisionId);
+    if (revision.resourceId !== member.resourceId) invalid('member identity differs from its revision');
+    if (member.required && revision.storageStatus !== 'owned_snapshot'
+      && !value.unavailable?.some((missing) => missing.required !== false && (missing.relativePath === member.relativePath || missing.resourceId === member.resourceId))) invalid('unretained required member must be explicitly unavailable');
+  }
+  return value;
+}
+
 export async function readBundle(root, revisionId) {
   const store = createResourceStore(root); const revision = await store.readRevision(revisionId);
   if (revision.kind !== 'artifact-bundle' || revision.mediaType !== 'application/json' || revision.storageStatus !== 'owned_snapshot') invalid('owned JSON artifact-bundle required');
   let value; try { value = JSON.parse((await store.readContent(revisionId)).toString('utf8')); } catch { invalid('invalid manifest JSON'); }
-  return validateBundleManifest(value);
+  return verifyBundleStorage(root, validateBundleManifest(value));
 }
 
 /** Read the actual pinned closure; this does not grant permission or select members. */

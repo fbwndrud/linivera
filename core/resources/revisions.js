@@ -6,7 +6,7 @@ import { assertResourceId, assertRevisionId, validateProposal } from './schema.j
 import { readObject, readOwnedContent, resourceObjectPath, writeImmutable } from './files.js';
 import { verifyStoredBlob, materializeResourceFile } from './blob-files.js';
 import { contentValidation } from './media-types.js';
-import { collectBundleClosure, readBundle, validateBundleManifest } from './bundles.js';
+import { collectBundleClosure, readBundle, validateBundleManifest, verifyBundleStorage } from './bundles.js';
 import { verifyContextResource } from './context-references.js';
 import { validateIteration } from '../operations/iteration.js';
 
@@ -86,7 +86,7 @@ export async function proposeResourceLocked(root, input) {
   }
   if (input.kind === 'artifact-bundle') {
     if (input.owned?.mediaType !== 'application/json') throw new FolioError('BUNDLE_INVALID', 'bundle must contain owned JSON');
-    validateBundleManifest(JSON.parse(Buffer.from(input.owned.bytes).toString('utf8')));
+    await verifyBundleStorage(root, validateBundleManifest(JSON.parse(Buffer.from(input.owned.bytes).toString('utf8'))));
   }
   const store = createResourceStore(root);
   for (const parentId of input.parents ?? []) {

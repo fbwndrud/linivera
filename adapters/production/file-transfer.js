@@ -1,6 +1,7 @@
 import { isAbsolute, resolve } from 'node:path';
 import { invalid } from './common.js';
-export const MAX_INLINE_CAPTURE_BYTES = 8 * 1024 * 1024;
+// Base64 adds one third; keep the request and response below the stdio 10MiB message ceiling.
+export const MAX_INLINE_CAPTURE_BYTES = 6 * 1024 * 1024;
 
 /** Actual file import and streaming hash verification remain at the host's Resource seam. */
 export function capturedFile(value) {

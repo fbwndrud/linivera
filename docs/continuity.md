@@ -113,7 +113,9 @@ audio-alignment는 정확한 audioRevisionId/textRevisionId, alignmentKind와 ti
 
 확인일은 2026-10-22다. Rodin/Floyo/Martini/game은 **리니베라 자체 `linivera-manual-export-v1` 포착 계약**이다. 공급자의 공식 실행 스키마나 API 전체 구현이라는 뜻이 아니다. 파일이 모두 있어도 외부 의존/편집 재개/프로젝트 복원은 별개이며 restorability는 기본 unknown이다.
 
-Meshy transport는 `submit(endpoint,input)`, `get(endpoint,taskId)`, `download(url)`을 주입한다. download는 작은 Uint8Array 또는 `{path,contentHash?}`를 반환한다. 8MiB를 넘는 파일은 로컬 파일 경로를 전달해 스트리밍으로 반입한다. 실제 credential·유료 호출은 호출 호스트가 별도로 관리한다.
+Meshy transport는 `submit(endpoint,input)`, `get(endpoint,taskId)`, `download(url)`을 주입한다. download는 작은 Uint8Array 또는 `{path,contentHash?}`를 반환한다. base64 전송 여유를 고려해 6MiB를 넘는 파일은 로컬 파일 경로를 전달해 스트리밍으로 반입한다. Resource의 인라인 저장 한도 8MiB와 전송 한도는 구별한다. 실제 credential·유료 호출은 호출 호스트가 별도로 관리한다.
+
+Meshy도 inputBindings가 없어도 봉인한 모든 parameter와 실제 native payload를 대조한다. fal·ElevenLabs와 같은 호스트/core 경로에서 변조를 거절한다.
 
 수동 export의 prepare 두 번째 인자는 `{files:[{artifactKey,role,relativePath,mediaType,bytes|path,contentHash?,required?}],native?,unavailable?}`다. 원래 생성 입력은 unknown으로 남는다. 경로 파일도 prepare에서 실제 bytes를 스트리밍 hash로 고정하며 제공한 contentHash와 비교한다. 같은 captureId에 다른 내용은 제출할 수 없고, prepare 후 파일이 바뀌면 반입을 거절한다. JSON inline export는 자격 키를 가리고 sourceContentHash와 omittedPaths를 남긴다. 경로 JSON은 원본 파일 bytes를 보존한다. 실제 파일과 최종 bundle manifest는 같은 후보에 결속한다.
 
