@@ -60,7 +60,8 @@ Martini 변수와 bin이 동명일 때 revision.inputRefs를 bin으로 확정하
 ## 형식 근거
 
 - [ComfyUI JSON](https://github.com/Comfy-Org/comfy-cli/blob/main/docs/json-output.md),
-  [Floyo workflow](https://docs.floyo.ai/floyo-api-workflows)
+  [Floyo workflow](https://docs.floyo.ai/floyo-api-workflows),
+  [ComfyUI 기본 loader 계약](https://github.com/Comfy-Org/ComfyUI/blob/master/nodes.py)
 - [Martini workflow/run](https://www.martini.film/docs/workflows)
 - [Khronos glTF 2](https://www.khronos.org/registry/glTF/specs/2.0/glTF-2.0.html)
 - [OTIO](https://opentimelineio.readthedocs.io/en/latest/tutorials/otio-file-format-specification.html):

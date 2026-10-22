@@ -17,6 +17,11 @@ test('retained Comfy API graph exposes nodes, wiring and explicit file slots wit
   assert.deepEqual(structure.references, [{ key: '/1/inputs/image', unitId: '/1', role: 'image', hint: 'synthetic.png', required: true }]);
   assert.ok(structure.coverage.unknown.some((entry) => entry.includes('SyntheticTransform')));
   assert.equal((await f.store.readSourceSelection('workflow')), null);
+  const checkpoint = await f.resource('checkpoint', { '1': { class_type: 'CheckpointLoader', inputs: { ckpt_name: 'synthetic.ckpt', config_name: 'synthetic.yaml' } } });
+  const parsed = await resourcesTool(f.root, { op: 'inspectStructure', revisionId: checkpoint.revisionId, format: 'comfy-api' });
+  assert.deepEqual(new Set(parsed.structure.references.map((ref) => ref.role)), new Set(['checkpoint', 'model-config']));
+  const incomplete = await f.resource('incomplete', { '1': { class_type: 'CheckpointLoader', inputs: { ckpt_name: 'synthetic.ckpt' } } });
+  await assert.rejects(resourcesTool(f.root, { op: 'inspectStructure', revisionId: incomplete.revisionId, format: 'comfy-api' }), { code: 'STRUCTURE_INVALID' });
 });
 
 test('structure candidate pins mapped files, blocks missing/unselected dependencies and rejects forged structure', async (t) => {

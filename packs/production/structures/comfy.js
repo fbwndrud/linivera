@@ -2,7 +2,7 @@ import { array, invalid, object, pointer, projection } from './common.js';
 
 const files = {
   LoadImage: { image: 'image' }, LoadAudio: { audio: 'audio' },
-  CheckpointLoaderSimple: { ckpt_name: 'checkpoint' }, CheckpointLoader: { ckpt_name: 'checkpoint' },
+  CheckpointLoaderSimple: { ckpt_name: 'checkpoint' }, CheckpointLoader: { ckpt_name: 'checkpoint', config_name: 'model-config' },
   LoraLoader: { lora_name: 'lora' }, LoraLoaderModelOnly: { lora_name: 'lora' },
   VAELoader: { vae_name: 'vae' }, CLIPLoader: { clip_name: 'clip' },
 };
@@ -13,6 +13,7 @@ export function comfyApi(value) {
     if (!object(node) || typeof node.class_type !== 'string' || !node.class_type || node.class_type.length > 512 || !object(node.inputs)) invalid('Comfy node requires class_type and inputs');
     nodes.set(id, p.unit('/' + pointer(id), 'node', { nativeId: id, classType: node.class_type }));
     if (!Object.hasOwn(files, node.class_type)) p.unknown(`uninterpreted-node:${node.class_type}`);
+    else for (const name of Object.keys(files[node.class_type])) if (!Object.hasOwn(node.inputs, name)) invalid('known loader is missing a required file input');
   }
   for (const [id, node] of Object.entries(value)) for (const [name, input] of Object.entries(node.inputs)) {
     const locator = `/${pointer(id)}/inputs/${pointer(name)}`;
