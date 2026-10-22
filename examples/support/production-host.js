@@ -18,6 +18,12 @@ export async function productionHost(root) {
     const body = JSON.parse(response.content[0].text);
     assert.ok(!response.isError, JSON.stringify(body)); return body;
   }
+  /** Expected refusals return the public error body instead of failing the host. */
+  async function attempt(name, args) {
+    const response = await client.callTool({ name, arguments: { root, ...args } });
+    const body = JSON.parse(response.content[0].text);
+    assert.ok(response.isError, `${name} unexpectedly succeeded`); return body.error;
+  }
   const graph = () => call('folio_resource_query', { op: 'graph' });
   const json = (resourceId, value, kind = 'synthetic', parents = []) => call('folio_resources', {
     op: 'propose', resourceId, kind, parents, owned: { bytes: JSON.stringify(value), mediaType: 'application/json' } });
@@ -35,6 +41,6 @@ export async function productionHost(root) {
     await call('folio_operations', { op: 'decide', operationId, receiptId, actor: 'user', action: 'approve', expectedCheckpoint: (await graph()).checkpoint });
     await select(resource); return resource;
   }
-  return { call, graph, json, read, select, input, approve, definitions,
+  return { call, attempt, graph, json, read, select, input, approve, definitions,
     async restart() { await client.close(); await connect(); }, close: () => client.close() };
 }
