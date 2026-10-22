@@ -20,7 +20,7 @@ export async function assertNewOperationInputClosure(root, manifest) {
   for (const resource of manifest.resources) {
     const revision = await store.readRevision(resource.revisionId);
     if (manifest.version === 1 && manifest.referenceClosureVersion !== 1 && hasInputReferences(revision.kind)) throw new FolioError('INPUT_REFERENCE_CLOSURE_REQUIRED', 'Prepare a fresh input snapshot or use version 2 before starting new work with typed context references.');
-    if (revision.kind === 'capability-readiness') await assertReadinessCurrent(root, revision.revisionId);
+    if (revision.kind === 'capability-readiness') await assertReadinessCurrent(root, revision.revisionId, manifest);
     if (revision.kind === 'structure-map') {
       const value = JSON.parse((await store.readContent(revision.revisionId)).toString('utf8'));
       if (value.parserVersion !== resolveParserVersion(value.format, undefined)) throw new FolioError('STRUCTURE_PARSER_UPGRADE_REQUIRED', 'Reinspect and normalize the retained source with the current parser before starting a new operation. Historical inputs and existing operations remain readable.');

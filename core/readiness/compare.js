@@ -6,6 +6,7 @@ import { assertContextIsolation } from '../context/isolation.js';
 import { validateCapabilityRequest, validateCapabilityValue } from '../../packs/production/capabilities.js';
 import { validateReadinessInput, invalidReadiness, readTypedJson, exactFact, SPECIFICATION_KIND } from './records.js';
 import { inspectCandidate, candidateForRequirement } from './candidates.js';
+import { readReadinessSelections } from './selection.js';
 
 function atPath(value, path) { return path.replace(/^parameters\./, '').split('.').reduce((node, key) => node?.[key], value.parameters); }
 function requirementNeeded(row, request) {
@@ -35,11 +36,8 @@ export async function buildCapabilityReadiness(root, input, state) {
   }
   const boundRevisionIds = [...new Set(request.value.inputBindings.flatMap((binding) => [binding.revisionId, binding.transformRevisionId].filter(Boolean)))];
   for (const id of [input.specificationRevisionId, input.requestRevisionId, ...boundRevisionIds]) assertInputScope(definitions, (await store.readRevision(id)).resourceId);
-  await assertContextIsolation(root, [...input.candidateRevisionIds, ...boundRevisionIds], input);
-  const selected = scope.flatMap((resourceId) => {
-    const marker = state.sourceSelections[resourceId];
-    return marker?.revisionId && !definitionsIds.has(marker.revisionId) ? [{ resourceId, revisionId: marker.revisionId, selectionRevision: marker.selectionRevision }] : [];
-  });
+  await assertContextIsolation(root, [input.requestRevisionId, ...input.candidateRevisionIds, ...boundRevisionIds], input);
+  const selected = (await readReadinessSelections(root, input, state, scope)).filter((row) => !definitionsIds.has(row.revisionId));
   const missingSelected = selected.filter((row) => !input.candidateRevisionIds.includes(row.revisionId));
   // Completeness refers exclusively to selected revisions in this exact profile/policy intersection.
   if (input.search.completeness === 'complete' && missingSelected.length) invalidReadiness('complete search must include every selected revision in the declared profile/policy scope');
@@ -75,10 +73,13 @@ export async function buildCapabilityReadiness(root, input, state) {
   const maxInputBytes = Math.min(definitions.profile.value.maxInputBytes, definitions.policy.value.maxInputBytes ?? Number.MAX_SAFE_INTEGER);
   return { version: 1, input, workspaceCheckpoint: state.checkpoint, specification: exactFact(specification.revision), request: exactFact(request.revision),
     definitions: Object.fromEntries(Object.entries(definitions).map(([kind, value]) => [kind, { revisionId: value.revisionId, contentHash: value.contentHash, definitionHash: value.definitionHash }])),
-    search: { ...input.search, basis: 'selected-revisions-in-profile-policy-intersection', resourceIds: scope, selected, omittedSelected: missingSelected,
+    search: { ...input.search, basis: 'scope-bindings-with-global-fallback-in-profile-policy-intersection', resourceIds: scope, selected, omittedSelected: missingSelected,
       unselectedAndExternalHoldings: 'not-searched', freshness: 'at-workspace-checkpoint' },
     candidates, boundRevisionIds, requirements, requestValidation,
-    readiness: { canPrepare: requestValidation.status === 'valid' && requirements.every((row) => row.required !== true || row.status === 'provided' || row.status === 'candidates' && row.selectedCandidateRevisionIds.length > 0) && totalBytes <= maxInputBytes },
+    readiness: { canPrepare: requestValidation.status === 'valid' && requirements.every((row) => {
+      const supplied = atPath(request.value, row.fieldPath) !== undefined || request.value.inputBindings.some((binding) => binding.fieldPath === row.fieldPath);
+      return !supplied && row.required !== true || row.status === 'provided' || row.status === 'candidates' && row.selectedCandidateRevisionIds.length > 0;
+    }) && totalBytes <= maxInputBytes },
     budget: { observedBytes: totalBytes, maxInputBytes, withinObservedBudget: totalBytes <= maxInputBytes, complete: candidates.every((row) => row.byteLength !== null),
       meaning: 'Exact request bindings and definitions are a lower bound; the complete final input closure is independently budgeted before execution.' },
     decision: { candidateDiscoveryOnly: true, inputSelection: 'not-performed', internalExecutionAuthority: 'not-granted', rights: 'unknown',

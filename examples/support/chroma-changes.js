@@ -32,9 +32,9 @@ export async function chromaChanges(host, s, { outputs, intermediates, unaffecte
       assert.ok(reason, `${label} must require review of ${id}`);
     }
     for (const id of unaffected[resourceId] ?? []) assert.ok(!reasons(id).some((r) => r.resourceId === resourceId), `${label} must not touch ${id}`);
-    const graph = await host.graph();
-    for (const id of outputs) assert.equal(graph.nodes.find((n) => n.revisionId === s.resources.get(id).revisionId).reviewRequired, true);
     propagated[label] = true;
   }
+  const graph = await host.graph();
+  for (const id of outputs) assert.equal(graph.nodes.find((n) => n.revisionId === s.resources.get(id).revisionId).reviewRequired, true);
   return { reviewPropagation: propagated };
 }

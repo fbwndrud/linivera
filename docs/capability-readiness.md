@@ -46,13 +46,18 @@ kind `capability-specification`으로 보관한다. 명세를 이름만으로 �
 - `unknown-partial-search`: 부분 조회여서 미보유로 결론 내릴 수 없다.
 
 `search.completeness=complete`는 그 checkpoint의 profile/policy scope 교집합 안에서
-사용자가 선택한 모든 판본을 후보에 포함해야 허용한다. 미선택 판본·외부 소장 자료는
+사용자가 선택한 모든 판본을 후보에 포함해야 허용한다. 같은 scope의 명시적 회차 선택이
+있으면 해당 Resource의 고정 판본을 우선하며, 없으면 전역 선택을 사용한다. 같은 Resource의
+여러 고정 판본도 각각 기록한다. 미선택 판본·외부 소장 자료는
 `not-searched`다. scope 전체 자료의 존재를 안다는 뜻이 아니다. 누락된 선택은
 `omittedSelected`에 나타난다. 보고의 최신성은 `at-workspace-checkpoint`다.
 
 `readiness.canPrepare`는 검사한 구조적 필수 조건과 요청 계약·관측 예산의 충족이다.
 권리 보고나 내부 실행 권한을 부여하지 않는다. 최종 Input은 별도로 선택·scope·typed closure·
 전체 바이트 예산을 검사하며 새 작업은 관련 선택이 바뀐 보고를 거절한다.
+v2 Input이 실제 fixed/scoped 의존성으로 소비한 판본은 해당 바인딩과 체인이 그대로라면
+전역 선택만 바뀌어도 유지할 수 있다. v1/global 소비와 profile/pipeline/policy 정의는
+전역 최신성 검사를 유지한다. 관련 회차 바인딩을 바꾸거나 지우면 재대조한다.
 
 보고의 명세·요청·실제 binding은 제공 입력으로 펼친다. 선택하지 않은 다른 후보와
 profile/pipeline/policy 판정 근거는 `context-evidence` 관계로 남기며 자동 입력으로 넣지 않는다.
@@ -70,3 +75,7 @@ profile/pipeline/policy 판정 근거는 `context-evidence` 관계로 남기며 
 후속 결과는 보관한 hash·편집 구간·DB 값·brief 문구·권리 보고 상태/원문·성과 수치·공급자
 file ID·선언 버전을 소비한다. 실제 모델 생성·공급자 네트워크·미디어 재생·편집기/엔진 복원·
 외부 게시·권리 유효성이나 성과 진실성은 검증하지 않는다.
+
+초기 fal 이미지는 prompt 바이트에서 계산한 색을 실제 출력으로 보관한다. 추가 Runware/
+MiniMax 응답은 합성 관측 자료이며, 파일 binding은 해당 관측의 참조다. 서로 다른 공급자의
+관측을 실제 생성 인과로 승격하지 않는다. 실제 파생은 Input→Operation→출력 관계로만 기록한다.

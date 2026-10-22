@@ -112,6 +112,26 @@ test('complete empty selected scope reports bounded absence rather than global n
   assert.equal(report.requirements.find((row) => row.role === 'source').status, 'absent-in-searched-selection');
   assert.equal(report.search.unselectedAndExternalHoldings, 'not-searched');
 });
+
+test('optional means omittable; a supplied optional context of the wrong kind blocks preparation', async (t) => {
+  const f = await readinessFixture(t);
+  const request = await f.put('request', 'generation-request', { ...f.requestValue, inputBindings: [...f.requestValue.inputBindings,
+    { fieldPath: 'context', role: 'context', revisionId: f.source.revisionId }] });
+  const report = await compareCapabilityReadiness(f.root, { ...f.input, requestRevisionId: request.revisionId });
+  assert.equal(report.requestValidation.status, 'valid');
+  assert.equal(report.requirements.find((row) => row.role === 'context').selectedCandidateRevisionIds.length, 0);
+  assert.equal(report.readiness.canPrepare, false);
+  const retained = await f.put('readiness', 'capability-readiness', report);
+  await assert.rejects(collectInputClosure(f.root, [retained.revisionId]), { code: 'CAPABILITY_INPUTS_INCOMPLETE' });
+});
+
+test('request iteration cannot carry another story through readiness into the next input', async (t) => {
+  const f = await readinessFixture(t);
+  const foreign = await f.put('context', 'usage-context', { version: 1, scopeId: 'other-story', pathId: 'other-path', states: [] }, { select: true });
+  const request = await f.put('request', 'generation-request', { ...f.requestValue, iteration: { baseRevisionIds: [foreign.revisionId], preserveRefs: [] } });
+  await assert.rejects(compareCapabilityReadiness(f.root, { ...f.input, requestRevisionId: request.revisionId }), { code: 'CONTEXT_SCOPE_MISMATCH' });
+  await assert.rejects(retainCapabilityReadiness(f.root, { resourceId: 'readiness', ...f.input, requestRevisionId: request.revisionId }), { code: 'CONTEXT_SCOPE_MISMATCH' });
+});
 test('finding a structurally eligible candidate does not select or approve it for an unbound request', async (t) => {
   const f = await readinessFixture(t);
   const request = await f.put('request', 'generation-request', { ...f.requestValue, inputBindings: f.requestValue.inputBindings.filter((row) => row.role !== 'source') });

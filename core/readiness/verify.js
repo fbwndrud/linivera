@@ -4,6 +4,7 @@ import { createResourceStore } from '../resources/revisions.js';
 import { FolioError } from '../errors.js';
 import { buildCapabilityReadiness } from './compare.js';
 import { invalidReadiness, READINESS_KIND, SPECIFICATION_KIND, readTypedJson, readinessInputReferences, readinessEvidenceReferences } from './records.js';
+import { hasCurrentScopedConsumption, assertReportedScopeCurrent } from './selection.js';
 import { validateCapabilitySpec } from '../../packs/production/capabilities.js';
 
 /** Rebuild a report against its retained ledger prefix, never against today's selections. */
@@ -35,14 +36,19 @@ export async function readReadinessRelations(root, revision) {
     ...readinessEvidenceReferences(value).map((targetRevisionId) => ({ targetRevisionId, kind: 'context-evidence' }))];
 }
 /** Fresh operations recompare changed inputs; historical sealed inputs remain independently verifiable. */
-export async function assertReadinessCurrent(root, revisionId) {
+export async function assertReadinessCurrent(root, revisionId, manifest = undefined) {
   const { value } = await readTypedJson(root, revisionId, READINESS_KIND);
   await verifyCapabilityReadiness(root, value);
   const store = createResourceStore(root); const state = await readWorkspaceState(root);
   const prior = await readWorkspaceState(root, { checkpoint: value.workspaceCheckpoint });
   const refs = [...readinessInputReferences(value), ...readinessEvidenceReferences(value)];
+  const definitionIds = new Set(['profile', 'pipeline', 'policy'].map((kind) => value.input[kind + 'RevisionId']));
   for (const id of refs) {
     const revision = await store.readRevision(id);
+    if (!definitionIds.has(id)) {
+      assertReportedScopeCurrent(value, id, state);
+      if (await hasCurrentScopedConsumption(root, value.input, id, manifest, state)) continue;
+    }
     const current = state.sourceSelections[revision.resourceId];
     const historical = prior.sourceSelections[revision.resourceId];
     if (historical?.revisionId === id && current?.revisionId !== id) throw new FolioError('CAPABILITY_READINESS_STALE', 'Selected evidence changed. Compare the current exact revisions before starting new work.');

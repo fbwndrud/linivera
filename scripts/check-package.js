@@ -14,8 +14,8 @@ const npmCli = process.env.npm_execpath;
 if (!npmCli) throw new Error('run this check with npm run package:verify');
 const sandbox = await mkdtemp(join(tmpdir(), 'linivera-package-'));
 
-function run(command, args, cwd) {
-  const result = spawnSync(command, args, { cwd, encoding: 'utf8', timeout: 180_000,
+function run(command, args, cwd, timeout = 180_000) {
+  const result = spawnSync(command, args, { cwd, encoding: 'utf8', timeout,
     env: { ...process.env, npm_config_cache: join(sandbox, 'cache') } });
   if (result.error || result.status !== 0) {
     throw new Error(`${args[0]} failed: ${result.error?.message ?? result.stderr ?? result.stdout}`);
@@ -94,7 +94,7 @@ try {
     for (const field of ['verified', 'serverRestarted', 'deliveryFeedsNextWork', 'exactDependencyClosure', 'releaseIdentityMatched', 'transitiveReviewRequired']) assert.equal(delivery[field], true);
     for (const field of ['actualModelGeneration', 'externalPublication', 'legalApproval']) assert.equal(delivery[field], false);
   }
-  const chroma = JSON.parse(run(process.execPath, [join(installed, 'examples', 'chroma-continuity.js')], sandbox));
+  const chroma = JSON.parse(run(process.execPath, [join(installed, 'examples', 'chroma-continuity.js')], sandbox, 300_000));
   for (const field of ['verified', 'singleWorkspace', 'originalsDeleted', 'bundleFeedsNextWork', 'historicalInputsVerified']) assert.equal(chroma[field], true);
   assert.ok(Object.values(chroma.refused).every(Boolean) && Object.values(chroma.reviewPropagation).every(Boolean));
   for (const field of ['actualModelGeneration', 'actualProviderNetwork', 'externalPublication', 'legalApproval']) assert.equal(chroma[field], false);

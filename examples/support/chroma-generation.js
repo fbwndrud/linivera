@@ -32,7 +32,7 @@ export async function approveRecordedGroups(host, operationId, groups) {
     const receiptId = await call('folio_operations', { op: 'reviewGroup', operationId, groupId: group.groupId,
       outputHashes: group.outputs.map((r) => r.contentHash), findings: [], reviewer: 'host' });
     const decision = await call('folio_operations', { op: 'decideGroup', operationId, groupId: group.groupId,
-      receiptId, actor: 'user', action: 'approve', expectedCheckpoint: (await host.graph()).checkpoint });
+      receiptId, actor: 'user', action: 'approve', expectedCheckpoint: host.checkpoint });
     assert.equal(decision.selfReview, true);
   }
 }
