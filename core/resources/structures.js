@@ -9,13 +9,15 @@ import { xmeml } from '../../packs/production/structures/xmeml.js';
 import { otio } from '../../packs/production/structures/otio.js';
 import { comfyDependencies } from '../../packs/production/structures/comfy-dependencies.js';
 import { gltfExtensions } from '../../packs/production/structures/gltf-extensions.js';
+import { projectManifest } from '../../packs/production/structures/project-manifest.js';
+import { aseprite } from '../../packs/production/structures/aseprite.js';
 
 import { resolveParserVersion } from '../../packs/production/structures/versions.js';
 export { STRUCTURE_FORMATS } from '../../packs/production/structures/versions.js';
 export async function inspectStructure(root, { revisionId, format, parserVersion: requestedVersion, dependencyManifestRevisionId }) {
   const parserVersion = resolveParserVersion(format, requestedVersion);
   if (dependencyManifestRevisionId !== undefined && (parserVersion !== 2 || !['comfy-api', 'comfy-ui'].includes(format))) invalid('dependency manifest requires extended Comfy parser');
-  const parser = { 'comfy-api': comfyApi, 'comfy-ui': comfyUi, 'martini-run': martiniRun, otio }[format];
+  const parser = { 'comfy-api': comfyApi, 'comfy-ui': comfyUi, 'martini-run': martiniRun, 'project-manifest': projectManifest, aseprite, otio }[format];
   const { revision, bytes } = await readStructureSource(root, revisionId, format);
   if (parserVersion === 2 && ['comfy-api', 'comfy-ui'].includes(format)) {
     let declaration;

@@ -83,6 +83,11 @@ try {
     assert.equal(timeline.actualModelGeneration, false);
   }
   const tracking = JSON.parse(run(process.execPath, [join(installed, 'examples', 'tracking.js')], sandbox));
+  for (const args of [[], ['--sheet']]) {
+    const project = JSON.parse(run(process.execPath, [join(installed, 'examples', 'project-continuity.js'), ...args], sandbox));
+    for (const field of ['verified', 'brokerFilesRetained', 'serverRestarted', 'projectFeedsNextWork', 'dependencyClosure', 'transitiveReviewRequired']) assert.equal(project[field], true);
+    assert.equal(project.actualModelGeneration, false); assert.equal(project.actualBrokerNetwork, false); assert.equal(project.runtimeRestored, false);
+  }
   assert.equal(tracking.verified, true);
   assert.deepEqual(tracking.scenarios, ['mystery', 'cookbook', 'picturebook']);
   const production = JSON.parse(run(process.execPath, [join(installed, 'examples', 'production.js')], sandbox));

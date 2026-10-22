@@ -62,4 +62,9 @@ npm run examples:verify
 
 ## English fixtures
 
+`node examples/project-continuity.js`와 `--sheet`는 합성 파트너 파일을 공통 Adapter로
+보관하고 MCP 재시작 후 프로젝트/atlas/DB 데이터를 두 단계 후속 작업에 사용한다.
+DB 또는 스프라이트 판본 변경의 전이 재검토를 검증한다. 실제 브로커/공급자 호출·
+모델 생성·게임 복원/배포는 수행하지 않는다. 임시 자료는 항상 정리한다.
+
 CLI examples now default to English. Use `node examples/run.js all --language en --verify`, or the one-command demo in [Getting started](../docs/getting-started.en.md). Use `--language ko` for the original Korean fixtures. The JavaScript `runExamples` API keeps its original Korean default. Both versions use fixed synthetic responses and simulated approval; they never approve a real user work.

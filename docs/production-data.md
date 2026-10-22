@@ -83,6 +83,7 @@ SRT/VTT/XML/AAF, 모델·텍스처·rig/clip, 소스·build 등도 파일로 보
 | `adapters/production/fal.js` | `fal-ai/flux/schnell` 이미지 queue | `submit(endpoint,{input})`, `status(endpoint,{requestId,logs})`, `result(endpoint,{requestId})`, `download(url)` |
 | `adapters/production/elevenlabs.js` | `/v1/text-to-speech/{voice_id}/with-timestamps` | `convertWithTimestamps(voiceId,body,query)` |
 | `adapters/production/manual-capture.js` | 로컬 사용자 파일 | transport 없음, 명시적 capture ID와 파일 bytes |
+| `adapters/production/versioned-export.js` | 임의 파트너의 확보한 파일·역할·bundle | 호스트/브로커가 bytes 또는 절대 로컬 path를 명시. 공급자 전용 파서 불필요 |
 
 공식 schema 근거는 각 Adapter의 `*_SCHEMA_SOURCE`, [fal API](https://fal.ai/models/fal-ai/flux/schnell/api), [ElevenLabs timestamps API](https://elevenlabs.io/docs/api-reference/text-to-speech/convert-with-timestamps)에 있다. 저장소의 `docs/plans/2026-10-22-chroma-data-implementation-plan.md`에는 전체 조사와 후속 계획을 기록했다. 한 endpoint를 지원한다는 뜻이며 해당 회사의 모든 모델·웹 기능을 지원한다는 뜻은 아니다.
 
@@ -103,6 +104,8 @@ fal·ElevenLabs는 inputBindings가 비어 있어도 모든 native parameter를 
 ElevenLabs는 동기 응답이므로 호스트가 살아 있을 때 audio와 alignment를 회수·보존해야 한다. 로컬 서버 재시작과 공급자 응답을 가진 호스트 종료는 다르다. 응답을 잃은 호스트에서 같은 음원을 재조회할 API가 있다고 가정하지 않는다. 공급자 ID가 응답에 없으면 로컬 상관 ID로 구별해 보존하고 `providerJobId`는 unavailable로 남긴다. 정렬은 정확한 audioRevisionId와 textRevisionId에 결속하며 normalized text를 원문 단어 정렬로 바꾸지 않는다.
 
 manual capture는 보존 시점의 파일을 관측할 뿐이다. 원래 생성 도구의 입력·seed·prompt를 알 수 없다면 unknown으로 남긴다. 이후 리니베라 작업에 입력한 이력은 기록할 수 있다.
+[파서 없는 파트너 자료와 프로젝트 의존성](project-data.md)은 공통 브로커 반입에서
+코드·씬·sprite atlas·DB/환경/배포 증거를 다음 작업에 연결하는 방법을 설명한다.
 
 ## 이번 범위
 

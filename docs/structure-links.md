@@ -2,6 +2,7 @@
 
 [Chroma 지원표](chroma-support.md)에서 도구별 자동 해석·수동 연결·파일 보관을 확인한다.
 [편집·확장 의존성](editing-dependencies.md)은 XMEML/OTIO와 커스텀 패키지·3D 확장의 상세 계약이다.
+[프로젝트 자료](project-data.md)는 공급자 파서 없는 공통 반입과 코드·씬·atlas·상태 증거의 계약이다.
 `folio_resources`의 다음 두 동작은 기존 Resource/Input/Operation 경로를 사용한다.
 
 1. `importFile` 또는 `propose`로 원본과 필요한 소재 파일을 보관한다.
@@ -44,6 +45,8 @@ map은 `{version:1,sourceRevisionId,sourceContentHash,format,parserVersion,struc
 | srt | UTF-8 SubRip cue의 순서·초 단위 시작/끝·문구 | `media` key로 음원/영상 선택적 연결. 오디오 정렬·편집 트랙·스타일 해석은 별도 |
 | xmeml | XMEML 5 sequence·트랙·클립·파일·전환·효과 관측 | 미디어 파일 ID/URI를 판본에 연결. 편집기 효과 실행·복원은 별도 |
 | otio | OTIO JSON 트랙·클립·gap·transition과 원본/parent 시간 | 미디어 reference를 실제 파일로 연결. retime/visible range 평탄화는 별도 |
+| project-manifest | 파일 역할·진입점·의존성·DB/환경/배포 증거와 누락을 명시한 Linivera v1 계약 | 파일과 필수 누락 슬롯을 보관 판본에 연결. native 코드/씬 분석·실행 복원은 별도 |
+| aseprite | JSON hash/array atlas frame 좌표·trim·duration(ms)·tag | sheet 필수 연결. 모호한 layer/partial/tag 순서는 unknown, 이미지 decode·재생은 별도 |
 
 JSON/SRT 구조 원본은 6MiB까지 해석한다. GLB는 파일당 2GiB 범위 안에서 전체 hash를
 스트림 검증하고 6MiB 이하 JSON chunk만 메모리에 읽는다. 구조는 최대 4,096 units,
@@ -51,7 +54,7 @@ JSON/SRT 구조 원본은 6MiB까지 해석한다. GLB는 파일당 2GiB 범위 
 파서가 모르는 의미는 원본 바이트와 `coverage.unknown`에 남는다. `required`는 발견한
 슬롯에 대한 조건이며, 미지원 형식 내부의 숨은 의존성이 없다는 보장은 아니다.
 
-XMEML/OTIO 이외의 전용 편집 형식·압축 프로젝트·FBX/OBJ/splat·게임 DB/배포 복원은 현재 수동
+XMEML/OTIO 이외의 전용 편집 형식·압축 프로젝트·FBX/OBJ/splat·게임 DB/배포의 실제 복원은 현재 수동
 자료 묶음과 관측 기록을 사용한다. 별도 파서가 필요한 다음 우선순위다. 파일 보관은
 손실 없이 다음 작업을 준비하는 기반이며 편집기나 게임 실행 환경 복원을 보장하지 않는다.
 

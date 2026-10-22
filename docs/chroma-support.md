@@ -20,7 +20,7 @@
 | P0 | 구조 원본·연결 판본의 재계산·무결성·Input 폐쇄 | 이번 구현·검증 완료 |
 | P1 | workflow/run → 다음 입력, 모델/재질/리그/클립, 자막 cue → 미디어 | 이번 기본 형식 구현·검증 완료 |
 | P2 | XMEML/OTIO 편집·명시적 커스텀 의존성·3D 확장 참조 | 기본 범위 구현. 전용 형식·효과/codec 실행은 별도 |
-| P3 | 게임 코드/씬·sprite/atlas·DB·환경·배포 의존성 | 수동 역할을 세부 연결로 확장할 후보 |
+| P3 | 게임 코드/씬·sprite/atlas·DB·환경·배포 의존성 | 공통 project-manifest 선언과 Aseprite atlas 기본 연결 구현. 엔진/실행 복원은 별도 |
 | P4 | 공급자별 추가 응답·brief/권리/배포 성과의 의미 연결 | 실제 계약/샘플 확보 후 확장 |
 
 | 파트너 | 자동 해석 / 형식 조건 | 수동 연결 | 파일 보관 | 남은 연결 우선순위 |
@@ -57,11 +57,11 @@
 | VEED | SRT cue 시간, 해당 export 조건 | 영상·음원·자막·프로젝트 | 미디어·SRT·프로젝트 | P2 트랙·효과 |
 | Passionfroot | 전용 파서 없음 | 협업 brief·제출판·권리 | 확보한 문서·참조 | P4 협업 기준/성과 |
 | Adobe | SRT/glTF/GLB와 XMEML/OTIO, 해당 파일 확보 조건 | 편집·재질·소스·참조 | 확보한 프로젝트·미디어 | P2 PSD/AE/전용 편집 형식·효과 |
-| Rosebud | glTF/GLB, 해당 export 조건 | 코드·씬·소재·빌드·DB | 소스·소재·빌드 | P3 코드/씬·DB/배포 |
-| SpriteCook | 전용 파서 없음 | sprite·animation 역할 | 이미지·시트·기록 | P3 프레임/atlas 메타데이터 |
-| Nimble Fox | 전용 파서 없음 | 게임·소재·소스·빌드 | 확보한 파일·기록 | P3 고유 export 확인 |
-| Pickford | 전용 파서 없음 | 상호작용·분기·자료 | 확보한 파일·기록 | P3 분기/상태 모델 |
-| Bolt | 전용 파서 없음 | 소스·빌드·자료·DB·플랫폼 | 확보한 export·manifest | P3 lockfile/DB/배포 |
+| Rosebud | glTF/GLB, 해당 export 조건. 전용 코드/씬 파서 없음 | project-manifest로 코드·씬·소재·빌드·DB 증거 연결 | 소스·소재·빌드 | P3 엔진별 코드/씬·DB 실행 복원 |
+| SpriteCook | Aseprite JSON hash/array 확보 시 frame/tag 해석. 고유 export는 미확인 | sheet·atlas·animation 자료 판본 | 이미지·시트·기록 | P3 다른 native atlas·재생 의미 |
+| Nimble Fox | 전용 파서 없음 | project-manifest로 게임·소재·소스·빌드 의존성 선언 | 확보한 파일·기록 | P3 고유 export·엔진 의미 확인 |
+| Pickford | 전용 파서 없음 | project-manifest로 분기 파일/상태 증거 의존성 선언 | 확보한 파일·기록 | P3 고유 분기/실시간 상태 모델 |
+| Bolt | 전용 코드/lockfile/DB 파서 없음 | project-manifest로 소스·lockfile·build·DB/환경/배포 증거 연결 | 확보한 export·manifest | P3 패키지/DB/배포의 실행 복원 |
 
 사용 절차와 정확한 해석 범위는 [구조 연결](structure-links.md)을 따른다.
 자동 해석의 지원 범위는 ComfyUI 기본/선언 연결, Martini 관측 run, glTF 2 기본/지원 확장
@@ -71,3 +71,4 @@
 공급자 전용 파서가 없는 도구도 자료를 잃지 않고 반복 작업에 연결할 수 있다.
 단, 외부 ID를 실제 파일로 연결하고 누락 자료를 확인하는 작업은 현재 수동이다.
 [P2의 형식별 범위와 남은 부분](editing-dependencies.md)을 확인한다.
+[공통 브로커 반입과 P3 프로젝트 연결](project-data.md)도 같은 경로를 사용한다.
