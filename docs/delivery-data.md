@@ -46,8 +46,9 @@ taskIdPointer/statusPointer는 생략하면 unknown이다. outputs는 명시한 
 포인터·잘못된 escape는 오류다. 출력 locator는 파일명/ID/URL 단서이며 byte 동일성을 뜻하지 않는다.
 실제 파일을 연결하면 원본 응답·선언·파일의 정확한 판본이 다음 Input에 함께 들어간다.
 
-map은 출력 URL 문자열을 복제하지 않고 원본 JSON Pointer를 남긴다. 알려진 인증 문자열은
-표시용 텍스트에서 가린다. 이것이 원본의 비밀 제거를 뜻하지는 않는다. 원본 Resource는
+map은 출력 URL 문자열을 복제하지 않고 원본 JSON Pointer를 남긴다. 선언의 provider·
+schemaVersion·endpoint 등 표시용 텍스트의 알려진 인증 문자열도 가리며 endpoint query는
+복제하지 않는다. 정확한 값은 보관한 선언을 읽는다. 이것이 원본의 비밀 제거를 뜻하지는 않는다. 원본 Resource는
 그대로 보존하므로 인증 debug dump는 반입 전에 필요한 비밀을 제거한 별도 사본으로 준비한다.
 
 ## 브리프·권리·배포·성과 기록
@@ -100,3 +101,5 @@ cumulative이면 start는 해당 누적 보고의 명시한 시작점이다. 지
 performance, contract를 지원한다. 실제 stdio 재시작 후 읽은 요구사항·권리 보고·지표·file ID를
 다음 결과와 후속 결과에 사용하고 두 단계 전이 재검토를 검증한다. 전부 합성 자료이며
 영상은 opaque fixture다. 실제 공급자/법률 판단·미디어 재생·외부 게시 검증은 수행하지 않는다.
+Kling의 API 오류와 작업 실패는 별도 stage로 보관하며, 작업 실패의 task_status_msg도
+표시용 정제를 거친다.

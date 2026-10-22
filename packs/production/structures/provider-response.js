@@ -9,7 +9,7 @@ export function reportedText(value, max = 512) {
 }
 export function responseProjection(format, provider, endpoint) {
   const p = projection(format);
-  p.unknown(`Reported ${provider} response for ${endpoint}; original generation inputs, account authenticity, quality and authorization are not proven.`);
+  p.unknown(`Reported ${reportedText(provider, 128)} response for ${reportedText(endpoint)}; original generation inputs, account authenticity, quality and authorization are not proven.`);
   p.unknown('Other native fields remain in the source. Output locators do not fetch files or verify remote byte identity.');
   return p;
 }
@@ -28,8 +28,11 @@ function at(value, locator) {
 export function declaredResponse(value, declaration) {
   fields(declaration, ['version', 'provider', 'endpoint', 'schemaVersion', 'taskIdPointer', 'statusPointer', 'outputs']);
   if (declaration.version !== 1 || !(object(value) || Array.isArray(value))) invalid('versioned response declaration and JSON object/array required');
-  const provider = text(declaration.provider, 128); const endpoint = text(declaration.endpoint, 512); const schemaVersion = text(declaration.schemaVersion, 128);
+  const provider = reportedText(text(declaration.provider, 128));
+  const endpoint = reportedText(text(declaration.endpoint, 512).split(/[?#]/, 1)[0]);
+  const schemaVersion = reportedText(text(declaration.schemaVersion, 128));
   const p = responseProjection('provider-response', provider, endpoint);
+  p.unknown('Declaration labels are display metadata; endpoint queries and URLs are omitted here. Consult the retained declaration for exact values.');
   const metadata = { provider, endpoint, schemaVersion, taskId: null, status: null };
   for (const [field, pointerField] of [['taskId', 'taskIdPointer'], ['status', 'statusPointer']]) {
     if (declaration[pointerField] === undefined) { p.unknown(`Unreported response ${field}`); continue; }
@@ -39,7 +42,7 @@ export function declaredResponse(value, declaration) {
   }
   p.unit('/', 'provider-response', metadata); const seen = new Set();
   for (const [i, output] of array(declaration.outputs, 'declared response outputs').entries()) {
-    fields(output, ['pointer', 'role', 'required']); const locator = text(output.pointer, 2048); const role = text(output.role, 128);
+    fields(output, ['pointer', 'role', 'required']); const locator = text(output.pointer, 2048); const role = reportedText(text(output.role, 128));
     if (seen.has(locator) || typeof output.required !== 'boolean') invalid('unique output pointer and explicit required flag needed'); seen.add(locator);
     const observed = at(value, locator); const id = `/@outputs/${i}`;
     if (observed == null || observed === '') p.unknown(`Missing declared output at ${locator}`);

@@ -29,3 +29,18 @@ scope/선택/용량·경로 격리·오래된 Input 검증을 유지한다. 새 
 
 전체 check와 설치 tarball을 검증하고 Standards/Spec 독립 리뷰를 반영해 #7 위에 PR을 올린다.
 형식 근거는 배경 조사 [공급자 응답](2026-10-23-chroma-provider-response-research.md)에 기록한다.
+
+## 독립 리뷰 반영
+
+### Standards
+
+`525aa3c...ffd24fe`의 문서화된 규칙 위반·actionable 설계 냄새는 0건이다.
+검토자는 공통 subject/evidence 계약의 책임, 비재귀적인 release 원본 대조,
+기존 parser·잠금·입력 예산과 standalone 스킬 문서 경로를 확인했다.
+
+### Spec
+
+선언 endpoint의 인증 URL이 파생 메타데이터에 복제되는 P2와 Kling 작업 실패 원인
+해석 누락 P2 두 건을 공개 Resource 반례로 재현했다. 선언의 표시용 label/endpoint 및
+coverage도 정제하고 원본 선언은 유지한다. Kling의 API 오류/작업 실패를 stage로 구분하고
+task_status_msg를 정제해 보관한다. 두 공개 회귀 테스트를 추가했다. 범위 이탈은 없었다.

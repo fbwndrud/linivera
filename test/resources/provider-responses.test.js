@@ -28,6 +28,27 @@ test('declared provider JSON pointers pin the response, contract and actual outp
   assert.deepEqual(new Set(input.manifest.resources.map((r) => r.resourceId)), new Set(scope));
 });
 
+test('declared endpoint and label credentials are absent from maps while the immutable declaration remains exact', async (t) => {
+  const f = await scopedFixture(t); const source = await f.resource('result', { task: { id: 'task', state: 'ready' }, results: [{ url: 'synthetic' }] });
+  for (const endpoint of ['https://partner.invalid/private-path?api_key=SYNTHETIC_PRIVATE#secret', '/result?api_key=SYNTHETIC_PRIVATE#secret']) {
+    const value = declaration(); value.endpoint = endpoint; value.provider = 'Bearer SYNTHETIC_PROVIDER_TOKEN'; value.schemaVersion = 'Basic SYNTHETIC_SCHEMA_TOKEN';
+    const contract = await f.resource('contract', value);
+    const { structure } = await resourcesTool(f.root, { op: 'inspectStructure', revisionId: source.revisionId, format: 'provider-response', dependencyManifestRevisionId: contract.revisionId });
+    for (const secret of ['SYNTHETIC_PRIVATE', 'SYNTHETIC_PROVIDER_TOKEN', 'SYNTHETIC_SCHEMA_TOKEN', 'private-path']) assert.ok(!JSON.stringify(structure).includes(secret), secret);
+    assert.equal(JSON.parse((await f.store.readContent(contract.revisionId)).toString()).endpoint, endpoint);
+  }
+});
+
+test('Kling task failure keeps its reported cause separately from API errors without producing completed outputs', async (t) => {
+  const f = await scopedFixture(t); const source = await f.resource('failed', { code: 0, data: { task_id: 'task', task_status: 'failed',
+    task_status_msg: 'synthetic moderation rejection; Bearer SYNTHETIC_TOKEN https://example.invalid/private-path?signature=secret' } });
+  const { structure } = await resourcesTool(f.root, { op: 'inspectStructure', revisionId: source.revisionId, format: 'kling-video-query' });
+  const failure = structure.units.find((u) => u.kind === 'provider-error'); assert.ok(failure);
+  assert.equal(failure.stage, 'task'); assert.ok(failure.message.includes('synthetic moderation rejection'));
+  assert.ok(!JSON.stringify(structure).includes('SYNTHETIC_TOKEN')); assert.ok(!JSON.stringify(structure).includes('private-path'));
+  assert.equal(structure.references.length, 0);
+});
+
 test('successful native snapshots with missing output locators block complete next-task inputs', async (t) => {
   const f = await scopedFixture(t);
   for (const [format, value] of [

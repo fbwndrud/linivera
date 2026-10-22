@@ -8,12 +8,17 @@ export function klingVideoQuery(value) {
   const p = responseProjection('kling-video-query', 'kling', 'legacy /v1/videos/text2video/{task_id}');
   if (value.code !== 0) {
     p.unit('/', 'provider-response', { provider: 'kling', code: value.code });
-    p.unit('/code', 'provider-error', { code: value.code, message: value.message == null ? null : reportedText(value.message) }); p.link('/', '/code', 'response-error'); return p.finish();
+    p.unit('/code', 'provider-error', { stage: 'api', code: value.code, message: value.message == null ? null : reportedText(value.message) }); p.link('/', '/code', 'response-error'); return p.finish();
   }
   if (!object(value.data)) invalid('Kling single query requires object data'); const data = value.data;
   if (!['submitted', 'processing', 'succeed', 'failed'].includes(data.task_status)) invalid('known Kling legacy task status required');
   p.unit('/', 'provider-response', { provider: 'kling', taskId: reportedText(text(data.task_id, 512)), status: data.task_status, code: value.code });
   if (data.task_status !== 'succeed') {
+    if (data.task_status === 'failed') {
+      p.unit('/data/task_status_msg', 'provider-error', { stage: 'task', code: null,
+        message: data.task_status_msg == null ? null : reportedText(data.task_status_msg) }); p.link('/', '/data/task_status_msg', 'response-error');
+      if (data.task_status_msg == null) p.unknown('Kling reported a failed task without a failure explanation.');
+    }
     if (data.task_result !== undefined) p.unknown('Result outside succeed was not interpreted as a completed video.');
     return p.finish();
   }
