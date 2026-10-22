@@ -65,8 +65,11 @@
 
 사용 절차와 정확한 해석 범위는 [구조 연결](structure-links.md)을 따른다.
 자동 해석의 지원 범위는 ComfyUI 기본/선언 연결, Martini 관측 run, glTF 2 기본/지원 확장
-참조, SRT 시간 구간, XMEML/OTIO 편집 구조다. 미지원 커스텀 노드/확장 필드는 원본에 남고 `coverage.unknown`에
-표시된다. 구조 해석·파일 완전성·프로젝트 복원·생성 품질·승인은 각각 다른 판단이다.
+참조, SRT 시간 구간, XMEML/OTIO 편집 구조, project-manifest/Aseprite atlas 구조,
+고정 공급자 응답 3종·명시적 포인터 선언, delivery-record 구조다. Aseprite 원본 tag와
+export frame의 소속은 자동 확정하지 않는다. 미지원 커스텀 노드/확장 필드는 원본에
+남고 `coverage.unknown`에 표시된다. 구조 해석·파일 완전성·프로젝트 복원·생성 품질·승인은
+각각 다른 판단이다.
 
 공급자 전용 파서가 없는 도구도 자료를 잃지 않고 반복 작업에 연결할 수 있다.
 단, 외부 ID를 실제 파일로 연결하고 누락 자료를 확인하는 작업은 현재 수동이다.
