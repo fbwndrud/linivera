@@ -18,11 +18,11 @@ export function martiniRun(value) {
   if (!object(value.variables ?? {}) || !object(value.bins ?? {})) invalid('run variables and bins must be objects');
   for (const [name, text] of Object.entries(value.variables ?? {})) {
     if (typeof text !== 'string') invalid('run variable must be text');
-    const id = p.unit(`/variables/${pointer(name)}`, 'variable', { nativeId: name }); inputs.set(name, id);
+    const id = p.unit(`/variables/${pointer(name)}`, 'variable', { nativeId: name }); inputs.set(name, [...(inputs.get(name) ?? []), id]);
     p.link('/', id, 'pinned-variable');
   }
   for (const [name, assets] of Object.entries(value.bins ?? {})) {
-    const id = p.unit(`/bins/${pointer(name)}`, 'bin', { nativeId: name }); inputs.set(name, id); p.link('/', id, 'pinned-bin');
+    const id = p.unit(`/bins/${pointer(name)}`, 'bin', { nativeId: name }); inputs.set(name, [...(inputs.get(name) ?? []), id]); p.link('/', id, 'pinned-bin');
     for (const [index, assetId] of array(assets, 'bin assets').entries()) p.ref(`${id}/${index}`, id, 'input-asset', assetId);
   }
   for (const [index, action] of actions.entries()) {
@@ -46,7 +46,8 @@ export function martiniRun(value) {
     if (item.revision != null) {
       if (!object(item.revision)) invalid('revision observation must be an object');
       for (const name of array(item.revision.inputRefs ?? [], 'revision inputRefs')) {
-        if (inputs.has(name)) p.link(id, inputs.get(name), 'revision-input');
+        if (inputs.get(name)?.length === 1) p.link(id, inputs.get(name)[0], 'revision-input');
+        else if (inputs.has(name)) p.unknown('A revision input name is ambiguous across variable and bin namespaces.');
         else p.unknown('A revision input name is not present in this retained run.');
       }
     }

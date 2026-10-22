@@ -15,7 +15,7 @@
 ## MCP 순서와 정확한 인자
 
 workflow/3D/자막 파일을 다음 작업에 연결할 때는
-[구조 연결](../../../docs/structure-links.md)의 형식 범위를 읽는다. 원본 반입 후
+[구조 연결](https://github.com/fbwndrud/linivera/blob/codex/chroma-structure-links/docs/structure-links.md)의 형식 범위를 읽는다. 원본 반입 후
 `inspectStructure`의 reference key와 unknown을 확인하고 실제 retained 판본으로
 `normalizeStructure`한다. map을 read해 unresolvedReferenceKeys를 확인한 다음
 필수 슬롯을 채운다. 공급자 상태·verdict는 관측 사실이며 승인으로 전하지 않는다.

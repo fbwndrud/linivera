@@ -30,6 +30,15 @@ test('Comfy UI links are structural facts and unknown widgets do not become gues
   await assert.rejects(resourcesTool(f.root, { op: 'inspectStructure', revisionId: bad.revisionId, format: 'comfy-ui' }), { code: 'STRUCTURE_INVALID' });
 });
 
+test('Martini ambiguous variable/bin input names stay unknown instead of inventing a revision target', async (t) => {
+  const f = await scopedFixture(t);
+  const r = await f.resource('ambiguous', { id: 'run', status: 'needs_revision', variables: { Script: 'Synthetic cue' }, bins: { Script: ['asset-1'] },
+    actions: [{ id: 'a', status: 'needs_revision' }], items: [{ id: 'i', actionId: 'a', status: 'needs_revision', revision: { inputRefs: ['Script'] } }] });
+  const { structure } = await resourcesTool(f.root, { op: 'inspectStructure', revisionId: r.revisionId, format: 'martini-run' });
+  assert.equal(structure.links.filter((link) => link.kind === 'revision-input').length, 0);
+  assert.ok(structure.coverage.unknown.some((entry) => entry.includes('ambiguous')));
+});
+
 test('SRT retains ordered cue times including overlaps and links optional media explicitly', async (t) => {
   const f = await scopedFixture(t);
   const r = await f.resource('subtitles', '1\r\n00:00:01,250 --> 00:00:03,000\r\nSynthetic cue\r\n\r\n2\r\n00:00:02,000 --> 00:00:04,000\r\nSecond cue\r\n');

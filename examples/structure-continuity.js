@@ -35,10 +35,15 @@ export async function runStructureContinuity() {
       structureBindings: [{ referenceKey: inspected.structure.references[0].key, revisionId: image.revisionId }] });
     await select(structure); await host.restart();
     const recovered = await call('folio_resources', { op: 'read', revisionId: structure.revisionId });
-    assert.equal(JSON.parse(recovered.content).sourceContentHash, workflow.contentHash);
-    const next = await produce([structure], 'next', () => json('next', { synthetic: 'result based on retained structure and image' }));
+    const recoveredValue = JSON.parse(recovered.content);
+    assert.equal(recoveredValue.sourceContentHash, workflow.contentHash);
+    const linkedImage = await host.read(recoveredValue.bindings[0].revisionId);
+    const next = await produce([structure], 'next', () => json('next', { sourceHash: recoveredValue.sourceContentHash,
+      unitCount: recoveredValue.structure.units.length, linkedImageHash: linkedImage.contentHash }));
     assert.deepEqual(new Set(next.snapshot.manifest.resources.map((r) => r.resourceId)), new Set(['structure', 'workflow', 'image']));
-    const final = await produce([next.output], 'final', () => json('final', { synthetic: 'later iteration' }));
+    const nextContent = JSON.parse((await call('folio_resources', { op: 'read', revisionId: next.output.revisionId })).content);
+    assert.equal(nextContent.linkedImageHash, image.contentHash); assert.equal(nextContent.unitCount, 2);
+    const final = await produce([next.output], 'final', () => json('final', { previousResultHash: next.output.contentHash, ...nextContent }));
     const graph = await host.graph();
     for (const kind of ['structure-source', 'structure-reference']) assert.ok(graph.edges.some((edge) => edge.kind === kind));
     assert.equal(graph.nodes.find((n) => n.revisionId === structure.revisionId).family, 'structure');
