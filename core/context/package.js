@@ -2,7 +2,7 @@ import { canonicalJson } from '../util/hash.js';
 import { createResourceStore } from '../resources/revisions.js';
 import { recordObject, contextInvalid, contextText, revisionList, validateUsageContext, usageContextReferences } from '../resources/context-records.js';
 import { historicalTrackingEvidence } from './bridges.js';
-import { evaluateRequirements, requiredMissing, assertRequirementsMet } from './requirements.js';
+import { evaluateRequirements, coverRequirements, assertRequirementsMet } from './requirements.js';
 
 export async function validateContextPackage(root, value) {
   recordObject(value, ['version', 'scopeId', 'purpose', 'pathId', 'timeLabel', 'sourceContextRevisionId', 'requirements', 'items', 'referenceRevisionIds', 'coverage']);
@@ -60,10 +60,7 @@ export async function validateContextPackage(root, value) {
   }
   // Requirements are copied exactly from the retained source; a package cannot relax or drop them.
   if (canonicalJson(value.requirements ?? null) !== canonicalJson(context?.requirements ?? null)) contextInvalid('package requirements must equal its source context');
-  if (context?.requirements) {
-    const included = new Set(value.items.map((item) => item.contextStateIndex).filter((index) => index !== undefined));
-    assertRequirementsMet(requiredMissing(await evaluateRequirements(root, context), (index) => included.has(index)));
-  }
+  if (context?.requirements) assertRequirementsMet(coverRequirements(await evaluateRequirements(root, context), value.items, value.coverage).missing);
   const exact = [...new Set(refs)].sort();
   if (canonicalJson(revisionList(value.referenceRevisionIds).slice().sort()) !== canonicalJson(exact)) contextInvalid('package reference closure must match actual provided items');
   return exact;

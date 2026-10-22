@@ -2,6 +2,7 @@ import { FolioError } from '../errors.js';
 import { assertRevisionId } from './schema.js';
 import { createResourceStore } from './revisions.js';
 import { STRUCTURE_FORMATS } from '../../packs/production/structures/versions.js';
+import { DELIVERY_RECORD_TYPES } from '../../packs/production/structures/delivery-record.js';
 
 export const CONTEXT_KINDS = new Set(['usage-context', 'resource-usage', 'context-package']);
 export function contextInvalid(message) { throw new FolioError('CONTEXT_INVALID', message); }
@@ -37,7 +38,6 @@ export function validateUsageContext(value) {
   }
   return value;
 }
-const RECORD_TYPES = ['brief', 'rights', 'release', 'performance'];
 /** Declared roles for the next task. Shape only; exact revisions are checked in core/context/requirements.js. */
 export function validateRequirements(value) {
   if (!Array.isArray(value) || !value.length || value.length > 256) contextInvalid('bounded nonempty context requirements required');
@@ -47,16 +47,19 @@ export function validateRequirements(value) {
     recordObject(row, ['role', 'required', 'accepts', 'bindsRole']); contextText(row.role, 'requirement role');
     if (typeof row.required !== 'boolean') contextInvalid('context requirement needs an explicit required flag');
     if (row.bindsRole !== undefined && (row.bindsRole === row.role || !roles.has(row.bindsRole))) contextInvalid('bindsRole must name another declared requirement role');
+    if (row.bindsRole !== undefined && !row.accepts?.every((accept) => accept.format === 'delivery-record')) contextInvalid('bindsRole compares delivery-record subjects and requires delivery-record accepts');
     if (row.accepts === undefined) continue;
     if (!Array.isArray(row.accepts) || !row.accepts.length || row.accepts.length > 16) contextInvalid('bounded nonempty accepted resource types required');
     for (const accept of row.accepts) {
       recordObject(accept, ['kind', 'format', 'recordType']); contextText(accept.kind, 'accepted kind');
       if (accept.format !== undefined && (accept.kind !== 'structure-map' || !STRUCTURE_FORMATS.includes(accept.format))) contextInvalid('accepted format requires a supported structure map');
-      if (accept.recordType !== undefined && (accept.format !== 'delivery-record' || !RECORD_TYPES.includes(accept.recordType))) contextInvalid('accepted recordType requires a delivery record');
+      if (accept.recordType !== undefined && (accept.format !== 'delivery-record' || !DELIVERY_RECORD_TYPES.includes(accept.recordType))) contextInvalid('accepted recordType requires a delivery record');
     }
   }
   return value;
 }
+/** The exact revision a state stands for: its artifact, else its first evidence or bridge revision. */
+export const usageStateRevisionId = (state) => state.artifactRevisionId ?? usageContextReferences({ states: [state] })[0];
 export function usageContextReferences(value) {
   return [...new Set(value.states.flatMap((state) => [state.artifactRevisionId, ...state.evidenceRevisionIds,
     state.nodeRef?.revisionId, state.subjectRef?.revisionId].filter(Boolean)))];

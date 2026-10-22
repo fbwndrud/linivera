@@ -1,10 +1,11 @@
 import { array, invalid, projection } from './common.js';
 import { fields, text, nonempty, timestamp, identity } from './record-values.js';
 
+export const DELIVERY_RECORD_TYPES = ['brief', 'rights', 'release', 'performance'];
 /** Source-attested delivery knowledge; a record never grants rights or approves an internal publication. */
 export function deliveryRecord(value) {
   fields(value, ['version', 'recordType', 'recordId', 'issuer', 'observedAt', 'subjects', 'evidence', 'details']);
-  if (value.version !== 1 || !['brief', 'rights', 'release', 'performance'].includes(value.recordType)) invalid('supported delivery record version/type required');
+  if (value.version !== 1 || !DELIVERY_RECORD_TYPES.includes(value.recordType)) invalid('supported delivery record version/type required');
   const p = projection('delivery-record');
   const root = { recordType: value.recordType, recordId: text(value.recordId, 128), issuer: text(value.issuer, 128), observedAt: timestamp(value.observedAt) };
   if (['release', 'performance'].includes(value.recordType)) {

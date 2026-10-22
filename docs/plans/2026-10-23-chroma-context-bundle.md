@@ -87,3 +87,25 @@ typed reference에 대해 기존 `assertContextIsolation`이 검사한다. 권�
 
 실제 모델 생성·공급자 호출·미디어 재생·편집기/엔진 복원·외부 게시·법률 판단은
 검증 대상이 아니며 결과에 false로 명시한다.
+
+## 독립 리뷰 반영
+
+### Standards
+
+문서화된 규칙 위반 0건. 판단 사항 smell 9건 중 6건을 반영했다. requirements 행과
+package item의 대조를 `coverRequirements` 하나로 모았고(collect/package 중복·상태 재해석),
+delivery recordType 목록은 parser의 `DELIVERY_RECORD_TYPES`를 공유한다. throw 목적 호출은
+`verifyRequirementRecords`로 이름을 드러냈고 state 판본 선택은 `usageStateRevisionId`로
+export했다. usage-context를 closure에서 한 번 더 읽는 비용, 검사 목록 중복, 기존 관례와 같은
+브랜치 blob 링크는 유지한다. requirements는 선언하지 않으면 꺼지는 선택 필드이며 필수 차단은
+잠금 성격이라 별도 on/off 설정을 두지 않는다.
+
+### Spec
+
+`bindsRole`이 evidence slot의 같은 판본으로도 통과하는 오류 1건과, deliverable state를
+둘 두어 다른 결과물 기록을 통과시키는 변형을 재현했다. subject binding만 비교하고 대상
+역할 state를 정확히 하나로 제한했다. bindsRole은 delivery-record accepts를 요구한다.
+필수 binding이 빈 역할 map이 미리보기에서 `ready:true`였던 부분도 `incomplete`로 바꾸어
+package 보관부터 차단한다. 역할 선언이 없거나 중첩 map이 비면 기존 Input closure가 차단한다.
+text 발췌 절단은 Input에 전체 bytes가 들어가므로 provided로 두고 문서화했다. 목적별 선언은
+usage-context 단위 선언으로 정리하고, 선언 없는 ad-hoc package는 차단이 없음을 명시했다.

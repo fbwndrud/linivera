@@ -8,7 +8,7 @@ export const chromaScope = ['runware', 'minimax', 'generic', 'response-contract'
   'brief', 'rights', 'release', 'performance', 'brief-proof', 'rights-proof', 'release-proof', 'analytics-export', 'brief-map', 'rights-map', 'release-map', 'performance-map',
   'context', 'package', 'next', 'final'];
 /** Only refusal cases that reach Input preparation need profile/policy scope. */
-export const guardScope = ['context-missing', 'rights-unlinked-map', 'context-unlinked', 'package-unlinked', 'workflow-v1-map', 'context-v1', 'package-v1'];
+export const guardScope = ['context-missing', 'rights-unlinked-map', 'context-unlinked', 'context-undeclared', 'package-unlinked', 'workflow-v1-map', 'context-v1', 'package-v1'];
 
 export function syntheticDownloads() {
   const data = syntheticDeliveryData();

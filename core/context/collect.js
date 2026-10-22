@@ -7,7 +7,7 @@ import { contextSource } from './source.js';
 import { canonicalJson } from '../util/hash.js';
 import { readContextReferences } from '../resources/context-references.js';
 import { assertContextIsolation } from './isolation.js';
-import { evaluateRequirements, requiredMissing } from './requirements.js';
+import { evaluateRequirements, coverRequirements } from './requirements.js';
 
 /** Read-only preview. Persisting, selecting and approving are separate public actions. */
 export async function collectContext(root, input) {
@@ -79,12 +79,6 @@ export async function collectContext(root, input) {
   }
   if (packageBytes(value) > budget.maxManifestBytes) throw new FolioError('CONTEXT_BUDGET_TOO_SMALL', 'manifest budget cannot hold explicit omission coverage');
   // Report declared roles; readiness never selects, approves or adds reverse relations.
-  const rows = await evaluateRequirements(root, context);
-  const included = new Set(items.map((item) => item.contextStateIndex).filter((index) => index !== undefined));
-  const requirements = rows.map(({ stateIndexes, ...row }) => {
-    const present = stateIndexes.some((index) => included.has(index));
-    const absent = row.revisionIds.some((id) => coverage.missing.some((entry) => entry.revisionId === id)) ? 'missing' : 'truncated';
-    return { ...row, status: row.status === 'provided' && !present ? absent : row.status, included: present };
-  });
-  return { scopeId: input.scopeId, purpose: input.purpose, package: value, coverage, requirements, ready: !requiredMissing(rows, (index) => included.has(index)).length };
+  const { requirements, ready } = coverRequirements(await evaluateRequirements(root, context), items, coverage);
+  return { scopeId: input.scopeId, purpose: input.purpose, package: value, coverage, requirements, ready };
 }

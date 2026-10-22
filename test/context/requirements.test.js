@@ -21,17 +21,18 @@ async function scenario(t) {
   const other = await f.text('other-deliverable', 'Synthetic deliverable for another cut');
   const proof = await f.text('proof', 'Synthetic source document');
   const note = await f.text('note', 'Synthetic optional note');
-  async function record(id, value, subject) {
+  async function record(id, value, subject, evidence = proof) {
     const source = await f.json(id, 'delivery-source', value);
     return normalizeStructure(f.root, { resourceId: id + '-map', sourceRevisionId: source.revisionId, format: 'delivery-record',
-      structureBindings: [{ referenceKey: '/subjects/0/hint', revisionId: subject.revisionId }, { referenceKey: '/evidence/0/hint', revisionId: proof.revisionId }] });
+      structureBindings: [{ referenceKey: '/subjects/0/hint', revisionId: subject.revisionId }, ...(evidence ? [{ referenceKey: '/evidence/0/hint', revisionId: evidence.revisionId }] : [])] });
   }
   const brief = await record('brief', data.brief, deliverable); const rights = await record('rights', data.rights, deliverable);
   const otherRights = await record('other-rights', data.rights, other);
   const state = (role, revision, status = 'selected') => ({ role, status, artifactRevisionId: revision.revisionId, evidenceRevisionIds: [] });
   const context = (states, extra = {}) => ({ version: 1, scopeId: 'episode', pathId: 'main', requirements, states, ...extra });
   const complete = [state('deliverable', deliverable), state('brief', brief, 'observed'), state('rights', rights, 'observed'), state('note', note, 'observed')];
-  return { ...f, deliverable, other, proof, note, brief, rights, otherRights, state, context, complete };
+  const evidenceOnly = await record('evidence-only', data.rights, other, deliverable); const unlinked = await record('unlinked', data.rights, deliverable, null);
+  return { ...f, deliverable, other, proof, note, brief, rights, otherRights, evidenceOnly, unlinked, state, context, complete };
 }
 const preview = (s, contextRevisionId, overrides = {}) => collectContext(s.root, { scopeId: 'episode', pathId: 'main', purpose: 'plan next cut', contextRevisionId, budget, ...overrides });
 
@@ -40,7 +41,8 @@ test('declared roles must name unique, typed and resolvable requirements', async
   for (const bad of [[...requirements, { role: 'rights', required: false }], [{ role: 'rights', required: 'yes' }],
     [{ role: 'rights', required: true, bindsRole: 'missing' }], [{ role: 'rights', required: true, bindsRole: 'rights' }],
     [{ role: 'rights', required: true, accepts: [{ kind: 'text', format: 'delivery-record' }] }],
-    [{ role: 'rights', required: true, accepts: [{ kind: 'structure-map', format: 'srt', recordType: 'rights' }] }], []]) {
+    [{ role: 'rights', required: true, accepts: [{ kind: 'structure-map', format: 'srt', recordType: 'rights' }] }],
+    [{ role: 'deliverable', required: true }, { role: 'rights', required: true, bindsRole: 'deliverable' }], []]) {
     await assert.rejects(s.json('bad-' + bad.length, 'usage-context', s.context([], { requirements: bad })), { code: 'CONTEXT_INVALID' });
   }
 });
@@ -50,6 +52,17 @@ test('a role rejects records of another type or for another deliverable revision
   await assert.rejects(s.json('swapped', 'usage-context', s.context([s.state('deliverable', s.deliverable), s.state('rights', s.brief)])), { code: 'CONTEXT_INVALID' });
   await assert.rejects(s.json('foreign', 'usage-context', s.context([s.state('deliverable', s.deliverable), s.state('rights', s.otherRights)])), { code: 'CONTEXT_INVALID' });
   await assert.rejects(s.json('untyped', 'usage-context', s.context([s.state('deliverable', s.deliverable), s.state('brief', s.proof)])), { code: 'CONTEXT_INVALID' });
+  // The deliverable in an evidence slot is not the record's subject.
+  await assert.rejects(s.json('evidence-subject', 'usage-context', s.context([s.state('deliverable', s.deliverable), s.state('rights', s.evidenceOnly)])), { code: 'CONTEXT_INVALID' });
+  await assert.rejects(s.json('two-deliverables', 'usage-context', s.context([s.state('deliverable', s.deliverable), s.state('deliverable', s.other), s.state('rights', s.otherRights)])), { code: 'CONTEXT_INVALID' });
+});
+
+test('a role whose map leaves a required slot unmapped is incomplete before input', async (t) => {
+  const s = await scenario(t);
+  const context = await s.json('unlinked-context', 'usage-context', s.context(s.complete.map((x) => x.role === 'rights' ? s.state('rights', s.unlinked, 'observed') : x)));
+  const result = await preview(s, context.revisionId);
+  assert.equal(result.ready, false); assert.equal(result.requirements.find((row) => row.role === 'rights').status, 'incomplete');
+  await assert.rejects(s.json('unlinked-package', 'context-package', result.package), { code: 'CONTEXT_REQUIRED_MISSING' });
 });
 
 test('missing or budget-truncated required context blocks the package and the next input', async (t) => {

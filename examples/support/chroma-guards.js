@@ -23,10 +23,16 @@ export async function chromaGuards(host, s, { roles, budget, bundle, snapshot })
 
   // Missing required link: the role is present, but its record lacks the evidence binding.
   await s.connect('rights-unlinked-map', 'rights', 'delivery-record', { deliverable: 'deliverable', 'source-document': null });
-  await s.retainJson('context-unlinked', nextTaskContext({ ...roles, rights: R('rights-unlinked-map') }), 'usage-context');
-  const unlinked = await preview(R('context-unlinked').revisionId); assert.equal(unlinked.ready, true);
-  await s.retainJson('package-unlinked', unlinked.package, 'context-package');
-  const requiredLink = await rejects(prepare(['package-unlinked']), 'STRUCTURE_BINDINGS_INCOMPLETE');
+  const linkless = nextTaskContext({ ...roles, rights: R('rights-unlinked-map') });
+  await s.retainJson('context-unlinked', linkless, 'usage-context');
+  const unlinked = await preview(R('context-unlinked').revisionId);
+  assert.equal(unlinked.ready, false); assert.equal(unlinked.requirements.find((r) => r.role === 'rights').status, 'incomplete');
+  // Without declared roles the package is retained, and the existing closure still refuses the unmapped slot.
+  const { requirements: _, ...undeclared } = linkless;
+  await s.retainJson('context-undeclared', undeclared, 'usage-context');
+  await s.retainJson('package-unlinked', (await preview(R('context-undeclared').revisionId)).package, 'context-package');
+  const requiredLink = await rejects(propose('package-missing', 'context-package', unlinked.package), 'CONTEXT_REQUIRED_MISSING')
+    && await rejects(prepare(['package-unlinked']), 'STRUCTURE_BINDINGS_INCOMPLETE');
 
   // Wrong record type and records for another deliverable revision are refused.
   await s.connect('cut-rights-map', 'rights', 'delivery-record', { deliverable: 'cut', 'source-document': 'rights-proof' });

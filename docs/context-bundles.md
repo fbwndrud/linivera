@@ -38,12 +38,18 @@
 | role | 고유 역할 이름. states의 role과 대응한다 |
 | required | 명시 boolean. true면 다음 Input 전에 그 역할의 자료가 있어야 한다 |
 | accepts | 선택. 그 역할 판본의 kind와 structure-map format, delivery-record recordType 조건 |
-| bindsRole | 선택. 그 역할의 structure-map이 다른 역할 state의 정확한 판본을 실제 binding으로 가리켜야 한다 |
+| bindsRole | 선택. 그 역할의 delivery-record map의 subject(`/subjects/i/hint`) binding이 다른 역할의 유일한 state 판본을 가리켜야 한다. accepts는 delivery-record여야 한다 |
 
 검사는 보관 판본을 다시 읽고 structure-map은 원본에서 재계산해 대조한다.
 다른 kind/format/recordType이나 다른 결과물 판본을 가리키는 기록은 `usage-context`
 보관에서 `CONTEXT_INVALID`로 거절한다. `bindsRole`은 기존 binding을 확인할 뿐
-새 관계를 만들지 않는다. 같은 역할에 여러 state(예: 공급자 응답 3개)를 둘 수 있다.
+새 관계를 만들지 않는다. evidence slot에 같은 판본이 있어도 subject가 아니면 거절한다.
+bindsRole이 가리키는 역할은 state가 정확히 하나여야 한다. 그 밖의 역할에는 여러 state
+(예: 공급자 응답 3개)를 둘 수 있다. state의 판본은 artifactRevisionId, 없으면 첫 증거다.
+
+requirements는 그 usage-context를 만든 다음 작업의 선언이다. package의 `purpose`는
+설명 텍스트이며 별도로 검사하지 않는다. requirements 없이 만든 package(예: revisionIds만
+지정한 미리보기)는 역할 차단이 없고 `ready:true`이므로, 차단이 필요한 작업은 역할을 선언한다.
 
 ## 미리보기·보관·입력
 
@@ -52,7 +58,10 @@
 2. 사용자가 고른 판본으로 `usage-context`를 propose하고 선택한다.
 3. `folio_resource_query context`(scopeId, pathId, purpose, contextRevisionId, budget)로
    미리본다. 반환값에 `requirements[]`({role, required, status, revisionIds, included})와
-   `ready`가 추가된다. status는 provided/unknown/absent/unverified/truncated/missing이다.
+   `ready`가 추가된다. status는 provided/unknown/absent/unverified/incomplete/truncated/missing이다.
+   incomplete는 그 역할 map의 필수 binding이 비어 있다는 뜻이며 `ready:false`다.
+   text 발췌만 예산으로 잘린 item은 provided로 남고 coverage.truncated에 기록된다.
+   Input에는 해당 판본 전체 bytes가 들어간다.
 4. `ready:true`인 `package`를 kind `context-package`로 propose하고 선택한다. package는
    출처 context의 requirements를 그대로 복제하며 바꾸거나 지울 수 없다.
 5. `folio_inputs prepare`에 package 하나만 넣는다. item의 정확한 판본과 증거, 그 안의
@@ -64,7 +73,9 @@
 - 필수 역할이 unknown/absent/unverified이거나 예산으로 잘리면 package 보관과 Input
   closure에서 `CONTEXT_REQUIRED_MISSING`(details.missing). 요구가 있는 usage-context를
   Input에 직접 넣어도 같다. 선택 역할의 제외는 coverage에 남고 차단하지 않는다.
-- 묶인 map의 필수 binding이 비어 있으면 Input 준비에서 `STRUCTURE_BINDINGS_INCOMPLETE`.
+- 역할 map의 필수 binding이 비어 있으면 필수 역할은 누락으로 차단한다. 역할 선언이 없거나
+  중첩 map(예: performance가 가리키는 release map)이 비어 있으면 Input 준비에서
+  `STRUCTURE_BINDINGS_INCOMPLETE`.
 - package 전체 typed reference의 scope/path/time은 기존 격리를 따른다. 중첩 P3/P4 map의
   증거로 다른 이야기·경로의 context를 넣으면 `CONTEXT_SCOPE_MISMATCH`.
 - 위조 item·참조 집합, 원본과 다른 map, identity가 다른 performance, profile/policy의
