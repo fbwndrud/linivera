@@ -3,6 +3,7 @@ import { inspectStructure } from './structures.js';
 import { invalid, object } from '../../packs/production/structures/common.js';
 import { canonicalJson } from '../util/hash.js';
 import { FolioError } from '../errors.js';
+import { verifyDeliveryBindings } from './delivery-bindings.js';
 
 export async function buildStructureMap(root, { sourceRevisionId, format, structureBindings, parserVersion = undefined, dependencyManifestRevisionId = undefined }) {
   const { revision, structure } = await inspectStructure(root, { revisionId: sourceRevisionId, format, parserVersion, dependencyManifestRevisionId });
@@ -17,6 +18,7 @@ export async function buildStructureMap(root, { sourceRevisionId, format, struct
     bindings.push({ referenceKey: binding.referenceKey, revisionId: target.revisionId });
   }
   bindings.sort((a, b) => a.referenceKey < b.referenceKey ? -1 : a.referenceKey > b.referenceKey ? 1 : 0);
+  await verifyDeliveryBindings(root, structure, bindings);
   const unresolvedReferenceKeys = structure.references.filter((ref) => !seen.has(ref.key)).map((ref) => ref.key);
   return { version: 1, sourceRevisionId, sourceContentHash: revision.contentHash, format, parserVersion: structure.parserVersion, structure, bindings, unresolvedReferenceKeys,
     ...(dependencyManifestRevisionId === undefined ? {} : { dependencyManifestRevisionId }) };

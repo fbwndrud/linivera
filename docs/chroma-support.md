@@ -21,15 +21,15 @@
 | P1 | workflow/run → 다음 입력, 모델/재질/리그/클립, 자막 cue → 미디어 | 이번 기본 형식 구현·검증 완료 |
 | P2 | XMEML/OTIO 편집·명시적 커스텀 의존성·3D 확장 참조 | 기본 범위 구현. 전용 형식·효과/codec 실행은 별도 |
 | P3 | 게임 코드/씬·sprite/atlas·DB·환경·배포 의존성 | 공통 project-manifest 선언과 Aseprite atlas 기본 연결 구현. 엔진/실행 복원은 별도 |
-| P4 | 공급자별 추가 응답·brief/권리/배포 성과의 의미 연결 | 실제 계약/샘플 확보 후 확장 |
+| P4 | 공급자별 추가 응답·brief/권리/배포 성과의 의미 연결 | 고정 응답 3종·선언 포인터와 delivery-record 기본 연결 구현. 공급자별 전체 API/원문 자동 해석은 별도 |
 
 | 파트너 | 자동 해석 / 형식 조건 | 수동 연결 | 파일 보관 | 남은 연결 우선순위 |
 |---|---|---|---|---|
 | ElevenLabs | TTS timestamps → audio/alignment/normalization | 원문·음성·사용 구간 | 음원·정렬 JSON | P4 다른 음성 기능·화자 의미 |
 | CapCut | SRT cue 시간, SRT export 조건 | 영상·음원·자막·프로젝트 bundle | 내보낸 미디어·프로젝트 | P2 트랙·전환·효과 |
 | Cantina | 전용 파서 없음 | 세션 명령·관측 결과·다음 입력 | 확보한 미디어·기록 | P4 세션별 대상/상태 |
-| Runware | 전용 응답 파서 없음 | 요청·결과·모델·참조 입력 | JSON·이미지·영상 | P4 응답/배치 역할 |
-| Kling AI | 전용 파서 없음 | 이미지/영상·참조·버전 | 미디어·메타데이터 | P4 shot/변형 관계 |
+| Runware | Models imageInference data/errors 응답 | 관측 출력 → 실제 이미지 판본, 다른 응답은 명시적 포인터 선언 | JSON·이미지·영상 | P4 다른 modality·polling·batch 완료 의미 |
+| Kling AI | legacy text2video 단일 조회, 원본/워터마크 슬롯 | 영상·참조·버전, 다른 응답은 명시적 포인터 선언 | 미디어·메타데이터 | P4 최신 endpoint·shot/변형 관계 |
 | OpenArt | 전용 파서 없음 | 캐릭터·참조·변형 | 미디어·메타데이터 | P4 일관성 참조 |
 | Meshy | text-to-3D preview 응답 역할; glTF/GLB 구조 | 모델·재질·텍스처·리그 | GLB/glTF/FBX/OBJ/이미지 | P2 refine/rig API·FBX 의미 |
 | Floyo | ComfyUI API/UI 노드·링크·v2 선언 의존성 | 패키지·loader 파일·체크포인트·결과 | workflow·실행 JSON·미디어 | P2 숨은 Python 의존성·실행 호환성 |
@@ -37,14 +37,14 @@
 | Alibaba Cloud | 공급자별 파서 없음 | 모델 요청·결과·자료셋 역할 | 확보한 파일·기록 | P4 서비스별 계약 |
 | Magnific | 전용 파서 없음 | 원본·업스케일·설정 | 이미지·설정 | P4 변환 영역/설정 |
 | Hyper3D | Rodin export 역할; glTF/GLB 구조 | 모델·재질·텍스처·리그 | 모델·텍스처·manifest | P2 Rodin native 응답·기타 3D |
-| ReelShort | 전용 파서 없음 | 배포 brief·제출판·영상 | 확보한 문서·미디어 | P4 배포 성과 연결 |
-| Cars24 | 전용 파서 없음 | 브랜드 brief·권리·제출판 | 제공 문서·자료 | P4 brief 기준 연결 |
-| Ashurst Perkins Coie | 전용 파서 없음 | 법률/권리 문서·적용 자료 | 확보한 문서 | P4 권리 조건 의미 |
+| ReelShort | 전용 원문 파서 없음 | delivery-record로 brief·배포판·기간/정의 있는 성과·증거 연결 | 확보한 문서·미디어 | P4 고유 성과 export 계약 |
+| Cars24 | 전용 원문 파서 없음 | delivery-record로 브랜드 brief 요구사항·권리 보고·제출판 연결 | 제공 문서·자료 | P4 브랜드 원문 자동 해석 |
+| Ashurst Perkins Coie | 전용 원문 파서 없음 | delivery-record로 권리 범위/조건/철회 보고·증거·적용 자료 연결 | 확보한 문서 | P4 개별 문서 의미, 법적 판단은 수행하지 않음 |
 | Fairground | 전용 파서 없음 | 제출 brief·배포판·참조 | 확보한 문서·미디어 | P4 제출 요건 연결 |
 | Escape | 전용 파서 없음 | brief·작품·배포판 | 확보한 문서·미디어 | P4 제출 요건 연결 |
 | FAL | flux/schnell 응답 역할 | 다른 endpoint 요청·출력·변환 | 미디어·원본 응답 | P4 endpoint별 역할 |
 | Creatify | 전용 파서 없음 | 아바타·대본·광고 버전 | 영상·음원·대본 | P4 shot/화자 |
-| MiniMax | 전용 파서 없음 | 영상·음성·텍스트 역할 | 미디어·JSON | P4 다중 출력 계약 |
+| MiniMax | 기존 video_generation 단일 작업 조회 | file_id → 실제 영상 판본, 다른 응답은 명시적 포인터 선언 | 미디어·JSON | P4 새 영상 endpoint·음성·텍스트 계약 |
 | PixVerse | 전용 파서 없음 | 참조·영상·변형 | 영상·이미지·JSON | P4 shot/변형 |
 | LTX | 전용 파서 없음 | 대본·shot·참조·영상 | 내보낸 파일·기록 | P2 편집 타임라인 |
 | TapNow | 전용 파서 없음 | workflow·결과·역할 | JSON·미디어 | P4 고유 workflow 구조 |
@@ -72,3 +72,5 @@
 단, 외부 ID를 실제 파일로 연결하고 누락 자료를 확인하는 작업은 현재 수동이다.
 [P2의 형식별 범위와 남은 부분](editing-dependencies.md)을 확인한다.
 [공통 브로커 반입과 P3 프로젝트 연결](project-data.md)도 같은 경로를 사용한다.
+[P4 응답·브리프·권리·배포 성과](delivery-data.md)의 선언은 모든 파트너의 확보한 자료에
+적용할 수 있다. 공급자가 이 선언 형식으로 export한다고 가정하지 않는다.
