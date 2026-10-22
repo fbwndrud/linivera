@@ -76,7 +76,7 @@ kind `iteration`의 owned JSON:
 
 ## 사용 맥락과 지식 묶음
 
-kind `usage-context`는 `{version:1,scopeId,pathId?,timeLabel?,states}`를 담는다. 상태 항목은 `role`, `artifactRevisionId?`, `evidenceRevisionIds:[]`, `status:selected|observed|unknown`, `value?`, `unknown?`, `nodeRef?`, `subjectRef?`다. unknown에는 이유를 남긴다. 관측이나 선택을 세계관의 확정 진실로 바꾸지 않는다.
+kind `usage-context`는 `{version:1,scopeId,pathId?,timeLabel?,requirements?,states}`를 담는다. 상태 항목은 `role`, `artifactRevisionId?`, `evidenceRevisionIds:[]`, `status:selected|observed|unknown`, `value?`, `unknown?`, `nodeRef?`, `subjectRef?`다. unknown에는 이유를 남긴다. 관측이나 선택을 세계관의 확정 진실로 바꾸지 않는다. `requirements`는 다음 작업의 역할별 필수/선택 자료와 허용 자료 유형을 선언한다. 형식과 차단 규칙은 [맥락 묶음](context-bundles.md)을 따른다.
 
 `folio_resource_query context` 인자:
 
@@ -91,7 +91,7 @@ kind `usage-context`는 `{version:1,scopeId,pathId?,timeLabel?,states}`를 담�
 }
 ```
 
-contextRevisionId를 생략하면 scope의 선택된 context binding에서 찾는다. 경로·시간을 명시하면 다른 상태를 섞지 않는다. revisionIds는 별도 자료 후보를 추가할 때 사용하며 관측된 회차 상태로 승격하지 않는다. 반환값은 `{scopeId,purpose,package,coverage}`이며 query만으로 Resource·사용자 선택·품질 승인을 만들지 않는다.
+contextRevisionId를 생략하면 scope의 선택된 context binding에서 찾는다. 경로·시간을 명시하면 다른 상태를 섞지 않는다. revisionIds는 별도 자료 후보를 추가할 때 사용하며 관측된 회차 상태로 승격하지 않는다. 반환값은 `{scopeId,purpose,package,coverage,requirements,ready}`이며 query만으로 Resource·사용자 선택·품질 승인을 만들지 않는다. 출처에 requirements가 없으면 `requirements:[]`, `ready:true`다.
 
 package를 kind `context-package`로 propose하고 명시적으로 다음 입력에 선택한다. 실제 제공된 items와 referenceRevisionIds만 생성 입력 closure가 된다. text excerpt를 제공해도 다음 Input의 예산은 해당 원본 판본 전체 크기를 계산한다. 미디어는 파일 metadata와 참조를 제공하며 전체 base64를 문맥에 넣지 않는다.
 

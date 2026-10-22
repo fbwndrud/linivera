@@ -67,6 +67,12 @@ npm run examples:verify
 rights-proof, performance, contract다. 합성 증거와 opaque 영상 fixture만 쓰며 실제
 공급자 호출·법률 판단·외부 게시·영상 재생은 수행하지 않는다.
 
+`node examples/chroma-continuity.js`는 같은 작업 공간에서 공급자 응답/파일 → P0 연결 →
+P1 workflow/model → P2 편집 → P3 프로젝트·DB 증거 → P4 브리프·권리·배포·성과 → 맥락 묶음
+하나의 Input → 두 후속 작업을 실행한다. 원본 삭제·재시작·거절 10종·변경 5종의 두 단계
+재검토·과거 Input 검증을 확인한다. 합성 자료만 쓰며 실제 생성·공급자 호출·재생·복원·
+게시·법률 판단은 수행하지 않는다. [맥락 묶음](../docs/context-bundles.md)을 참고한다.
+
 `node examples/project-continuity.js`와 `--sheet`는 합성 파트너 파일을 공통 Adapter로
 보관하고 MCP 재시작 후 프로젝트/atlas/DB 데이터를 두 단계 후속 작업에 사용한다.
 DB 또는 스프라이트 판본 변경의 전이 재검토를 검증한다. 실제 브로커/공급자 호출·

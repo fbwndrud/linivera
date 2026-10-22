@@ -4,7 +4,7 @@ import { buildMetadataProjection } from '../../core/projections/metadata.js';
 import { ID, CHECKPOINT, definition, argsFor, rule } from './resource-schema.js';
 import { collectContext } from '../../core/context/collect.js';
 import { buildGraphIndex } from '../../core/query/graph-index.js';
-export const resourceQueryDefinition = definition('folio_resource_query', '공통 자원 조회. graph는 정확 판본 관계와 페이지 경계/누락을, context는 예산 있는 지식 묶음 후보를 반환한다. indexGraph는 파생 탐색 색인을 만든다. graph generationId를 명시하면 반환 관계·파일을 재검증하는 부분 조회이며 전체 내용·재검토 범위는 unknown이다. 기본 graph는 전체 검증을 유지한다. preview/index는 사용자 선택이나 품질 승인을 만들지 않는다.', ['query', 'refresh', 'graph', 'context', 'indexGraph'], {
+export const resourceQueryDefinition = definition('folio_resource_query', '공통 자원 조회. graph는 정확 판본 관계와 페이지 경계/누락을, context는 예산 있는 지식 묶음 후보와 선언된 역할별 필수 자료 충족(requirements, ready)을 반환한다. indexGraph는 파생 탐색 색인을 만든다. graph generationId를 명시하면 반환 관계·파일을 재검증하는 부분 조회이며 전체 내용·재검토 범위는 unknown이다. 기본 graph는 전체 검증을 유지한다. preview/index는 사용자 선택이나 품질 승인을 만들지 않는다.', ['query', 'refresh', 'graph', 'context', 'indexGraph'], {
   resourceId: ID, checkpoint: CHECKPOINT,
   selector: { type: 'object', additionalProperties: false, required: ['type'], properties: { type: { type: 'string', enum: ['current', 'atRevision', 'atCheckpoint'] }, revisionId: ID, checkpoint: CHECKPOINT } },
   freshness: { type: 'string', enum: ['requireCurrent', 'allowStale'] },

@@ -31,6 +31,11 @@ provider-response + dependencyManifestRevisionId로 연결한다. 브리프·권
 delivery-record를 쓴다. 성과 subject는 identity가 같은 release map이어야 한다.
 [P4 계약](https://github.com/fbwndrud/linivera/blob/codex/chroma-provider-delivery/docs/delivery-data.md)을
 읽고 상태/권리 보고를 내부 승인으로 바꾸지 않는다.
+다음 작업에 결과물과 브리프·권리·응답·편집/프로젝트·배포/성과를 함께 넘길 때는
+usage-context `requirements`로 역할별 필수/선택과 허용 format을 선언하고 사용자가 고른
+판본만 states에 넣는다. context 미리보기의 `ready`를 확인한 뒤 package 하나로 prepare한다.
+역방향 관계를 자동 포함하지 않고 필수 누락을 승인으로 우회하지 않는다.
+[맥락 묶음](https://github.com/fbwndrud/linivera/blob/codex/chroma-context-bundle/docs/context-bundles.md).
 
 | 도구·op | root/op 외 인자 |
 |---|---|
