@@ -10,7 +10,7 @@
 | format | 보관 원본에서 읽는 구조 | 시간 의미와 확인 범위 |
 |---|---|---|
 | xmeml | XMEML 5 sequence/video/audio/track, clip/file ID, transition/filter/marker, linked clip | parentRange는 sequence 프레임, sourceRange는 clip의 선언 rate 또는 상속 rate. NTSC는 30000/1001처럼 유리수로 보존. -1/미기재 경계는 null과 unknown |
-| otio | Timeline.1, Stack.1, Track.1, Clip.1/2, Gap.1, Transition.1, ExternalReference.1 | sourceRange는 원본 value/rate. parentRange는 바로 위 composition 기준 초. gap은 길이를 차지하고 transition은 이웃 경계에 겹치며 track 길이에 다시 더하지 않음 |
+| otio | Timeline.1, Stack.1, Track.1, Clip.1/2, Gap.1, Transition.1, ExternalReference.1 | sourceRange는 원본 value/rate. parentRange는 바로 위 composition 기준 초. gap은 길이를 차지하고 중간 transition은 이웃 경계에 겹침 |
 
 중간 transition은 트랙 길이에 중복 가산하지 않는다. 맨 앞의 in offset과 맨 뒤의
 out offset은 공식 OTIO 규칙에 따라 트랙의 자연 길이에 포함한다.

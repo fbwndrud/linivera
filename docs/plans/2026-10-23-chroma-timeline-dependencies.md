@@ -53,6 +53,7 @@ Operation → Review를 이어 쓴다. 테스트도 이 공개 MCP seam에서 �
 문서 규칙 위반은 없었다. 허용된 XML 형제 32,000개에서 locator가 매번 이전 형제를
 스캔하는 P2 성능 지적 1건을 수정했다. 부모별 태그 카운터로 인덱스를 배정한다.
 실제 MCP의 5초 요청 예산 테스트가 수정 전 timeout, 수정 후 약 0.5초로 통과했다.
+독립 검토자가 수정 후 성능과 locator 보존을 재확인했다. 미해결 지적은 없다.
 
 ### Spec
 
@@ -61,3 +62,5 @@ bufferView byte range 검사 누락(P2)을 공개 반례로 재현하고 수정�
 파일은 선언에서 빠져도 미정 슬롯으로 남는다. 추가 공식 OTIO 대조로 head/tail
 transition의 트랙 자연 길이 차이를 발견해 boundary oracle fixture와 함께 수정했다.
 기존 version 1의 map hash 재현을 유지하며 새 작업의 downgrade 차단도 검증한다.
+독립 검토자가 세 지적의 해결과 OTIO 공식 라이브러리 대조를 재확인했다.
+관련 공개 회귀·역사 테스트 16개가 통과했고 미해결 지적은 없다.
