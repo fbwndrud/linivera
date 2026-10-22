@@ -16,7 +16,13 @@ export function xmeml(bytes) {
   catalog(root);
   const mediaIds = new Set();
   function media(node, owner) {
-    const file = child(node, 'file'); if (!file) return;
+    const file = child(node, 'file');
+    if (!file) {
+      if (node.name === 'clipitem' && !child(node, 'sequence')) {
+        p.ref(owner + '/missing-media', owner, 'media', 'Missing media for clip'); p.unknown(`Missing media: ${owner}`);
+      }
+      return;
+    }
     const target = file.children.length ? file : files.get(file.attributes.id);
     if (!target) invalid('unresolved XMEML file ID');
     const id = target.locator;

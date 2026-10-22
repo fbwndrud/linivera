@@ -38,7 +38,7 @@ map은 `{version:1,sourceRevisionId,sourceContentHash,format,parserVersion,struc
 | format | 해석 범위 | 연결할 자료 / 남은 의미 |
 |---|---|---|
 | comfy-api | keyed nodes, class_type, inputs의 node/slot 연결 | 기본 loader 파일 슬롯. v2는 명시적 dependency manifest의 커스텀 패키지/파일 슬롯도 연결 |
-| comfy-ui | nodes, links의 노드/슬롯 연결 | v2는 cnr_id/ver와 선언한 widget 위치를 연결. 선언이 없으면 파일 역할은 추정하지 않음 |
+| comfy-ui | nodes, links의 노드/슬롯 연결 | v2는 cnr_id/ver·선언 widget 위치·기본 loader의 위치 미정 필수 슬롯을 연결 |
 | martini-run | run/actions/items, bins·variables, outputAssetId, replacesItemId, revision.inputRefs | asset ID는 실제 파일로 연결. 외부 이전 take는 해당 기록 파일로 연결. savedWorkflow 정의는 선택적 연결 |
 | gltf / glb | glTF 2 기본 객체 + v2의 압축/대체 텍스처/재질/instancing 의존성 | 외부 URI는 실제 파일에 연결. data URI·GLB BIN은 원본에 포함. codec·렌더링 검증은 unknown |
 | srt | UTF-8 SubRip cue의 순서·초 단위 시작/끝·문구 | `media` key로 음원/영상 선택적 연결. 오디오 정렬·편집 트랙·스타일 해석은 별도 |

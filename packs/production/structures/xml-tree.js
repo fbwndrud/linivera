@@ -7,14 +7,19 @@ export function xmlTree(bytes) {
   let text;
   try { text = new TextDecoder('utf-8', { fatal: true }).decode(bytes); } catch { invalid('XML requires UTF-8'); }
   const parser = new SaxesParser(); const stack = []; const roots = []; let count = 0;
+  const siblingCounts = new WeakMap();
   parser.on('error', () => invalid('malformed XML'));
   parser.on('doctype', (doctype) => { if (doctype.trim() !== 'xmeml') invalid('external and internal DTDs are unsupported'); });
   parser.on('processinginstruction', () => invalid('XML processing instructions are unsupported'));
   parser.on('opentag', (tag) => {
     if (++count > 32768 || stack.length >= 64 || tag.name.includes(':') || Object.keys(tag.attributes).some((name) => name === 'xmlns' || name.startsWith('xmlns:'))) invalid('XML structure exceeds limits or uses unsupported namespaces');
-    const parent = stack.at(-1); const index = parent?.children.filter((n) => n.name === tag.name).length ?? 0;
+    const parent = stack.at(-1); let index = 0;
+    if (parent) {
+      const counts = siblingCounts.get(parent); index = counts.get(tag.name) ?? 0; counts.set(tag.name, index + 1);
+    }
     const node = { name: tag.name, attributes: tag.attributes, text: '', children: [], locator: parent ? `${parent.locator}/${tag.name}/${index}` : '/' + tag.name };
     if (parent) parent.children.push(node); else roots.push(node);
+    siblingCounts.set(node, new Map());
     stack.push(node);
   });
   const append = (value) => { if (stack.length) stack.at(-1).text += value; };

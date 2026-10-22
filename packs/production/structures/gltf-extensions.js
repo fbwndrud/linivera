@@ -26,6 +26,9 @@ export function gltfExtensions(value, container = {}) {
     if (!Number.isSafeInteger(index) || index < 0 || index >= (value[group]?.length ?? 0)) invalid(`extension ${group} reference out of range`);
     p.link(source, `/${group}/${index}`, kind, { locator });
   }
+  function byteRange(offset, length, total) {
+    if (!Number.isSafeInteger(offset) || offset < 0 || !Number.isSafeInteger(length) || length <= 0 || offset > total || length > total - offset) invalid('compressed source range exceeds declared buffer');
+  }
   for (const [i, row] of (value.textures ?? []).entries()) for (const name of ['KHR_texture_basisu', 'EXT_texture_webp', 'EXT_texture_avif']) {
     const data = row.extensions?.[name]; if (data === undefined) continue;
     const id = extension(`/textures/${i}`, name, data); ref(id, 'images', data.source, 'extension-image', id + '/source');
@@ -40,12 +43,13 @@ export function gltfExtensions(value, container = {}) {
     const id = extension(`/bufferViews/${i}`, 'EXT_meshopt_compression', data);
     ref(id, 'buffers', data.buffer, 'meshopt-buffer', id + '/buffer');
     const length = value.buffers[data.buffer].byteLength;
-    if (!Number.isSafeInteger(data.byteLength) || data.byteLength <= 0 || !Number.isSafeInteger(data.byteOffset ?? 0) || (data.byteOffset ?? 0) < 0 || (data.byteOffset ?? 0) + data.byteLength > length) invalid('meshopt source range exceeds declared buffer');
+    byteRange(data.byteOffset ?? 0, data.byteLength, length);
   }
   for (const [i, row] of (value.meshes ?? []).entries()) for (const [j, primitive] of row.primitives.entries()) {
     const parent = `/meshes/${i}/primitives/${j}`; const draco = primitive.extensions?.KHR_draco_mesh_compression;
     if (draco !== undefined) {
       const id = extension(parent, 'KHR_draco_mesh_compression', draco); ref(id, 'bufferViews', draco.bufferView, 'draco-buffer-view', id + '/bufferView');
+      const view = value.bufferViews[draco.bufferView]; byteRange(view.byteOffset ?? 0, view.byteLength, value.buffers[view.buffer].byteLength);
       if (!object(draco.attributes) || Object.values(draco.attributes).some((index) => !Number.isSafeInteger(index) || index < 0)) invalid('Draco attributes are nonnegative codec IDs, not accessor references');
     }
     const data = primitive.extensions?.KHR_materials_variants;

@@ -71,6 +71,11 @@ export function otio(value) {
       if (kind === 'stack') duration = duration === null || item.duration === null ? null : Math.max(duration, item.duration);
       else if (!item.transition) { cursor = cursor === null || item.duration === null ? null : boundedSeconds(cursor + item.duration); duration = cursor; }
     }
+    if (kind === 'track' && duration !== null) {
+      const head = children[0]?.transition ? seconds(children[0].unit.inOffset) : 0;
+      const tail = children.at(-1)?.transition ? seconds(children.at(-1).unit.outOffset) : 0;
+      duration = boundedSeconds(duration + head + tail);
+    }
     if (unit.sourceRange) { p.unknown(`Composition trim is retained; visible descendant ranges are not flattened: ${id}`); duration = seconds(unit.sourceRange.duration); }
     if (retimed) duration = null;
     if (duration === null) p.unknown(`Composition duration has unknown coverage: ${id}`);

@@ -23,7 +23,7 @@ test('Martini failed/partial run retains ordered inputs, output takes and replac
 test('Comfy UI links are structural facts and unknown widgets do not become guessed file bindings', async (t) => {
   const f = await scopedFixture(t);
   const r = await f.resource('ui', { nodes: [{ id: 7, type: 'LoadImage', widgets_values: ['image.png'] }, { id: 8, type: 'PreviewImage' }], links: [[1, 7, 0, 8, 0, 'IMAGE']] });
-  const { structure } = await resourcesTool(f.root, { op: 'inspectStructure', revisionId: r.revisionId, format: 'comfy-ui' });
+  const { structure } = await resourcesTool(f.root, { op: 'inspectStructure', revisionId: r.revisionId, format: 'comfy-ui', parserVersion: 1 });
   assert.equal(structure.links[0].source, '/nodes/0'); assert.equal(structure.links[0].target, '/nodes/1');
   assert.deepEqual(structure.references, []); assert.ok(structure.coverage.unknown.length);
   const bad = await f.resource('bad', { nodes: [{ id: 7, type: 'LoadImage' }], links: [[1, 7, 0, 8, 0, 'IMAGE']] });

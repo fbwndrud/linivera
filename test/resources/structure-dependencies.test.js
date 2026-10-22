@@ -56,3 +56,18 @@ test('an unreported UI package version stays unknown and can be explicitly descr
   const parsed = await resourcesTool(f.root, { op: 'inspectStructure', revisionId: source.revisionId, format: 'comfy-ui', dependencyManifestRevisionId: contract.revisionId });
   assert.ok(parsed.structure.references.some((ref) => ref.hint === 'synthetic-nodes@1.0'));
 });
+
+test('UI declarations cannot rename or omit the required file role of a built-in loader', async (t) => {
+  const f = await scopedFixture(t);
+  const source = await f.resource('ui-loader', { nodes: [{ id: 1, type: 'LoadImage', widgets_values: ['synthetic.png'] }], links: [] });
+  const declaration = { version: 1, nodes: [{ classType: 'LoadImage', package: { id: 'comfy-core', version: 'synthetic' }, files: [{ input: 'image', role: 'model', widgetIndex: 0 }] }] };
+  const contract = await f.resource('bad-ui-contract', declaration);
+  const args = { op: 'inspectStructure', revisionId: source.revisionId, format: 'comfy-ui' };
+  await assert.rejects(resourcesTool(f.root, { ...args, dependencyManifestRevisionId: contract.revisionId }), { code: 'STRUCTURE_INVALID' });
+  declaration.nodes[0].files = []; const omission = await f.resource('omission', declaration);
+  for (const options of [{}, { dependencyManifestRevisionId: omission.revisionId }]) {
+    const { structure } = await resourcesTool(f.root, { ...args, ...options });
+    assert.ok(structure.references.some((ref) => ref.role === 'image' && ref.required));
+    assert.ok(structure.coverage.unknown.some((reason) => reason.includes('Unmapped UI file')));
+  }
+});

@@ -41,6 +41,7 @@ test('unknown extensions stay visible and malformed compression and material ref
   assert.ok(structure.coverage.unknown.some((reason) => reason.includes('/nodes/0/extensions/SYNTHETIC_future')));
   for (const [name, change] of [['bad-image', (v) => { v.textures[0].extensions.KHR_texture_basisu.source = 99; }],
     ['bad-buffer', (v) => { v.bufferViews[0].extensions.EXT_meshopt_compression.byteLength = 101; }],
+    ['bad-draco-view', (v) => { v.bufferViews[0].byteOffset = 9999; }],
     ['bad-variant', (v) => { v.meshes[0].primitives[0].extensions.KHR_materials_variants.mappings[0].variants = [99]; }]]) {
     const data = syntheticExtendedModel(); change(data); const bad = await f.resource(name, data);
     await assert.rejects(resourcesTool(f.root, { op: 'inspectStructure', revisionId: bad.revisionId, format: 'gltf' }), { code: 'STRUCTURE_INVALID' });

@@ -35,3 +35,16 @@ test('unknown retiming never invents a later clip position and unavailable media
   const bad = await f.resource('bad-rate', value);
   await assert.rejects(resourcesTool(f.root, { op: 'inspectStructure', revisionId: bad.revisionId, format: 'otio' }), { code: 'STRUCTURE_INVALID' });
 });
+
+test('head and tail transitions contribute to track duration without shifting local clip positions', async (t) => {
+  const f = await scopedFixture(t);
+  const value = JSON.parse(await readFile(new URL('../fixtures/structures/otio-boundary-oracle.json', import.meta.url), 'utf8'));
+  const expected = JSON.parse(await readFile(new URL('../fixtures/structures/otio-boundary-oracle.expected.json', import.meta.url), 'utf8'));
+  const source = await f.resource('boundary-transitions', value);
+  const { structure } = await resourcesTool(f.root, { op: 'inspectStructure', revisionId: source.revisionId, format: 'otio' });
+  for (const track of expected.tracks) {
+    const id = `/tracks/children/${track.trackIndex}`;
+    assert.deepEqual(structure.units.find((u) => u.id === id).parentRange, { start: 0, duration: track.duration, timeUnit: 'seconds' });
+    for (const range of track.ranges) assert.deepEqual(structure.units.find((u) => u.id === `${id}/children/${range.index}`).parentRange, { start: range.start, duration: range.duration, timeUnit: 'seconds' });
+  }
+});
