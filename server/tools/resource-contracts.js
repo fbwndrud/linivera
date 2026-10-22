@@ -45,6 +45,9 @@ export const RESOURCE_ARGUMENTS = {
   },
   folio_resource_query: { query: rule([], ['resourceId', 'selector', 'freshness']), refresh: rule([], ['checkpoint']),
     graph: rule([], ['resourceId', 'direction', 'depth', 'limit', 'cursor', 'generationId', 'boundaryLimit', 'edgeLimit']), indexGraph: rule([]),
-    context: rule(['scopeId', 'purpose', 'budget'], ['contextRevisionId', 'pathId', 'timeLabel', 'revisionIds']) },
+    context: rule(['scopeId', 'purpose', 'budget'], ['contextRevisionId', 'pathId', 'timeLabel', 'revisionIds']),
+    capabilities: rule([]), specification: rule(['capabilityId']),
+    readiness: rule(['specificationRevisionId', 'requestRevisionId', 'candidateRevisionIds', 'profileRevisionId', 'pipelineRevisionId', 'policyRevisionId', 'scopeId', 'search'], ['pathId']),
+    retainReadiness: rule(['resourceId', 'specificationRevisionId', 'requestRevisionId', 'candidateRevisionIds', 'profileRevisionId', 'pipelineRevisionId', 'policyRevisionId', 'scopeId', 'search'], ['pathId']) },
   folio_embeddings: { index: rule([], ['dimension', 'freshness']), search: rule(['generationId', 'text'], ['freshness', 'limit']) },
 };

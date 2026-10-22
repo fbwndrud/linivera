@@ -9,6 +9,7 @@ import { FolioError } from '../errors.js';
 import { assertContextIsolation } from '../context/isolation.js';
 import { readStructureRelations } from './structure-bindings.js';
 import { verifyRequirementRecords } from '../context/requirements.js';
+import { readReadinessReferences, readReadinessRelations } from '../readiness/verify.js';
 
 export async function verifyContextValue(root, kind, value, { requireCurrentBridges = false } = {}) {
   let refs = [];
@@ -41,6 +42,7 @@ export async function verifyContextResource(root, input) {
 }
 /** Only actual provided inputs expand closure; package provenance and omissions do not. */
 export async function readContextReferences(root, revision) {
+  if (['capability-readiness', 'capability-specification'].includes(revision.kind)) return readReadinessReferences(root, revision);
   if (!CONTEXT_KINDS.has(revision.kind) && !['audio-alignment', 'normalization-map'].includes(revision.kind)) return [];
   if (revision.storageStatus !== 'owned_snapshot' || revision.mediaType !== 'application/json') contextInvalid('context records require owned JSON');
   const value = JSON.parse((await createResourceStore(root).readContent(revision.revisionId)).toString('utf8'));
@@ -50,6 +52,7 @@ export async function readContextReferences(root, revision) {
 }
 export async function readResourceRelations(root, revision) {
   if (revision.kind === 'structure-map') return readStructureRelations(root, revision);
+  if (revision.kind === 'capability-readiness') return readReadinessRelations(root, revision);
   const refs = await readContextReferences(root, revision);
   const relations = refs.map((targetRevisionId) => ({ targetRevisionId, kind: revision.kind === 'context-package' ? 'context-input' : 'usage' }));
   if (revision.kind === 'context-package') {

@@ -10,6 +10,7 @@ import { collectBundleClosure, readBundle, validateBundleManifest, verifyBundleS
 import { verifyContextResource } from './context-references.js';
 import { validateIteration } from '../operations/iteration.js';
 import { verifyStructureMap } from './structure-bindings.js';
+import { verifyReadinessResource } from '../readiness/verify.js';
 
 export function createResourceStore(root) {
   async function readRevision(revisionId) {
@@ -81,6 +82,7 @@ export function createResourceStore(root) {
 export async function proposeResourceLocked(root, input) {
   validateProposal(input);
   await verifyContextResource(root, input);
+  await verifyReadinessResource(root, input);
   if (input.kind === 'structure-map') {
     if (input.owned?.mediaType !== 'application/json') throw new FolioError('STRUCTURE_INVALID', 'structure map requires owned JSON');
     await verifyStructureMap(root, JSON.parse(Buffer.from(input.owned.bytes).toString('utf8')));

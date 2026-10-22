@@ -1,5 +1,6 @@
 import { syntheticDeliveryData } from './synthetic-delivery.js';
 import { syntheticDependencyContract } from './synthetic-edit.js';
+import { readinessRequirements } from './chroma-readiness.js';
 
 /** Synthetic P0~P4 declarations. Later builders take values read back from retained records. */
 export const chromaScope = ['runware', 'minimax', 'generic', 'response-contract', 'provider-image', 'provider-video', 'runware-map', 'minimax-map', 'generic-map',
@@ -8,7 +9,7 @@ export const chromaScope = ['runware', 'minimax', 'generic', 'response-contract'
   'brief', 'rights', 'release', 'performance', 'brief-proof', 'rights-proof', 'release-proof', 'analytics-export', 'brief-map', 'rights-map', 'release-map', 'performance-map',
   'context', 'package', 'next', 'final'];
 /** Only refusal cases that reach Input preparation need profile/policy scope. */
-export const guardScope = ['context-missing', 'rights-unlinked-map', 'context-unlinked', 'context-undeclared', 'package-unlinked', 'workflow-v1-map', 'context-v1', 'package-v1'];
+export const guardScope = ['context-missing', 'rights-unlinked-map', 'context-unlinked', 'context-undeclared', 'package-unlinked', 'workflow-v1-map', 'context-v1', 'package-v1', 'readiness-incomplete'];
 
 export function syntheticDownloads() {
   const data = syntheticDeliveryData();
@@ -40,6 +41,9 @@ export const syntheticRecords = () => { const { brief, rights, release, performa
 const map = (format, recordType) => ({ kind: 'structure-map', format, ...(recordType ? { recordType } : {}) });
 /** Roles the next task needs; reverse relations become context only when listed here. */
 export const nextTaskRequirements = [
+  ...readinessRequirements,
+  { role: 'initial-input', required: true, accepts: [{ kind: 'context-package' }] },
+  { role: 'initial-provider-response', required: true, accepts: [{ kind: 'provider-response-source' }] },
   { role: 'deliverable', required: true, accepts: [{ kind: 'deliverable' }] },
   { role: 'provider-response', required: true, accepts: [map('runware-image-response'), map('minimax-video-query'), map('provider-response')] },
   { role: 'workflow', required: true, accepts: [map('comfy-api')] },

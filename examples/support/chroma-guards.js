@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { nextTaskContext, syntheticProject, syntheticRecords } from './synthetic-chroma.js';
+import { chromaReadinessGuards } from './chroma-readiness-guards.js';
 
 const rejects = async (promise, code) => { const error = await promise; assert.equal(error.code, code, JSON.stringify(error)); return true; };
 
@@ -76,5 +77,6 @@ export async function chromaGuards(host, s, { roles, budget, bundle, snapshot })
   const sealed = await s.prepare(['package-v1']);
   const parserUpgrade = await rejects(attempt('folio_operations', { op: 'start', inputSnapshotId: sealed.inputSnapshotId, actor: 'user', idempotencyKey: 'old-parser' }), 'STRUCTURE_PARSER_UPGRADE_REQUIRED');
   await call('folio_inputs', { op: 'verify', inputSnapshotId: sealed.inputSnapshotId });
-  return { refused: { requiredContext, budgetTruncation, requiredLink, wrongRole, nestedScope, forgedBundle, forgedLink, forgedIdentity, inputBudget, parserUpgrade } };
+  const readiness = await chromaReadinessGuards(host, s, snapshot);
+  return { refused: { requiredContext, budgetTruncation, requiredLink, wrongRole, nestedScope, forgedBundle, forgedLink, forgedIdentity, inputBudget, parserUpgrade, ...readiness } };
 }

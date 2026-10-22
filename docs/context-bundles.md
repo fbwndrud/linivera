@@ -101,12 +101,14 @@ normalize하고 새 usage-context와 package를 만든다.
 ## 단일 작업 공간 예제
 
 `node examples/chroma-continuity.js`는 실제 stdio MCP 하나의 작업 공간에서 다음을 실행한다.
-공급자 응답·이미지·영상·증거 파일을 경로로 보관하고 원본을 지운 뒤, P0 응답 map →
+공식 fal 대표 명세/대조/묶음을 실제 합성 transport에 넘겨 prompt 바이트에서 이미지 색을
+계산한다. 응답·영상·증거 파일을 경로로 보관하고 원본을 지운 뒤, P0 응답 map →
 P1 ComfyUI workflow(응답이 보고한 이미지 ID를 LoadImage에 사용)와 node 계약·model →
 작업 1 frame → P2 OTIO(frame과 공급자 영상) → 작업 2 cut → P3 project-manifest(cut·DB
 snapshot 외부 상태 증거) → 작업 3 deliverable → P4 brief/rights/release/performance →
-재시작 → 묶음 하나의 Input(37개 판본) → 작업 4 → 작업 5로 이어진다.
-필수 맥락·연결 누락, 잘못된 역할, 중첩 scope, 위조, 용량, 구 parser 거절과 다섯 가지
+재시작 → [기능 명세·자료 대조](capability-readiness.md) → 묶음 하나의 Input(47개 판본) →
+v2 합성 Operation 작업 4 → 작업 5로 이어진다. 명세·대조 보고·정확한 요청도 필수 역할이다.
+필수 맥락·연결 누락, 잘못된 역할, 중첩 scope, 위조, 용량, 구 parser 거절과 일곱 가지
 upstream 변경의 두 단계 재검토, 과거 Input 검증을 함께 확인한다.
 
 모든 자료는 합성 fixture다. 실제 모델 생성·공급자 호출·미디어 재생·편집기/엔진 복원·

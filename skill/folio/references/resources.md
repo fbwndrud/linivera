@@ -93,3 +93,11 @@ PID 잠금이 보호한다. 살아 있거나 SIGSTOP된 PID의 잠금을 지우�
 동반 journal/WAL/SHM을 보존한다. 손상된 게이트를 자동 삭제하지 않는다.
 모든 쓰기 프로세스는 같은 새 버전을 써야 하며 옛 잠금 프로토콜과 혼합하지 않는다.
 백업·이전은 모든 서버를 중지하고 수행한다. SIGKILL 복구는 전원 손실 보장이 아니다.
+
+# 기능 선택과 준비 상태
+
+`folio_resource_query capabilities/specification`으로 대표 기능의 입력/출력 계약을 확인한다.
+명세를 `capability-specification` Resource로 보관하고 요청·후보·정의·scope·검색 범위를
+`readiness`에 넘긴다. `retainReadiness`는 대조 보고를 보관한다. 후보 발견은 선택/승인이
+아니며 부분 검색은 미보유를 확정하지 않는다. 명세·보고·요청을 필수 맥락 역할로 묶어
+기존 Input/Operation에 사용한다. 상세: `docs/capability-readiness.md`.

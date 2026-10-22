@@ -68,4 +68,9 @@ export const RESOURCE_DESCRIPTIONS = {
   sessionId: 'Stable local observation session identifier; recording does not control an external live session.',
   expectedSessionHead: 'Exact append-only observation head, or null before the first session event.',
   sessionHead: 'Exact verified session prefix to inspect; omitted reads its current verified head.',
+  capabilityId: 'Versioned capability catalog identity, distinct from provider name.',
+  specificationRevisionId: 'Exact retained capability specification revision used for comparison.',
+  candidateRevisionIds: 'Explicit candidate revisions to inspect; discovery does not select or approve them.',
+  search: 'Declared candidate search boundary. Complete means all selected resources inside the named profile and policy scope at the recorded checkpoint.',
+  completeness: 'Complete within the stated boundary, or partial; never a claim about all available files.',
 };

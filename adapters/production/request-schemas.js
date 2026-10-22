@@ -36,3 +36,13 @@ export function validateSpeechParameters(input) {
   for (const field of ['previous_request_ids', 'next_request_ids']) if (input[field] != null && (!Array.isArray(input[field]) || input[field].length > 3 || input[field].some((value) => typeof value !== 'string'))) invalid('up to three request identifiers supported');
   if (input.apply_text_normalization !== undefined && !['auto', 'on', 'off'].includes(input.apply_text_normalization)) invalid('unsupported text normalization');
 }
+
+/** Shared preview subset; preserves the existing adapter contract, including its historical model strings. */
+export function validateMeshyParameters(parameters) {
+  if (!parameters || parameters.mode !== 'preview' || typeof parameters.prompt !== 'string' || !parameters.prompt.trim() || parameters.prompt.length > 800
+    || Object.keys(parameters).some((key) => !['mode', 'prompt', 'target_formats', 'should_remesh', 'ai_model'].includes(key))) invalid('supported Meshy preview request required');
+  if (!Array.isArray(parameters.target_formats) || !parameters.target_formats.length || new Set(parameters.target_formats).size !== parameters.target_formats.length
+    || parameters.target_formats.some((format) => !['glb', 'obj', 'fbx', 'usdz', 'stl', '3mf'].includes(format))) invalid('explicit supported target_formats required');
+  if (parameters.should_remesh !== undefined && typeof parameters.should_remesh !== 'boolean') invalid('should_remesh must be boolean');
+  if (parameters.ai_model !== undefined && (typeof parameters.ai_model !== 'string' || !parameters.ai_model)) invalid('ai_model must be a string');
+}

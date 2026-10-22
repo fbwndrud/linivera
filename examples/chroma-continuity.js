@@ -8,6 +8,9 @@ import { syntheticPng } from './support/synthetic-media.js';
 import { chromaStages } from './support/chroma-stages.js';
 import { chromaGuards } from './support/chroma-guards.js';
 import { chromaChanges } from './support/chroma-changes.js';
+import { chromaReadiness, readinessScope } from './support/chroma-readiness.js';
+import { chromaGeneration } from './support/chroma-generation.js';
+import { chromaInitialGeneration, initialScope } from './support/chroma-initial-generation.js';
 import { chromaScope, guardScope, syntheticDownloads, syntheticWorkflow, syntheticNodeContract, syntheticTimeline, syntheticProject, syntheticRecords, nextTaskContext } from './support/synthetic-chroma.js';
 
 const unit = (map, kind) => map.structure.units.find((u) => u.kind === kind);
@@ -22,13 +25,15 @@ export async function runChromaContinuity({ keep = false } = {}) {
   const host = await productionHost(root); const s = chromaStages(host); const { call } = host;
   try {
     await call('folio_init', { title: 'Synthetic single-workspace P0-P4 continuity', preset: 'picturebook' });
-    await s.define([...chromaScope, ...guardScope]);
+    await s.define([...chromaScope, ...readinessScope, ...initialScope, ...guardScope]);
+    const initial = await chromaInitialGeneration(root, host, s);
     // Provider responses, declaration and media arrive as local files; the originals are deleted after retention.
-    const downloads = syntheticDownloads(); const image = syntheticPng(); const video = Buffer.from('synthetic opaque provider video v1');
+    const downloads = syntheticDownloads(); const video = Buffer.from('synthetic opaque provider video v1');
     const originals = await s.importDownloads(join(base, 'downloads'), { ...Object.fromEntries(Object.entries(downloads).map(([id, value]) => [id, { bytes: JSON.stringify(value), mediaType: 'application/json' }])),
-      'provider-image': { bytes: image, mediaType: 'image/png' }, 'provider-video': { bytes: video, mediaType: 'application/octet-stream' },
+      'provider-video': { bytes: video, mediaType: 'application/octet-stream' },
       'brief-proof': { bytes: 'synthetic brief source document', mediaType: 'text/plain' }, 'rights-proof': { bytes: 'synthetic rights report: distribution in KR', mediaType: 'text/plain' },
       'release-proof': { bytes: 'synthetic release confirmation', mediaType: 'text/plain' }, 'analytics-export': { bytes: 'synthetic analytics export: 120 views', mediaType: 'text/plain' } });
+    originals.set('provider-image', initial.bytes);
     // P0: provider responses bind exact retained files; the generic response also pins its declaration.
     await s.connect('runware-map', 'runware', 'runware-image-response', { image: 'provider-image' });
     await s.connect('minimax-map', 'minimax', 'minimax-video-query', { video: 'provider-video' });
@@ -78,7 +83,8 @@ export async function runChromaContinuity({ keep = false } = {}) {
     const pointing = (id) => graph.edges.filter((e) => e.kind === 'structure-reference' && e.target === node(id)).map((e) => graph.nodes.find((n) => n.id === e.source).resourceId).sort();
     assert.deepEqual(pointing('deliverable'), ['brief-map', 'release-map', 'rights-map']); assert.deepEqual(pointing('release-map'), ['performance-map']);
     const R = (id) => s.resources.get(id);
-    const roles = { deliverable: R('deliverable'), 'provider-response': [R('runware-map'), R('minimax-map'), R('generic-map')], workflow: R('workflow-map'),
+    const comparisonRoles = await chromaReadiness(host, s);
+    const roles = { ...comparisonRoles, 'initial-input': R('initial-package'), 'initial-provider-response': R('initial-response'), deliverable: R('deliverable'), 'provider-response': [R('runware-map'), R('minimax-map'), R('generic-map')], workflow: R('workflow-map'),
       edit: R('timeline-map'), project: R('project-map'), brief: R('brief-map'), rights: R('rights-map'), release: R('release-map'), performance: R('performance-map') };
     await s.retainJson('context', nextTaskContext(roles), 'usage-context');
     const budget = { maxTextBytes: 4096, maxItems: 32, maxManifestBytes: 131072 };
@@ -86,11 +92,11 @@ export async function runChromaContinuity({ keep = false } = {}) {
     assert.equal(preview.ready, true); assert.ok(preview.requirements.every((row) => row.status === 'provided' && row.included));
     const bundle = await s.retainJson('package', preview.package, 'context-package');
     const snapshot = await s.prepare(['package']);
-    const expected = chromaScope.filter((id) => !['context', 'next', 'final'].includes(id));
+    const expected = [...chromaScope, ...readinessScope, ...initialScope].filter((id) => !['context', 'initial-context', 'next', 'final'].includes(id));
     assert.deepEqual(snapshot.manifest.resources.map((r) => r.resourceId).sort(), expected.sort());
     for (const r of snapshot.manifest.resources) assert.equal(r.contentHash, (await host.read(r.revisionId)).contentHash);
     // Task 4 consumes values read from the one sealed bundle; task 5 consumes task 4.
-    const next = await s.produce('next', snapshot, async () => {
+    const next = await chromaGeneration(root, host, s, snapshot, R('generation-request'), async () => {
       const brief = await s.readJson('brief-map'); const rights = await s.readJson('rights-map'); const performance = await s.readJson('performance-map');
       const minimax = await s.readJson('minimax-map'); const contract = await s.readJson('response-contract'); const edit = await s.readJson('timeline-map');
       const deliverable = JSON.parse((await s.readBytes('deliverable')).toString('utf8'));
@@ -107,8 +113,9 @@ export async function runChromaContinuity({ keep = false } = {}) {
     const changes = await chromaChanges(host, s, { outputs: ['next', 'final'], intermediates: { 'provider-video': ['cut', 'deliverable'], 'db-snapshot': ['deliverable'] },
       unaffected: { 'provider-video': ['frame'], 'db-snapshot': ['frame', 'cut'] } });
     assert.deepEqual((await call('folio_inputs', { op: 'verify', inputSnapshotId: snapshot.inputSnapshotId })).manifest, snapshot.manifest);
-    for (const stage of [p1, p2, p3, next, final]) await call('folio_inputs', { op: 'verify', inputSnapshotId: stage.snapshot.inputSnapshotId });
+    for (const stage of [initial, p1, p2, p3, next, final]) await call('folio_inputs', { op: 'verify', inputSnapshotId: stage.snapshot.inputSnapshotId });
     return { verified: true, synthetic: true, singleWorkspace: true, serverRestarts: 2, originalsDeleted: true, bundleFeedsNextWork: true, exactBundleClosure: expected.length,
+      capabilityCompared: true, requestBindingsPinned: true, productionOperation: true,
       ...guards, ...changes, historicalInputsVerified: true, actualModelGeneration: false, actualProviderNetwork: false, mediaPlayback: false, editorRestore: false,
       externalPublication: false, legalApproval: false, ...(keep ? { root } : {}) };
   } finally { await host.close(); if (!keep) await rm(base, { recursive: true, force: true }); }

@@ -9,7 +9,11 @@ export async function chromaChanges(host, s, { outputs, intermediates, unaffecte
   const { call, select } = host; const propagated = {};
   const performance = syntheticRecords().performance; performance.details.metrics[0].value = 125;
   const minimax = syntheticDownloads().minimax; minimax.base_resp.status_msg = 'synthetic re-query';
+  const declaration = syntheticDownloads()['response-contract']; declaration.schemaVersion = 'fixture-v2';
+  const spec = await call('folio_resource_query', { op: 'specification', capabilityId: 'fal-flux-schnell-v1' });
   const changes = [
+    ['input-specification', 'capability-spec', { bytes: JSON.stringify(spec), mediaType: 'application/json' }],
+    ['provider-declaration', 'response-contract', { bytes: JSON.stringify(declaration), mediaType: 'application/json' }],
     ['provider-raw', 'minimax', { bytes: JSON.stringify(minimax), mediaType: 'application/json' }],
     ['editing-dependency', 'provider-video', { base64: Buffer.from('synthetic opaque provider video v2').toString('base64'), mediaType: 'application/octet-stream' }],
     ['project-external-state', 'db-snapshot', { bytes: JSON.stringify({ rows: [{ id: 1, label: 'Synthetic flooded harbor' }] }), mediaType: 'application/json' }],
@@ -20,11 +24,14 @@ export async function chromaChanges(host, s, { outputs, intermediates, unaffecte
     const previous = s.resources.get(resourceId);
     const revision = await call('folio_resources', { op: 'propose', resourceId, kind: previous.kind, parents: [previous.revisionId], owned });
     await select(revision);
+    await call('folio_resource_query', { op: 'refresh' });
+    const query = await call('folio_resource_query', { op: 'query' });
+    const reasons = (id) => query.entries.find((entry) => entry.role === 'output' && entry.revisionId === s.resources.get(id).revisionId)?.reviewReasons ?? [];
     for (const id of [...outputs, ...(intermediates[resourceId] ?? [])]) {
-      const reason = (await s.reasons(id)).find((r) => r.resourceId === resourceId && r.inputRevisionId === previous.revisionId && r.currentRevisionId === revision.revisionId);
+      const reason = reasons(id).find((r) => r.resourceId === resourceId && r.inputRevisionId === previous.revisionId && r.currentRevisionId === revision.revisionId);
       assert.ok(reason, `${label} must require review of ${id}`);
     }
-    for (const id of unaffected[resourceId] ?? []) assert.ok(!(await s.reasons(id)).some((r) => r.resourceId === resourceId), `${label} must not touch ${id}`);
+    for (const id of unaffected[resourceId] ?? []) assert.ok(!reasons(id).some((r) => r.resourceId === resourceId), `${label} must not touch ${id}`);
     const graph = await host.graph();
     for (const id of outputs) assert.equal(graph.nodes.find((n) => n.revisionId === s.resources.get(id).revisionId).reviewRequired, true);
     propagated[label] = true;
