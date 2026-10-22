@@ -9,6 +9,7 @@ import { CONTEXT_KINDS } from './context-records.js';
 import { FolioError } from '../errors.js';
 import { readStructureRelations } from './structure-bindings.js';
 import { resolveParserVersion } from '../../packs/production/structures/versions.js';
+import { assertContextRequirements } from '../context/requirements.js';
 export function hasInputReferences(kind) {
   return CONTEXT_KINDS.has(kind) || ['iteration', 'audio-alignment', 'normalization-map', 'generation-request', 'structure-map'].includes(kind);
 }
@@ -44,7 +45,10 @@ export async function collectInputClosure(root, revisionIds) {
       const value = validateProductionRequest(JSON.parse((await store.readContent(id)).toString('utf8')));
       refs = [...(value.inputBindings ?? []).flatMap((binding) => [binding.revisionId, ...(binding.transformRevisionId ? [binding.transformRevisionId] : [])]), ...(value.iteration?.baseRevisionIds ?? []), ...(value.iteration?.preserveRefs ?? []), ...(value.iteration?.changeRequestRevisionId ? [value.iteration.changeRequestRevisionId] : [])];
     } else if (revision.kind === 'structure-map') refs = (await readStructureRelations(root, revision, { requireComplete: true })).map((ref) => ref.targetRevisionId);
-    else refs = [...await readContextReferences(root, revision), ...await readIterationReferences(root, revision)];
+    else {
+      refs = [...await readContextReferences(root, revision), ...await readIterationReferences(root, revision)];
+      if (revision.kind === 'usage-context') await assertContextRequirements(root, JSON.parse((await store.readContent(id)).toString('utf8')));
+    }
     for (const ref of refs) { if (++edges > 8192) invalidInput('too many input references'); await visit(ref, depth + 1); }
     active.delete(id);
   }

@@ -8,6 +8,7 @@ import { verifyNormalizationMap } from './normalization-bindings.js';
 import { FolioError } from '../errors.js';
 import { assertContextIsolation } from '../context/isolation.js';
 import { readStructureRelations } from './structure-bindings.js';
+import { evaluateRequirements } from '../context/requirements.js';
 
 export async function verifyContextValue(root, kind, value, { requireCurrentBridges = false } = {}) {
   let refs = [];
@@ -19,6 +20,7 @@ export async function verifyContextValue(root, kind, value, { requireCurrentBrid
   if (kind === 'usage-context') {
     refs = usageContextReferences(validateUsageContext(value));
     for (const state of value.states) if (state.nodeRef) await checkBridge(state.nodeRef);
+    await evaluateRequirements(root, value);
   }
   if (kind === 'context-package') refs = await validateContextPackage(root, value);
   if (kind === 'resource-usage') {
