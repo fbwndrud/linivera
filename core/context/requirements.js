@@ -47,17 +47,21 @@ export async function evaluateRequirements(root, context) {
   }
   return [...rows.values()];
 }
-/** Join evaluated roles with the items a package actually provides. */
+/**
+ * Join evaluated roles with the items a package actually provides. A role is blocked when a required
+ * role has no provided item or when any provided item of a declared role leaves a required map slot unmapped.
+ */
 export function coverRequirements(rows, items, coverage) {
   const included = new Set(items.map((item) => item.contextStateIndex).filter((index) => index !== undefined));
-  const missing = rows.filter((row) => row.required && !row.stateIndexes.some((index) => included.has(index))).map((row) => row.role);
-  const incomplete = rows.filter((row) => row.incompleteIndexes.some((index) => included.has(index))).map((row) => row.role);
-  const requirements = rows.map(({ stateIndexes, incompleteIndexes: _incomplete, ...row }) => {
+  const blocked = [];
+  const requirements = rows.map(({ stateIndexes, incompleteIndexes, ...row }) => {
     const present = stateIndexes.some((index) => included.has(index));
+    const unmapped = incompleteIndexes.some((index) => included.has(index));
+    if (unmapped || (row.required && !present)) blocked.push(row.role);
     const absent = row.revisionIds.some((id) => coverage.missing.some((entry) => entry.revisionId === id)) ? 'missing' : 'truncated';
-    return { ...row, status: row.status === 'provided' && !present ? absent : row.status, included: present };
+    return { ...row, status: unmapped ? 'incomplete' : row.status === 'provided' && !present ? absent : row.status, included: present };
   });
-  return { requirements, missing, ready: !missing.length && !incomplete.length };
+  return { requirements, blocked, ready: !blocked.length };
 }
 export function assertRequirementsMet(missing) {
   if (missing.length) throw new FolioError('CONTEXT_REQUIRED_MISSING', 'Provide every required context role before fixing the next input. Linked records are not approvals.', { missing });

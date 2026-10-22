@@ -44,6 +44,9 @@
 다른 kind/format/recordType이나 다른 결과물 판본을 가리키는 기록은 `usage-context`
 보관에서 `CONTEXT_INVALID`로 거절한다. `bindsRole`은 기존 binding을 확인할 뿐
 새 관계를 만들지 않는다. evidence slot에 같은 판본이 있어도 subject가 아니면 거절한다.
+subject가 여러 개인 brief/rights 기록은 그중 하나가 그 판본이면 받는다. 한 기록이 여러
+결과물에 적용된다는 원문 보고이며, 기록의 다른 subject 판본도 그 기록의 binding으로 Input에
+들어간다. 한 결과물만 다룬 기록이 필요하면 그 기록을 따로 normalize한다.
 bindsRole이 가리키는 역할은 state가 정확히 하나여야 한다. 그 밖의 역할에는 여러 state
 (예: 공급자 응답 3개)를 둘 수 있다. state의 판본은 artifactRevisionId, 없으면 첫 증거다.
 
@@ -59,7 +62,8 @@ requirements는 그 usage-context를 만든 다음 작업의 선언이다. packa
 3. `folio_resource_query context`(scopeId, pathId, purpose, contextRevisionId, budget)로
    미리본다. 반환값에 `requirements[]`({role, required, status, revisionIds, included})와
    `ready`가 추가된다. status는 provided/unknown/absent/unverified/incomplete/truncated/missing이다.
-   incomplete는 그 역할 map의 필수 binding이 비어 있다는 뜻이며 `ready:false`다.
+   incomplete는 package에 들어간 그 역할 map의 필수 binding이 비어 있다는 뜻이다. 필수·선택
+   역할 모두 `ready:false`이고 package 보관을 거절한다.
    text 발췌만 예산으로 잘린 item은 provided로 남고 coverage.truncated에 기록된다.
    Input에는 해당 판본 전체 bytes가 들어간다.
 4. `ready:true`인 `package`를 kind `context-package`로 propose하고 선택한다. package는

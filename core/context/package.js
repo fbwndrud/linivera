@@ -60,7 +60,7 @@ export async function validateContextPackage(root, value) {
   }
   // Requirements are copied exactly from the retained source; a package cannot relax or drop them.
   if (canonicalJson(value.requirements ?? null) !== canonicalJson(context?.requirements ?? null)) contextInvalid('package requirements must equal its source context');
-  if (context?.requirements) assertRequirementsMet(coverRequirements(await evaluateRequirements(root, context), value.items, value.coverage).missing);
+  if (context?.requirements) assertRequirementsMet(coverRequirements(await evaluateRequirements(root, context), value.items, value.coverage).blocked);
   const exact = [...new Set(refs)].sort();
   if (canonicalJson(revisionList(value.referenceRevisionIds).slice().sort()) !== canonicalJson(exact)) contextInvalid('package reference closure must match actual provided items');
   return exact;

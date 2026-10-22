@@ -63,6 +63,18 @@ test('a role whose map leaves a required slot unmapped is incomplete before inpu
   const result = await preview(s, context.revisionId);
   assert.equal(result.ready, false); assert.equal(result.requirements.find((row) => row.role === 'rights').status, 'incomplete');
   await assert.rejects(s.json('unlinked-package', 'context-package', result.package), { code: 'CONTEXT_REQUIRED_MISSING' });
+  // A complete and an unmapped map in one role, or an unmapped optional role, are refused the same way.
+  const extra = { role: 'note', status: 'observed', artifactRevisionId: s.unlinked.revisionId, evidenceRevisionIds: [] };
+  for (const states of [[...s.complete, s.state('rights', s.unlinked, 'observed')], [...s.complete.filter((x) => x.role !== 'note'), extra]]) {
+    const mixed = await s.json('mixed-' + states.length + states.at(-1).role, 'usage-context', s.context(states));
+    const mixedPreview = await preview(s, mixed.revisionId);
+    assert.equal(mixedPreview.ready, false); assert.ok(mixedPreview.requirements.some((row) => row.status === 'incomplete'));
+    await assert.rejects(s.json('mixed-package', 'context-package', mixedPreview.package), { code: 'CONTEXT_REQUIRED_MISSING' });
+  }
+  // An unmapped optional map left out by the budget does not block the package.
+  const optional = await s.json('optional-unmapped', 'usage-context', s.context([...s.complete.filter((x) => x.role !== 'note'), extra]));
+  const omitted = await preview(s, optional.revisionId, { budget: { ...budget, maxItems: 3 } });
+  assert.equal(omitted.ready, true); await s.json('optional-omitted', 'context-package', omitted.package);
 });
 
 test('missing or budget-truncated required context blocks the package and the next input', async (t) => {
