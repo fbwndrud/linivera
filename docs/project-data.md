@@ -69,8 +69,9 @@ externalStates.kind는 database/environment/deployment다. evidence는 선언한
 읽는다. `/meta/image`는 sheet 파일 필수 슬롯이며 이름이 없으면 수동 연결 슬롯으로 남는다.
 좌표 범위·시간·중복 이름은 검사하지만 실제 이미지 decode·게임 재생은 하지 않는다.
 
-tag 범위가 frame 밖이거나 여러 layer가 있거나 hash의 숫자 키 때문에 순서가 모호하면
-tag와 frame을 임의로 연결하지 않고 unknown으로 남긴다. partial export·layer/slice의
+tag는 원본 sprite의 번호를 사용하지만 선택/빈 셀 생략 export는 배열 위치와 파일명을
+다시 매길 수 있다. hash/array 모두 JSON만으로 원본 번호 대응을 증명할 수 없으므로
+tag 범위·방향은 보관하고 tag와 frame의 대응은 unknown으로 남긴다. layer/slice의
 복잡한 의미, 다른 native atlas/엔진 포맷은 원본 보관과 수동 선언을 사용한다.
 SpriteCook 등 특정 파트너가 이 형식을 제공한다고 가정하지 않으며 확보한 형식이 기준이다.
 

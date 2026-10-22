@@ -46,7 +46,7 @@ map은 `{version:1,sourceRevisionId,sourceContentHash,format,parserVersion,struc
 | xmeml | XMEML 5 sequence·트랙·클립·파일·전환·효과 관측 | 미디어 파일 ID/URI를 판본에 연결. 편집기 효과 실행·복원은 별도 |
 | otio | OTIO JSON 트랙·클립·gap·transition과 원본/parent 시간 | 미디어 reference를 실제 파일로 연결. retime/visible range 평탄화는 별도 |
 | project-manifest | 파일 역할·진입점·의존성·DB/환경/배포 증거와 누락을 명시한 Linivera v1 계약 | 파일과 필수 누락 슬롯을 보관 판본에 연결. native 코드/씬 분석·실행 복원은 별도 |
-| aseprite | JSON hash/array atlas frame 좌표·trim·duration(ms)·tag | sheet 필수 연결. 모호한 layer/partial/tag 순서는 unknown, 이미지 decode·재생은 별도 |
+| aseprite | JSON hash/array atlas frame 좌표·trim·duration(ms)·원본 tag 범위 | sheet 필수 연결. 원본 frame 번호 대응과 tag 소속은 unknown, 이미지 decode·재생은 별도 |
 
 JSON/SRT 구조 원본은 6MiB까지 해석한다. GLB는 파일당 2GiB 범위 안에서 전체 hash를
 스트림 검증하고 6MiB 이하 JSON chunk만 메모리에 읽는다. 구조는 최대 4,096 units,

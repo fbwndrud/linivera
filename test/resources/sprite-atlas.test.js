@@ -8,7 +8,7 @@ const frame = (x, duration) => ({ frame: { x, y: 0, w: 8, h: 8 }, rotated: false
 const atlas = () => ({ frames: { 'idle/0': frame(0, 80), 'idle/1': frame(8, 120) }, meta: { image: 'sheet.png', size: { w: 16, h: 8 }, scale: '1',
   frameTags: [{ name: 'idle', from: 0, to: 1, direction: 'pingpong', repeat: '2' }] } });
 
-test('Aseprite hash and array atlases retain sheet references, trim rectangles, milliseconds and tag frame links', async (t) => {
+test('Aseprite hash and array atlases retain sheet references, trim rectangles, milliseconds and original tag ranges', async (t) => {
   const f = await scopedFixture(t);
   for (const mode of ['hash', 'array']) {
     const value = atlas(); if (mode === 'array') value.frames = Object.entries(value.frames).map(([filename, entry]) => ({ filename, ...entry }));
@@ -20,11 +20,27 @@ test('Aseprite hash and array atlases retain sheet references, trim rectangles, 
     assert.deepEqual(frames[0].spriteSourceSize, { x: 2, y: 3, w: 8, h: 8 });
     const tag = structure.units.find((unit) => unit.kind === 'animation-tag');
     assert.deepEqual([tag.from, tag.to, tag.direction, tag.repeat], [0, 1, 'pingpong', '2']);
-    assert.equal(structure.links.filter((link) => link.kind === 'tag-frame').length, 2);
+    assert.equal(structure.links.filter((link) => link.kind === 'tag-frame').length, 0);
     const sheet = await f.resource('sheet', 'synthetic sheet');
     const map = await resourcesTool(f.root, { op: 'normalizeStructure', resourceId: 'atlas-map', sourceRevisionId: source.revisionId, format: 'aseprite',
       structureBindings: [{ referenceKey: '/meta/image', revisionId: sheet.revisionId }] });
     assert.deepEqual(JSON.parse((await f.store.readContent(map.revisionId)).toString()).unresolvedReferenceKeys, []);
+  }
+});
+
+test('partial exports cannot fabricate tag membership from renumbered array or string-hash positions', async (t) => {
+  const f = await scopedFixture(t);
+  for (const mode of ['array', 'hash']) {
+    // Source frame zero was omitted. The exporter renumbered surviving source frames 1/2.
+    const value = atlas(); value.frames = mode === 'array'
+      ? [{ filename: 'export-0', ...frame(0, 80) }, { filename: 'export-1', ...frame(8, 120) }]
+      : { 'export-0': frame(0, 80), 'export-1': frame(8, 120) };
+    value.meta.frameTags = [{ name: 'original-0-and-1', from: 0, to: 1, direction: 'forward' }];
+    const source = await f.resource('partial-' + mode, value);
+    const { structure } = await resourcesTool(f.root, { op: 'inspectStructure', revisionId: source.revisionId, format: 'aseprite' });
+    assert.equal(structure.links.filter((link) => link.kind === 'tag-frame').length, 0);
+    assert.ok(structure.coverage.unknown.some((item) => item.includes('original frame')));
+    assert.deepEqual(structure.units.filter((unit) => unit.kind === 'animation-tag').map((tag) => [tag.from, tag.to]), [[0, 1]]);
   }
 });
 

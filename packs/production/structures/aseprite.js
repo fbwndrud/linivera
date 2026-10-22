@@ -24,17 +24,15 @@ export function aseprite(value) {
   const hash = !Array.isArray(value.frames);
   const entries = hash ? Object.entries(value.frames) : array(value.frames, 'atlas frames').map((row, i) => [i, row]);
   if (!entries.length || entries.length > 4096) invalid('bounded nonempty atlas frames required');
-  const frames = []; const names = new Set();
+  const names = new Set();
   for (const [key, row] of entries) {
     if (!object(row) || typeof row.rotated !== 'boolean' || typeof row.trimmed !== 'boolean') invalid('atlas frame flags required');
     const frameName = name(hash ? key : row.filename); if (names.has(frameName)) invalid('duplicate atlas frame name'); names.add(frameName);
     const id = `/frames/${pointer(key)}`; const sourceSize = size(row.sourceSize);
     p.unit(id, 'sprite-frame', { name: frameName, frame: rect(row.frame, sheetSize), rotated: row.rotated, trimmed: row.trimmed,
       spriteSourceSize: rect(row.spriteSourceSize, sourceSize), sourceSize, durationMs: integer(row.duration, 1) });
-    p.link(id, '/meta', 'frame-sheet'); frames.push(id);
+    p.link(id, '/meta', 'frame-sheet');
   }
-  // JSON.parse reorders integer object keys; multiple layers can reuse source frame indices.
-  const ambiguous = hash && entries.some(([key]) => /^(0|[1-9]\d*)$/.test(String(key))) || (value.meta.layers?.length ?? 0) > 1;
   for (const [i, tag] of array(value.meta.frameTags ?? [], 'animation tags').entries()) {
     if (!object(tag)) invalid('animation tag object required');
     const from = integer(tag.from); const to = integer(tag.to); if (to < from) invalid('reversed animation tag range');
@@ -43,12 +41,12 @@ export function aseprite(value) {
     const repeat = tag.repeat ?? null;
     if (repeat !== null && (typeof repeat !== 'string' || !/^\d{1,10}$/.test(repeat))) invalid('invalid tag repeat');
     p.unit(id, 'animation-tag', { name: name(tag.name), from, to, direction, repeat });
-    if (ambiguous || to >= frames.length) { p.unknown(`Unresolved tag frame order/range at ${id}; numeric hash names, layered or partial export cannot be resolved by index.`); continue; }
-    for (let j = from; j <= to; j++) p.link(id, frames[j], 'tag-frame', { frameIndex: j });
+    // Export selection/empty-cell omission can renumber names and positions while tags retain original indices.
+    p.unknown(`Unresolved tag original frame mapping at ${id}; exported names and positions do not prove original frame indices.`);
   }
   for (const key of Object.keys(value.meta)) if (!['image', 'size', 'scale', 'frameTags', 'app', 'version', 'format'].includes(key)) p.unknown(`Uninterpreted atlas metadata: /meta/${pointer(key)}`);
   for (const key of Object.keys(value)) if (!['frames', 'meta'].includes(key)) p.unknown(`Uninterpreted atlas field: /${pointer(key)}`);
   if (value.meta.scale !== undefined && value.meta.scale !== '1') p.unknown('Atlas scale is retained as metadata; no coordinate rescaling is performed.');
-  p.unknown('Atlas geometry and declared tag membership only; image decoding, layer/slice semantics and runtime playback are not verified.');
+  p.unknown('Atlas geometry and original tag ranges only; image decoding, tag membership, layer/slice semantics and runtime playback are not verified.');
   return p.finish();
 }
