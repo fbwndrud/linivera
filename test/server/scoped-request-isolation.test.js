@@ -67,3 +67,24 @@ test('historical cross-story Input retains its hash but cannot start new work', 
   assert.equal(operation.ok, false);
   assert.equal(operation.error.code, 'CONTEXT_SCOPE_MISMATCH');
 });
+
+test('the original review case refuses a story readiness report fixed in another story', async (t) => {
+  const f = await readinessFixture(t); const host = await connectFolio(); t.after(() => host.close());
+  const response = await host.call('folio_resource_query', { root: f.root, op: 'retainReadiness', resourceId: 'readiness', ...f.input });
+  assert.equal(response.ok, true); const report = response.result;
+  const definitions = Object.fromEntries(['profile', 'pipeline', 'policy'].map((kind) => [kind + 'RevisionId', f.input[kind + 'RevisionId']]));
+  const selected = await host.call('folio_inputs', { root: f.root, op: 'select', scopeId: 'other-story', actor: 'user',
+    expectedScopeSelectionRevision: null, reason: 'Synthetic original review counterexample.', ...definitions,
+    bindings: [{ bindingKey: 'report', role: 'context', resourceId: report.resourceId, revisionId: report.revisionId, mode: 'fixed' }] });
+  assert.equal(selected.ok, true);
+  const input = { version: 2, scopeId: 'other-story', scopeSelectionRevision: selected.result.scopeSelectionRevision, ...definitions };
+  const prepared = await host.call('folio_inputs', { root: f.root, op: 'prepare', ...input });
+  assert.equal(prepared.ok, false); assert.equal(prepared.error.code, 'CONTEXT_SCOPE_MISMATCH');
+  const manifest = await buildInputManifestV2(f.root, input, await readWorkspaceState(f.root), { historical: true });
+  const bytes = canonicalJson(manifest); const inputSnapshotId = sha256(bytes);
+  await writeImmutable(f.root, join(f.root, '.folio/resources/inputs', inputSnapshotId.slice(7) + '.json'), bytes);
+  assert.equal((await host.call('folio_inputs', { root: f.root, op: 'verify', inputSnapshotId })).ok, true);
+  const operation = await host.call('folio_operations', { root: f.root, op: 'start', inputSnapshotId,
+    requestRevisionId: f.request.revisionId, operationContractVersion: 2, actor: 'user', idempotencyKey: 'foreign-report' });
+  assert.equal(operation.ok, false); assert.equal(operation.error.code, 'CONTEXT_SCOPE_MISMATCH');
+});

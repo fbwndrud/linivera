@@ -1,12 +1,20 @@
 import assert from 'node:assert/strict';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { canonicalJson, sha256 } from '../core/util/hash.js';
 
 /** Exercise refusal paths against the installed server, without repository fixtures or dev dependencies. */
 export async function verifyInstalledReadiness(installed, sandbox) {
   const { productionHost } = await import(pathToFileURL(join(installed, 'examples/support/production-host.js')).href);
   const host = await productionHost(join(sandbox, 'readiness-guards'));
   try {
+    const { capabilityReleaseV1, accessReleaseV1 } = await import(pathToFileURL(join(installed, 'packs/production/catalog-release-v1.js')).href);
+    for (const [id, hash] of Object.entries(capabilityReleaseV1)) {
+      assert.equal(sha256(canonicalJson(await host.call('folio_resource_query', { op: 'specification', capabilityId: id }))), hash);
+    }
+    for (const [id, hash] of Object.entries(accessReleaseV1)) {
+      assert.equal(sha256(canonicalJson(await host.call('folio_resource_query', { op: 'accessSpecification', accessId: id }))), hash);
+    }
     const spec = await host.call('folio_resource_query', { op: 'specification', capabilityId: 'meshy-text-to-3d-preview-v1' });
     const specification = await host.json('specification', spec, 'capability-specification');
     const prompt = await host.call('folio_resources', { op: 'propose', resourceId: 'prompt', kind: 'text',
@@ -47,6 +55,6 @@ export async function verifyInstalledReadiness(installed, sandbox) {
       bindings: [{ bindingKey: 'request', role: 'request', resourceId: scoped.resourceId, revisionId: scoped.revisionId, mode: 'fixed' }] });
     assert.equal((await host.attempt('folio_inputs', { op: 'prepare', ...definitions, version: 2, scopeId: 'story',
       scopeSelectionRevision: selection.scopeSelectionRevision, bindingKeys: ['request'] })).code, 'CONTEXT_SCOPE_MISMATCH');
-    return { verified: true, contradictoryOutputRefused: true, directIterationScopeRefused: true, actualProviderCalls: false };
+    return { verified: true, publishedCatalogHashesVerified: true, contradictoryOutputRefused: true, directIterationScopeRefused: true, actualProviderCalls: false };
   } finally { await host.close(); }
 }

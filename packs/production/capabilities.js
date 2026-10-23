@@ -4,14 +4,13 @@ import { validateProductionRequest } from './request-schema.js';
 import { capabilityCatalog } from './capability-catalog.js';
 import { validateFalParameters, validateSpeechParameters, validateMeshyParameters } from '../../adapters/production/request-schemas.js';
 import { MESHY_MODEL_MEDIA_TYPES } from '../../adapters/production/meshy-formats.js';
+import { createCatalogRegistry } from './catalog-registry.js';
+import { capabilityReleases } from './catalog-releases.js';
 
 function invalid(message) { throw new FolioError('CAPABILITY_SPEC_INVALID', message); }
-export function listCapabilitySpecs() { return structuredClone(capabilityCatalog); }
-export function getCapabilitySpec(id) {
-  const value = capabilityCatalog.find((spec) => spec.id === id);
-  if (!value) invalid('unknown capability specification');
-  return structuredClone(value);
-}
+const registry = createCatalogRegistry(capabilityCatalog, capabilityReleases, 'CAPABILITY_SPEC_INVALID');
+export const listCapabilitySpecs = () => registry.list();
+export const getCapabilitySpec = (id) => registry.get(id);
 /** Only shipped, evidence-scoped contracts are executable. Altered declarations cannot claim official status. */
 export function validateCapabilitySpec(value) {
   const expected = getCapabilitySpec(value?.id);

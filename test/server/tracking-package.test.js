@@ -18,6 +18,7 @@ test('fresh tarball without dev dependencies completes the public tracking stdio
   assert.equal(output.developmentDependenciesAbsent, true);
   assert.equal(output.readinessGuards.contradictoryOutputRefused, true);
   assert.equal(output.readinessGuards.directIterationScopeRefused, true);
+  assert.equal(output.readinessGuards.publishedCatalogHashesVerified, true);
   assert.equal(output.doctor.installedBinVerified, true);
   assert.equal(output.doctor.pureReadVerified, true);
   assert.equal(output.tracking.verified, true);

@@ -59,6 +59,8 @@ API/CLI/MCP/skill은 공식 출처로 확인한 것만 적었다. 커뮤니티 �
 
 `packs/production/access-catalog.js`는 기존 기능 identity를 정확히 참조한다.
 `getAccessSpec(id)`/`listAccessSpecs()`/`validateAccessSpec(value)`로 동일 계약을 재사용한다.
+접근 명세도 [추가 전용 카탈로그 정책](catalog-history.md)에 따라 정확한 ID와 출고 hash를
+보존한다. 인증 방식·도구 판본·Chroma 확인일 변경은 새 ID로 추가하며 과거 항목을 지우지 않는다.
 5분 최대 점검 수명은 리니베라 정책이며 공급자가 인증/잔액을 5분간 보증한다는 뜻이 아니다.
 
 | 접근 명세 | 기능·모델·endpoint | 가입 / 인증 | 권한·요금제·크레딧 | 구현 범위 |
