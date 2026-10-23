@@ -6,7 +6,7 @@ import { invalid, digest, freezeJson } from '../../adapters/production/common.js
 import { assertOfficialSpec, assertOfficialDiscovery, officialResult, taskId, taskState } from './official-tools-contract.js';
 import { assertToolArguments, assertKnownToolArguments } from './official-tools-schema.js';
 export { inspectOfficialToolConnection } from './official-tools-check.js';
-export { MESHY_TOOL_CONTRACT } from './official-tools-contract.js';
+export { MESHY_TOOL_CONTRACT, MESHY_INSTALLATION_EVIDENCE } from './official-tools-contract.js';
 
 /** Official tools are supplied by the authenticated host; this module never creates credentials or an HTTP executor. */
 export function createOfficialToolAdapter({ tools, accessSpec, accountAlias, projectAlias, accessSpecificationRevisionId, requestRevisionId, outputDirectory, assertReady }) {
@@ -25,7 +25,8 @@ export function createOfficialToolAdapter({ tools, accessSpec, accountAlias, pro
     return officialResult(await hostCall(() => tools.call(names[role], args)));
   }
   const native = (stage, id, status, extra = {}) => ({ stage, record: { version: 1, protocol: 'official-mcp',
-    implementation: accessSpec.toolContract.implementation, taskId: id, status, ...extra }, omittedPaths: [] });
+    implementation: accessSpec.toolContract.implementation, implementationEvidence: 'host-package-attestation',
+    independentInstallationVerification: 'not-performed', taskId: id, status, ...extra }, omittedPaths: [] });
   const handles = new Map(); const preparedRequests = new WeakSet();
   const transport = {
     async submit(_endpoint, parameters) {
@@ -90,7 +91,7 @@ export function createOfficialToolAdapter({ tools, accessSpec, accountAlias, pro
       return { ...result, nativeRecords: [native('official-tool-submit', result.handle.jobId, 'PENDING', {
         tool: names.create, logicalRequestDigest: prepared.requestDigest,
         // Source-verified SDK defaults; these are not observations of an internal HTTP exchange.
-        sdkDefaults: { mode: 'preview', moderation: false }, includeTextures: false,
+        sdkDefaults: { mode: 'preview', moderation: false }, sdkDefaultsBasis: 'catalog-source-with-host-package-attestation', includeTextures: false,
       })] };
     },
     async inspect(handle) {

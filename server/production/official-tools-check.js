@@ -1,11 +1,6 @@
 import { assertToolArguments } from './official-tools-schema.js';
 import { assertOfficialSpec, assertOfficialDiscovery, officialResult } from './official-tools-contract.js';
-
-const kinds = ['installation', 'exposure', 'authentication', 'permission', 'plan', 'credits'];
-const states = ['passed', 'blocked', 'unknown', 'partial', 'expired'];
-const bases = ['read-only-host-probe', 'host-tool-metadata', 'user-declaration', 'synthetic-fixture'];
-const reasons = ['verified', 'not-installed', 'not-exposed', 'not-authenticated', 'permission-denied', 'plan-required',
-  'credits-unconfirmed', 'credits-insufficient', 'expired', 'partial-check', 'not-checked', 'declared-only', 'not-applicable'];
+import { CHECK_KINDS as kinds, CHECK_STATES as states, CHECK_BASES as bases, CHECK_REASONS as reasons } from '../../core/access/records.js';
 
 /** Read-only host discovery and account probe. Never returns raw balance, errors or tool metadata. */
 export async function inspectOfficialToolConnection({ tools, accessSpec, probe = async () => [] }) {

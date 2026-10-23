@@ -171,3 +171,51 @@ test('requested download formats outside the discovered tool enum are blocked be
   assert.equal((await f.adapter.submit(prepared)).status, 'submission-unknown');
   assert.equal(f.fixture.counters.create, 0);
 });
+
+test('active host package identity/version evidence is required separately from matching tool names', async () => {
+  for (const change of [
+    (listing) => { delete listing.installationEvidence; },
+    (listing) => { delete listing.installationEvidence.packageVersion; },
+    (listing) => { listing.installationEvidence.packageVersion = '9.9.9'; },
+    (listing) => { listing.installationEvidence.packageName = 'community-server'; },
+    (listing) => { listing.installationEvidence.sourceRepository = 'https://example.invalid/community'; },
+    (listing) => { listing.installationEvidence.scope = 'unrelated-connection'; },
+    (listing) => { listing.installationEvidence.verification = 'unknown'; },
+  ]) {
+    const f = await setup(); const listing = await f.fixture.tools.list(); change(listing);
+    listing.credentials = { api_key: 'SYNTHETIC-VERSION-SECRET' };
+    f.fixture.tools.list = async () => listing;
+    const checks = await inspectOfficialToolConnection({ tools: f.fixture.tools, accessSpec, probe: f.fixture.probe });
+    assert.equal(checks.find((item) => item.kind === 'exposure').status, 'blocked');
+    assert.equal((await f.adapter.submit(f.prepared)).status, 'submission-unknown');
+    assert.equal(f.fixture.counters.create, 0); assert.ok(!JSON.stringify(checks).includes('SYNTHETIC-VERSION-SECRET'));
+  }
+  const accepted = await setup(); const submission = await accepted.adapter.submit(accepted.prepared);
+  assert.equal(submission.nativeRecords[0].record.implementationEvidence, 'host-package-attestation');
+  assert.equal(submission.nativeRecords[0].record.independentInstallationVerification, 'not-performed');
+});
+
+test('unsupported root and property schema assertions fail closed while annotations stay non-asserting', async () => {
+  for (const change of [
+    (schema) => { schema.properties.ai_model.not = { const: 'meshy-7.1' }; },
+    (schema) => { schema.not = { required: ['prompt'] }; },
+    (schema) => { schema.if = { required: ['prompt'] }; schema.then = { properties: { ai_model: { const: 'other' } } }; },
+    (schema) => { schema.dependentSchemas = { prompt: { required: ['unsupported'] } }; },
+    (schema) => { schema.patternProperties = { '^prompt$': { const: 'other' } }; },
+    (schema) => { schema.properties.ai_model.$ref = '#/$defs/model'; },
+    (schema) => { schema.properties.prompt.format = 'unknown-format'; },
+    (schema) => { schema.properties.target_formats.contains = { const: 'obj' }; },
+  ]) {
+    const f = await setup(); const listing = await f.fixture.tools.list(); change(listing.tools[0].inputSchema);
+    f.fixture.tools.list = async () => listing;
+    const checks = await inspectOfficialToolConnection({ tools: f.fixture.tools, accessSpec, probe: f.fixture.probe });
+    assert.equal(checks.find((item) => item.kind === 'exposure').status, 'blocked');
+    assert.equal((await f.adapter.submit(f.prepared)).status, 'submission-unknown'); assert.equal(f.fixture.counters.create, 0);
+  }
+  const annotated = await setup(); const listing = await annotated.fixture.tools.list();
+  Object.assign(listing.tools[0].inputSchema, { title: 'Tool', description: 'Synthetic schema annotation',
+    $schema: 'https://json-schema.org/draft/2020-12/schema', $id: 'urn:synthetic:tool' });
+  Object.assign(listing.tools[0].inputSchema.properties.prompt, { default: 'Example', examples: ['Synthetic'] });
+  annotated.fixture.tools.list = async () => listing;
+  assert.equal((await annotated.adapter.submit(annotated.prepared)).status, 'accepted');
+});

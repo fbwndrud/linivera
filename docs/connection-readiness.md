@@ -79,6 +79,10 @@ not-applicable도 준비 완료로 승격하지 않는다. 로컬 브로커는 �
 대표 `meshy-preview-official-mcp-v1`은 공식 MCP source 0.6.5에서 확인한 도구 schema 교집합이다.
 서버 설치나 계정 인증을 실행하지 않는다. 호스트의 `tools.list/call/download` callback을 받아
 공식 create/status/download/balance 도구를 재사용하고, 기존 Meshy validator와 recorder를 쓴다.
+`tools.list`는 활성 연결의 package 이름·0.6.5 판본·공식 source에 대한
+`installationEvidence` 호스트 증언을 함께 반환해야 한다. 누락·미확인·다른 구현/판본은
+차단한다. 이는 호스트 신뢰 경계이며 리니베라의 독립 배포물 검증이나 MCP initialize 응답의
+관측이 아니다. 도구 schema는 보수적인 지원 교집합을 검사하며 미지원 검증 키워드도 차단한다.
 별도 공급자 HTTP 실행기를 만들거나 파트너마다 새 스킬을 생성하지 않는다. 공식 스킬/CLI가
 충분한 다른 경로도 같은 버전 접근 명세를 읽는 호스트 절차에서 재사용할 수 있다.
 

@@ -43,6 +43,16 @@ API와 동일 권한·크레딧·rate limit을 따른다. `meshy_list_usage`의 
 소스 조사 시 [package.json](https://github.com/meshy-dev/meshy-mcp-server/blob/main/package.json)은
 0.6.5였다. mutable `main`의 조사 스냅샷이며 npm 배포물과 실제 설치 tool schema의 일치를
 검증하지 않았다. 실행 전 실제 version/tool schema를 재확인하고 불일치는 차단한다.
+호스트의 `tools.list()` 경계는 도구 목록 외에 `installationEvidence`를 필수로 받는다.
+`kind:host-package-attestation`, `scope:active-tool-connection`, 위 공식 package 이름·0.6.5,
+공식 source repository, `verification:host-attested`가 모두 일치해야 한다. 누락·미확인·다른
+버전·커뮤니티 package는 같은 도구 이름이어도 차단한다. 이는 선택 호스트 연결에 대한 호스트
+설치 증언을 신뢰하는 경계다. 리니베라가 npm 배포물을 독립 검증하거나 실제 서버의 initialize
+version을 관측했다는 주장이 아니며, 보관 관측에도 `independentInstallationVerification:
+not-performed`를 명시한다. source에서 조사한 SDK 기본값의 근거와 이 설치 증언을 구별한다.
+도구 JSON Schema는 명시한 scalar/array·union·enum·길이/범위 교집합만 검사한다. 미지원
+assertion·ref·root 조건부 제약은 무시하지 않고 차단하며 annotation만 무시한다.
+
 
 | 공식 source | 이번에 사용한 교집합 | 차이·미확인 |
 |---|---|---|

@@ -1,5 +1,10 @@
 import { invalid } from '../../adapters/production/common.js';
+import { toolSchemaSupported } from './official-tools-schema-support.js';
 import { acceptsToolValue, toolSchemaAllowsType } from './official-tools-schema.js';
+
+export const MESHY_INSTALLATION_EVIDENCE = Object.freeze({ kind: 'host-package-attestation', scope: 'active-tool-connection',
+  packageName: '@meshy-ai/meshy-mcp-server', packageVersion: '0.6.5',
+  sourceRepository: 'https://github.com/meshy-dev/meshy-mcp-server', verification: 'host-attested' });
 
 export const MESHY_TOOL_CONTRACT = Object.freeze({ version: 1, implementation: 'meshy-mcp-0.6.5', tools: Object.freeze({
   create: 'meshy_text_to_3d', status: 'meshy_get_task_status', download: 'meshy_download_model', balance: 'meshy_check_balance',
@@ -20,13 +25,15 @@ export function assertOfficialSpec(spec) {
     || Object.entries(MESHY_TOOL_CONTRACT.tools).some(([key, name]) => c.tools?.[key] !== name)) invalid('pinned supported official Meshy tool contract required');
 }
 export function assertOfficialDiscovery(result, contract) {
-  const tools = Array.isArray(result) ? result : result?.tools;
+  const installation = result?.installationEvidence;
+  if (!installation || Object.entries(MESHY_INSTALLATION_EVIDENCE).some(([key, value]) => installation[key] !== value)) invalid('active official tool connection needs exact host-attested package identity and version');
+  const tools = result?.tools;
   if (!Array.isArray(tools)) invalid('host tool discovery is unavailable');
   const schemas = {};
   for (const [role, name] of Object.entries(contract.tools)) {
     const candidates = tools.filter((tool) => tool.name === name);
     const schema = candidates[0]?.inputSchema;
-    if (candidates.length !== 1 || schema?.type !== 'object'
+    if (candidates.length !== 1 || !toolSchemaSupported(schema)
       || required[role].some((field) => !schema.required?.includes(field))
       || fields[role].some((field) => !Object.hasOwn(schema.properties ?? {}, field))
       || fields[role].some((field) => {

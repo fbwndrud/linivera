@@ -1,4 +1,4 @@
-import { MESHY_TOOL_CONTRACT } from '../../server/production/official-tools.js';
+import { MESHY_TOOL_CONTRACT, MESHY_INSTALLATION_EVIDENCE } from '../../server/production/official-tools.js';
 
 /** Synthetic official-host boundary only: no provider calls, installation or account credentials. */
 export function syntheticOfficialTools({ bytes = Buffer.from('synthetic model bytes'), missingTool, balance = 100,
@@ -25,7 +25,8 @@ export function syntheticOfficialTools({ bytes = Buffer.from('synthetic model by
       }));
     },
     tools: {
-      async list() { counters.list++; return { tools: definitions.filter((tool) => tool.name !== missingTool), raw_secret: rawSecret }; },
+      async list() { counters.list++; return { tools: definitions.filter((tool) => tool.name !== missingTool),
+        installationEvidence: { ...MESHY_INSTALLATION_EVIDENCE }, raw_secret: rawSecret }; },
       async call(name, args) {
         const role = Object.entries(MESHY_TOOL_CONTRACT.tools).find(([, tool]) => tool === name)?.[0];
         if (!role) fail(); counters[role]++; calls.push({ role, args: structuredClone(args) });
