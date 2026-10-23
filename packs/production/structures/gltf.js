@@ -2,7 +2,7 @@ import { array, invalid, object, pointer, projection } from './common.js';
 
 const groups = ['buffers', 'bufferViews', 'accessors', 'images', 'samplers', 'textures', 'materials', 'meshes', 'cameras', 'nodes', 'skins', 'animations', 'scenes'];
 /** Core glTF 2 object references only; extensions and binary codecs are not interpreted. */
-export function gltf(value, { format = 'gltf', binaryByteLength = null, unknown = [] } = {}) {
+export function gltf(value, { format = 'gltf', binaryByteLength = null, unknown = [], extensionDependencies = false } = {}) {
   if (!object(value) || value.asset?.version !== '2.0') invalid('glTF asset.version 2.0 required');
   const p = projection(format); p.unit('/', 'model'); const lists = {};
   for (const group of groups) {
@@ -25,6 +25,9 @@ export function gltf(value, { format = 'gltf', binaryByteLength = null, unknown 
     const id = `/buffers/${i}`;
     if (!Number.isSafeInteger(row.byteLength) || row.byteLength <= 0) invalid('buffer byteLength required');
     if (row.uri !== undefined) uri(row, id, 'buffer');
+    else if (extensionDependencies && row.extensions?.EXT_meshopt_compression?.fallback === true) {
+      p.link(id, '/', 'generated-fallback-buffer'); p.unknown(`Meshopt fallback buffer is generated rather than retained source bytes: ${id}`);
+    }
     else {
       if (i !== 0 || binaryByteLength === null || binaryByteLength < row.byteLength || binaryByteLength - row.byteLength > 3) invalid('buffer requires external, data URI or exact GLB binary chunk');
       p.link(id, '/', 'embedded-buffer');

@@ -8,16 +8,20 @@ import { validateProductionRequest } from '../../packs/production/request-schema
 import { CONTEXT_KINDS } from './context-records.js';
 import { FolioError } from '../errors.js';
 import { readStructureRelations } from './structure-bindings.js';
+import { resolveParserVersion } from '../../packs/production/structures/versions.js';
 export function hasInputReferences(kind) {
   return CONTEXT_KINDS.has(kind) || ['iteration', 'audio-alignment', 'normalization-map', 'generation-request', 'structure-map'].includes(kind);
 }
 /** Historical snapshots still verify; new work must use the typed-reference closure contract. */
 export async function assertNewOperationInputClosure(root, manifest) {
-  if (manifest.version !== 1 || manifest.referenceClosureVersion === 1) return;
   const store = createResourceStore(root);
   for (const resource of manifest.resources) {
     const revision = await store.readRevision(resource.revisionId);
-    if (hasInputReferences(revision.kind)) throw new FolioError('INPUT_REFERENCE_CLOSURE_REQUIRED', 'Prepare a fresh input snapshot or use version 2 before starting new work with typed context references.');
+    if (manifest.version === 1 && manifest.referenceClosureVersion !== 1 && hasInputReferences(revision.kind)) throw new FolioError('INPUT_REFERENCE_CLOSURE_REQUIRED', 'Prepare a fresh input snapshot or use version 2 before starting new work with typed context references.');
+    if (revision.kind === 'structure-map') {
+      const value = JSON.parse((await store.readContent(revision.revisionId)).toString('utf8'));
+      if (value.parserVersion !== resolveParserVersion(value.format, undefined)) throw new FolioError('STRUCTURE_PARSER_UPGRADE_REQUIRED', 'Reinspect and normalize the retained source with the current parser before starting a new operation. Historical inputs and existing operations remain readable.');
+    }
   }
 }
 /** Expand only typed actual-input references; provenance-only references stay outside this closure. */

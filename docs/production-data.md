@@ -4,6 +4,7 @@
 
 도구별 자동 해석·수동 연결·파일 보관 범위는 [Chroma 지원표](chroma-support.md),
 workflow/3D/자막 내부 참조를 다음 Input에 고정하는 절차는 [구조 연결](structure-links.md)을 따른다.
+편집 타임라인과 커스텀 패키지·3D 확장 참조는 [편집·확장 의존성](editing-dependencies.md)을 따른다.
 
 ## 확인된 실행 예제
 

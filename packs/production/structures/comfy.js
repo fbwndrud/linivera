@@ -6,6 +6,8 @@ const files = {
   LoraLoader: { lora_name: 'lora' }, LoraLoaderModelOnly: { lora_name: 'lora' },
   VAELoader: { vae_name: 'vae' }, CLIPLoader: { clip_name: 'clip' },
 };
+/** A detached copy lets extended parsers protect native roles without mutating historical rules. */
+export function builtInFileRoles(classType) { return Object.hasOwn(files, classType) ? { ...files[classType] } : {}; }
 export function comfyApi(value) {
   if (!object(value) || !Object.keys(value).length || Object.keys(value).length > 4096) invalid('Comfy API graph requires bounded keyed nodes');
   const p = projection('comfy-api'); const nodes = new Map();

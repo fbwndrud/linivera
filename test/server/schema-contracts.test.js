@@ -11,6 +11,8 @@ const VALID = {
   folio_assets: [{ op: 'list' }], folio_tracking: [{ op: 'get' }],
   folio_resources: [{ op: 'propose', resourceId: 'synthetic', kind: 'note', owned: { bytes: 'synthetic', mediaType: 'text/plain' } },
     { op: 'inspectStructure', revisionId: 'source', format: 'glb' },
+    { op: 'inspectStructure', revisionId: 'source', format: 'xmeml', parserVersion: 1 },
+    { op: 'inspectStructure', revisionId: 'source', format: 'comfy-ui', parserVersion: 2, dependencyManifestRevisionId: 'contract' },
     { op: 'normalizeStructure', resourceId: 'structure', sourceRevisionId: 'source', format: 'comfy-api', structureBindings: [{ referenceKey: '/1/inputs/image', revisionId: 'image' }] }],
   folio_inputs: [{ op: 'verify', inputSnapshotId: 'snapshot' }], folio_policy: [{ op: 'status', grantId: 'grant' }],
   folio_operations: [{ op: 'start', inputSnapshotId: 'snapshot', idempotencyKey: 'once', actor: 'user' }],
@@ -29,6 +31,7 @@ const VALID = {
 };
 const INVALID = {
   folio_resources: [{ op: 'inspectStructure', revisionId: 'source', format: 'unknown' }, { op: 'normalizeStructure', resourceId: 'structure', sourceRevisionId: 'source', format: 'gltf' },
+    { op: 'inspectStructure', revisionId: 'source', format: 'otio', parserVersion: 3 },
     { op: 'inspectStructure', revisionId: 'source', format: 'srt', structureBindings: [] }],
   folio_motion: [{ op: 'render', inputSnapshotId: 'snapshot' }, { op: 'plan', inputSnapshotId: 'snapshot', actor: 'user' }, { op: 'assemble', inputSnapshotId: 'snapshot', idempotencyKey: 'movie', actor: 'user', width: 100 }],
   folio_structure: [{ op: 'add' }, { op: 'move', nodeId: 'a', title: 'extra' }, { op: 'wrap', nodeIds: [], level: 'chapter', id: 'c' }],

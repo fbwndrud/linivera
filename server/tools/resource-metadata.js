@@ -1,5 +1,7 @@
 /** Shared vocabulary for managed assets, tracking and resource operation schemas. */
 export const RESOURCE_DESCRIPTIONS = {
+  parserVersion: 'Exact retained interpretation version; omission chooses the latest supported version for the format.',
+  dependencyManifestRevisionId: 'Exact retained JSON dependency declaration for Comfy custom package and file slots, itself pinned in the input closure.',
   sourceRevisionId: 'Exact retained source revision from which the structure is recomputed.',
   structureBindings: 'Explicit links from inspected reference keys to exact retained file revisions.',
   referenceKey: 'Stable source locator returned by inspectStructure; file names and external IDs are hints only.',

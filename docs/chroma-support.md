@@ -19,7 +19,7 @@
 |---|---|---|
 | P0 | 구조 원본·연결 판본의 재계산·무결성·Input 폐쇄 | 이번 구현·검증 완료 |
 | P1 | workflow/run → 다음 입력, 모델/재질/리그/클립, 자막 cue → 미디어 | 이번 기본 형식 구현·검증 완료 |
-| P2 | 네이티브 편집 타임라인·커스텀 노드·3D 확장 의존성 | 다음 연결 파서 후보 |
+| P2 | XMEML/OTIO 편집·명시적 커스텀 의존성·3D 확장 참조 | 기본 범위 구현. 전용 형식·효과/codec 실행은 별도 |
 | P3 | 게임 코드/씬·sprite/atlas·DB·환경·배포 의존성 | 수동 역할을 세부 연결로 확장할 후보 |
 | P4 | 공급자별 추가 응답·brief/권리/배포 성과의 의미 연결 | 실제 계약/샘플 확보 후 확장 |
 
@@ -32,7 +32,7 @@
 | Kling AI | 전용 파서 없음 | 이미지/영상·참조·버전 | 미디어·메타데이터 | P4 shot/변형 관계 |
 | OpenArt | 전용 파서 없음 | 캐릭터·참조·변형 | 미디어·메타데이터 | P4 일관성 참조 |
 | Meshy | text-to-3D preview 응답 역할; glTF/GLB 구조 | 모델·재질·텍스처·리그 | GLB/glTF/FBX/OBJ/이미지 | P2 refine/rig API·FBX 의미 |
-| Floyo | ComfyUI API/UI JSON 노드·링크 | loader 파일·체크포인트·결과 | workflow·실행 JSON·미디어 | P2 커스텀 노드·모델 호환성 |
+| Floyo | ComfyUI API/UI 노드·링크·v2 선언 의존성 | 패키지·loader 파일·체크포인트·결과 | workflow·실행 JSON·미디어 | P2 숨은 Python 의존성·실행 호환성 |
 | Dreamina AI | 전용 파서 없음 | 이미지/영상·프롬프트·변형 | 미디어·JSON | P4 생성 관계 |
 | Alibaba Cloud | 공급자별 파서 없음 | 모델 요청·결과·자료셋 역할 | 확보한 파일·기록 | P4 서비스별 계약 |
 | Magnific | 전용 파서 없음 | 원본·업스케일·설정 | 이미지·설정 | P4 변환 영역/설정 |
@@ -49,14 +49,14 @@
 | LTX | 전용 파서 없음 | 대본·shot·참조·영상 | 내보낸 파일·기록 | P2 편집 타임라인 |
 | TapNow | 전용 파서 없음 | workflow·결과·역할 | JSON·미디어 | P4 고유 workflow 구조 |
 | Wonder Studios | 전용 파서 없음 | 제작 brief·자료·사용 맥락 | 확보한 파일·문서 | P4 제공 도구/자료 확인 |
-| Martini | run/action/item/output/replacement JSON | asset ID → 실제 파일 판본 | run·workflow·미디어 | P4 live 실행·외부 이전 run |
+| Martini | run/action/item JSON + XMEML 5 편집 export | asset ID/미디어/선언 → 실제 판본 | run·workflow·XML·미디어 | P2 효과/복원, P4 live 실행 |
 | Fixed Seed | 전용 파서 없음 | 캐릭터·참조·변형 | 내보낸 미디어·기록 | P4 고유 구조 확인 |
 | Oxen | 전용 파서 없음 | 데이터셋 판본·실험·모델·결과 | 확보한 export·manifest | P4 행/스키마·실험 lineage |
 | Reactor | 전용 파서 없음 | workflow·자료·결과 | 확보한 파일·기록 | P4 고유 구조 확인 |
 | Luma | glTF/GLB 구조, 해당 export 조건 | 영상·3D·참조·리그 | 영상·모델·텍스처 | P2 splat/전용 형식 |
 | VEED | SRT cue 시간, 해당 export 조건 | 영상·음원·자막·프로젝트 | 미디어·SRT·프로젝트 | P2 트랙·효과 |
 | Passionfroot | 전용 파서 없음 | 협업 brief·제출판·권리 | 확보한 문서·참조 | P4 협업 기준/성과 |
-| Adobe | SRT/glTF/GLB, 해당 export 조건 | 편집·재질·소스·참조 | 확보한 프로젝트·미디어 | P2 PSD/AE/Premiere·타임라인 |
+| Adobe | SRT/glTF/GLB와 XMEML/OTIO, 해당 파일 확보 조건 | 편집·재질·소스·참조 | 확보한 프로젝트·미디어 | P2 PSD/AE/전용 편집 형식·효과 |
 | Rosebud | glTF/GLB, 해당 export 조건 | 코드·씬·소재·빌드·DB | 소스·소재·빌드 | P3 코드/씬·DB/배포 |
 | SpriteCook | 전용 파서 없음 | sprite·animation 역할 | 이미지·시트·기록 | P3 프레임/atlas 메타데이터 |
 | Nimble Fox | 전용 파서 없음 | 게임·소재·소스·빌드 | 확보한 파일·기록 | P3 고유 export 확인 |
@@ -64,9 +64,10 @@
 | Bolt | 전용 파서 없음 | 소스·빌드·자료·DB·플랫폼 | 확보한 export·manifest | P3 lockfile/DB/배포 |
 
 사용 절차와 정확한 해석 범위는 [구조 연결](structure-links.md)을 따른다.
-자동 해석의 지원 범위는 ComfyUI 기본 연결, Martini 관측 run, glTF 2 기본 객체
-참조, SRT 시간 구간이다. 커스텀 노드/확장 필드는 원본에 남고 `coverage.unknown`에
+자동 해석의 지원 범위는 ComfyUI 기본/선언 연결, Martini 관측 run, glTF 2 기본/지원 확장
+참조, SRT 시간 구간, XMEML/OTIO 편집 구조다. 미지원 커스텀 노드/확장 필드는 원본에 남고 `coverage.unknown`에
 표시된다. 구조 해석·파일 완전성·프로젝트 복원·생성 품질·승인은 각각 다른 판단이다.
 
 공급자 전용 파서가 없는 도구도 자료를 잃지 않고 반복 작업에 연결할 수 있다.
 단, 외부 ID를 실제 파일로 연결하고 누락 자료를 확인하는 작업은 현재 수동이다.
+[P2의 형식별 범위와 남은 부분](editing-dependencies.md)을 확인한다.

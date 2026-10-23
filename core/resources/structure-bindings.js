@@ -4,8 +4,8 @@ import { invalid, object } from '../../packs/production/structures/common.js';
 import { canonicalJson } from '../util/hash.js';
 import { FolioError } from '../errors.js';
 
-export async function buildStructureMap(root, { sourceRevisionId, format, structureBindings }) {
-  const { revision, structure } = await inspectStructure(root, { revisionId: sourceRevisionId, format });
+export async function buildStructureMap(root, { sourceRevisionId, format, structureBindings, parserVersion = undefined, dependencyManifestRevisionId = undefined }) {
+  const { revision, structure } = await inspectStructure(root, { revisionId: sourceRevisionId, format, parserVersion, dependencyManifestRevisionId });
   if (!Array.isArray(structureBindings) || structureBindings.length > 4096) invalid('explicit bounded structureBindings required');
   const store = createResourceStore(root); const seen = new Set(); const keys = new Set(structure.references.map((ref) => ref.key));
   const bindings = [];
@@ -18,21 +18,23 @@ export async function buildStructureMap(root, { sourceRevisionId, format, struct
   }
   bindings.sort((a, b) => a.referenceKey < b.referenceKey ? -1 : a.referenceKey > b.referenceKey ? 1 : 0);
   const unresolvedReferenceKeys = structure.references.filter((ref) => !seen.has(ref.key)).map((ref) => ref.key);
-  return { version: 1, sourceRevisionId, sourceContentHash: revision.contentHash, format, parserVersion: 1, structure, bindings, unresolvedReferenceKeys };
+  return { version: 1, sourceRevisionId, sourceContentHash: revision.contentHash, format, parserVersion: structure.parserVersion, structure, bindings, unresolvedReferenceKeys,
+    ...(dependencyManifestRevisionId === undefined ? {} : { dependencyManifestRevisionId }) };
 }
-export async function normalizeStructure(root, { resourceId, sourceRevisionId, format, structureBindings }) {
-  const value = await buildStructureMap(root, { sourceRevisionId, format, structureBindings });
+export async function normalizeStructure(root, { resourceId, sourceRevisionId, format, structureBindings, parserVersion = undefined, dependencyManifestRevisionId = undefined }) {
+  const value = await buildStructureMap(root, { sourceRevisionId, format, structureBindings, parserVersion, dependencyManifestRevisionId });
   return createResourceStore(root).propose({ resourceId, kind: 'structure-map', owned: { bytes: canonicalJson(value), mediaType: 'application/json' } });
 }
 /** Recalculate from immutable source bytes even for direct proposals and graph/index reads. */
 export async function verifyStructureMap(root, value, { requireComplete = false } = {}) {
-  if (!object(value) || value.version !== 1 || value.parserVersion !== 1) invalid('versioned structure map required');
-  const expected = await buildStructureMap(root, { sourceRevisionId: value.sourceRevisionId, format: value.format, structureBindings: value.bindings });
+  if (!object(value) || value.version !== 1 || ![1, 2].includes(value.parserVersion)) invalid('versioned structure map required');
+  const expected = await buildStructureMap(root, { sourceRevisionId: value.sourceRevisionId, format: value.format, structureBindings: value.bindings,
+    parserVersion: value.parserVersion, dependencyManifestRevisionId: value.dependencyManifestRevisionId });
   if (canonicalJson(expected) !== canonicalJson(value)) invalid('structure differs from its retained source or exact bindings');
   const keys = new Set(value.bindings.map((binding) => binding.referenceKey));
   const missing = value.structure.references.filter((ref) => ref.required && !keys.has(ref.key));
   if (requireComplete && missing.length) throw new FolioError('STRUCTURE_BINDINGS_INCOMPLETE', 'Map required file/asset references before preparing the next input.', { missing: missing.map((ref) => ref.key) });
-  return [value.sourceRevisionId, ...value.bindings.map((binding) => binding.revisionId)];
+  return [value.sourceRevisionId, ...value.bindings.map((binding) => binding.revisionId), ...(value.dependencyManifestRevisionId ? [value.dependencyManifestRevisionId] : [])];
 }
 export async function readStructureRelations(root, revision, options = {}) {
   if (revision.kind !== 'structure-map') return [];

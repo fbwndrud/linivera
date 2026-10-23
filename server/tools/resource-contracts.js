@@ -19,8 +19,8 @@ export const RESOURCE_ARGUMENTS = {
     importFile: rule(['resourceId', 'kind', 'path', 'mediaType'], ['parents', 'schemaRef', 'contentHash']), importAsset: rule(['assetId', 'expectedRev']),
     describe: rule(['revisionId']), materialize: rule(['revisionId', 'output']),
     importBundle: rule(['resourceId', 'manifest'], ['pathMappings', 'parents', 'schemaRef']),
-    inspectStructure: rule(['revisionId', 'format']),
-    normalizeStructure: rule(['resourceId', 'sourceRevisionId', 'format', 'structureBindings']),
+    inspectStructure: rule(['revisionId', 'format'], ['parserVersion', 'dependencyManifestRevisionId']),
+    normalizeStructure: rule(['resourceId', 'sourceRevisionId', 'format', 'structureBindings'], ['parserVersion', 'dependencyManifestRevisionId']),
   },
   folio_inputs: {
     select: rule(['scopeId', 'expectedScopeSelectionRevision', 'actor', 'reason', 'bindings', 'profileRevisionId', 'pipelineRevisionId', 'policyRevisionId']),

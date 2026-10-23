@@ -3,7 +3,7 @@ import { createResourceStore } from '../resources/revisions.js';
 import { usageContextReferences } from '../resources/context-records.js';
 
 function references(kind, value) {
-  if (kind === 'structure-map') return [value.sourceRevisionId, ...value.bindings.map((binding) => binding.revisionId)];
+  if (kind === 'structure-map') return [value.sourceRevisionId, ...value.bindings.map((binding) => binding.revisionId), ...(value.dependencyManifestRevisionId ? [value.dependencyManifestRevisionId] : [])];
   if (kind === 'artifact-bundle') return value.members.map((member) => member.revisionId);
   if (kind === 'usage-context') return usageContextReferences(value);
   if (kind === 'context-package') return value.referenceRevisionIds;

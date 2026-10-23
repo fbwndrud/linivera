@@ -1,0 +1,30 @@
+{
+  "library": "OpenTimelineIO",
+  "version": "0.18.1",
+  "ranges": [
+    {
+      "index": 0,
+      "kind": "Clip",
+      "start": 0.0,
+      "duration": 2.0
+    },
+    {
+      "index": 1,
+      "kind": "Transition",
+      "start": 1.75,
+      "duration": 0.5
+    },
+    {
+      "index": 2,
+      "kind": "Clip",
+      "start": 2.0,
+      "duration": 2.0
+    },
+    {
+      "index": 3,
+      "kind": "Gap",
+      "start": 4.0,
+      "duration": 1.0
+    }
+  ]
+}
