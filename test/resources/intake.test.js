@@ -21,7 +21,7 @@ test('local file import registers stable resource bytes without making a source 
   const linked = join(root, 'linked'); await symlink(path, linked);
   await assert.rejects(resourcesTool(root, { ...input, path: linked }), { code: 'RESOURCE_PATH_INVALID' });
   const large = join(root, 'large'); await writeFile(large, Buffer.alloc(8 * 1024 * 1024 + 1));
-  await assert.rejects(resourcesTool(root, { ...input, path: large }), { code: 'RESOURCE_TOO_LARGE' });
+  assert.equal((await resourcesTool(root, { ...input, path: large })).version, 2);
 });
 
 test('managed image import keeps its existing ID, source revision and approval unchanged', async (t) => {

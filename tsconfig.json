@@ -4,5 +4,5 @@
     "module": "nodenext", "moduleResolution": "nodenext", "target": "es2023",
     "skipLibCheck": true, "types": ["node"]
   },
-  "include": ["core/**/*.js", "packs/**/*.js", "server/**/*.js", "bin/**/*.js"]
+  "include": ["core/**/*.js", "packs/**/*.js", "server/**/*.js", "bin/**/*.js", "adapters/production/**/*.js"]
 }

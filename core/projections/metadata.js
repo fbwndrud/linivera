@@ -5,8 +5,9 @@ import { sourceEvidence, publicationEvidence } from './evidence.js';
 import { saveGeneration, assertProjectionCheckpoint } from './manifest.js';
 import { applyReviewImpact } from './review-impact.js';
 import { readOperationLineage, operationImpactFacts, selectionChanges } from '../operations/lineage.js';
+import { groupPublicationEvidence } from '../operations/group-publications.js';
 
-export const METADATA_GENERATOR_REVISION = 'folio-metadata-v3';
+export const METADATA_GENERATOR_REVISION = 'folio-metadata-v4';
 export async function metadataEntries(root, state, { transitive = true, includeSubmitted = true } = {}) {
   const entries = [];
   for (const selection of Object.values(state.sourceSelections)) {
@@ -20,6 +21,16 @@ export async function metadataEntries(root, state, { transitive = true, includeS
     if (publication.action !== 'approve') continue;
     const reviewReasons = selectionChanges(manifest, state);
     for (const output of outputs) entries.push({ ...output, role: 'output', operationId: publication.operationId, requestId: publication.requestId, inputSnapshotId: publication.inputSnapshotId,
+      receiptId: publication.receiptId, publicationCheckpoint: publication.checkpoint, selfReview: true, findings: receipt.findings,
+      inputRefs: manifest.resources, inputCheckpoint: manifest.workspaceCheckpoint, reviewRequired: reviewReasons.length > 0, reviewReasons });
+  }
+  for (const publication of state.groupPublications ?? []) {
+    const { manifest, receipt, outputs, expectedCheckpoint } = await groupPublicationEvidence(root, publication);
+    const before = await readWorkspaceState(root, { checkpoint: expectedCheckpoint });
+    if (before.checkpoint.seq !== publication.checkpoint.seq - 1) fail('PUBLICATION_INTEGRITY_FAILURE', 'group publication predecessor differs');
+    if (publication.action !== 'approve') continue;
+    const reviewReasons = selectionChanges(manifest, state);
+    for (const output of outputs) entries.push({ ...output, role: 'output', operationId: publication.operationId, groupId: publication.groupId, groupHash: publication.groupHash, requestId: publication.requestId, inputSnapshotId: publication.inputSnapshotId,
       receiptId: publication.receiptId, publicationCheckpoint: publication.checkpoint, selfReview: true, findings: receipt.findings,
       inputRefs: manifest.resources, inputCheckpoint: manifest.workspaceCheckpoint, reviewRequired: reviewReasons.length > 0, reviewReasons });
   }

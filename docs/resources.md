@@ -1,13 +1,15 @@
 # 범용 원본·입력·결과·메타데이터
 
-이 경로는 기존 novel/picturebook/source/asset/tracking 파일과 독립이다. 기존 자료를 자동 반입하지 않는다. 현재 지원은 보관 UTF-8 text/plain, application/json, opaque owned image/png·image/jpeg·image/webp·image/gif·audio/wav·audio/mpeg·video/mp4, 미관측 외부 URI 참조와 metadata 조회다. 미디어는 bytes 대신 canonical base64(상호 배타, 최대8MiB)로 등록하고 read는 base64/encoding을 반환한다. text/JSON read 계약은 그대로다. 선택 원본의 [로컬 text/image Vector 검색](embeddings.md)을 제공한다. 공통 판본·작업 그래프와 변경 영향 추적을 제공한다. CSV/PDF 파싱, Wiki 생성, 외부 관측은 제공하지 않는다. 모든 MCP 인자는 `root` 절대 경로와 `op`를 포함한다. 실제 사용자 지시 없이 host가 `actor:user` 결정이나 authority 진술을 만들면 안 된다. 로컬 caller 진술은 인간 인증/ACL이 아니다.
+이 경로는 기존 novel/picturebook/source/asset/tracking 파일과 독립이다. 기존 자료를 자동 반입하지 않는다. UTF-8 text/plain, application/json, 정규 MIME을 선언한 opaque 파일, 미관측 외부 URI 참조와 metadata 조회를 지원한다. 인라인 미디어는 bytes 대신 canonical base64(상호 배타, 최대8MiB)로 등록하고 read는 base64/encoding을 반환한다. 큰 파일은 importFile로 보존하고 describe/materialize로 회수한다. text/JSON의 작은 read 계약은 그대로다. [생성 데이터·묶음·실행·후보별 승인 안내](production-data.md)와 선택 원본의 [로컬 text/image Vector 검색](embeddings.md)을 제공한다. 공통 판본·작업 그래프와 변경 영향 추적을 제공한다. CSV/PDF 내용 파싱, Wiki 생성, 자동 외부 관측은 제공하지 않는다. 모든 MCP 인자는 `root` 절대 경로와 `op`를 포함한다. 실제 사용자 지시 없이 host가 `actor:user` 결정이나 authority 진술을 만들면 안 된다. 로컬 caller 진술은 인간 인증/ACL이 아니다.
 
 ## MCP 순서와 정확한 인자
 
 | 도구·op | root/op 외 인자 |
 |---|---|
 | folio_resources propose | resourceId, kind, parents? (기본 []), schemaRef?, owned:{bytes:UTF-8문자열,mediaType:text/plain 또는 application/json} 또는 owned:{base64:canonical문자열,mediaType:지원MIME}(상호 배타·8MiB) 또는 external:{uri,reportedRevision?} |
-| folio_resources importFile | resourceId, kind, path:절대경로, mediaType, parents?, schemaRef?, contentHash?; 링크 제외 단일 파일 최대8MiB. 승인·선택 자동 생성 없음 |
+| folio_resources importFile | resourceId, kind, path:정규 절대경로, mediaType, parents?, schemaRef?, contentHash?; 링크 제외 단일 파일 최대2GiB. 승인·선택 자동 생성 없음 |
+| folio_resources describe/materialize | revisionId, materialize에는 output:새 절대경로 추가. 큰 파일의 메타데이터 또는 새 파일 사본 |
+| folio_resources importBundle | resourceId, manifest, pathMappings?, parents?, schemaRef?; 역할·상대경로·판본을 고정한 복수 파일 묶음 |
 | folio_resources importAsset | assetId, expectedRev; 기존 관리 PNG/JPEG/WebP/GIF를 같은 ID로 반입. 동일 자산 판본 재시도는 같은 revision. 원본 자산 상태 불변 |
 | folio_resources read | revisionId; `{revision,content}` 반환, external content=null; 후보도 읽을 수 있음 |
 | folio_resources decideSource | revisionId, expectedSelectionRevision:null 또는 마지막 selectionRevision, action:{type:select 또는 deselect,actor:user,reason?}; deselect 이유 필수 |

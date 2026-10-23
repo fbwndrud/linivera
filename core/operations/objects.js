@@ -14,6 +14,6 @@ export async function get(root, kind, id, optional = false) {
   try { bytes = await readObject(root, path(root, kind, id)); } catch (error) { if (optional && error.code === 'RESOURCE_OBJECT_MISSING') return null; throw error; }
   const envelope = JSON.parse(bytes.toString('utf8'));
   if (canonicalJson(envelope) !== bytes.toString('utf8') || envelope.digest !== sha256(canonicalJson(envelope.value))) fail('OPERATION_INTEGRITY_FAILURE', 'operation object digest differs');
-  if (['receipts', 'intents', 'decisions'].includes(kind) && envelope.digest !== id) fail('OPERATION_INTEGRITY_FAILURE', 'content-addressed object differs');
+  if (['receipts', 'intents', 'decisions', 'group-receipts', 'group-intents', 'group-decisions'].includes(kind) && envelope.digest !== id) fail('OPERATION_INTEGRITY_FAILURE', 'content-addressed object differs');
   return envelope.value;
 }

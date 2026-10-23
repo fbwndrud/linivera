@@ -4,6 +4,9 @@ import { withWorkLock } from '../run/work-lock.js';
 import { readWorkspaceState, withWorkspaceStateTransaction } from '../publications/state.js';
 import { assertResourceId, assertRevisionId, validateProposal } from './schema.js';
 import { readObject, readOwnedContent, resourceObjectPath, writeImmutable } from './files.js';
+import { verifyStoredBlob, materializeResourceFile } from './blob-files.js';
+import { contentValidation } from './media-types.js';
+import { collectBundleClosure, readBundle, validateBundleManifest, verifyBundleStorage } from './bundles.js';
 
 export function createResourceStore(root) {
   async function readRevision(revisionId) {
@@ -11,8 +14,11 @@ export function createResourceStore(root) {
     const bytes = await readObject(root, resourceObjectPath(root, revisionId, 'revisions'));
     let envelope;
     try { envelope = JSON.parse(bytes.toString('utf8')); } catch { throw new FolioError('RESOURCE_INTEGRITY_FAILURE', 'invalid revision JSON'); }
-    if (sha256(canonicalJson(envelope)) !== revisionId || envelope.version !== 1) throw new FolioError('RESOURCE_INTEGRITY_FAILURE', 'revision envelope hash differs');
-    if (envelope.storageStatus === 'owned_snapshot') await readOwnedContent(root, envelope);
+    if (sha256(canonicalJson(envelope)) !== revisionId || ![1, 2].includes(envelope.version)) throw new FolioError('RESOURCE_INTEGRITY_FAILURE', 'revision envelope hash differs');
+    if (envelope.storageStatus === 'owned_snapshot') {
+      if (envelope.version === 2) await verifyStoredBlob(root, envelope);
+      else await readOwnedContent(root, envelope);
+    }
     return { ...envelope, revisionId };
   }
   async function readContent(revisionId) {
@@ -47,12 +53,34 @@ export function createResourceStore(root) {
       return { ...payload, selectionRevision: checkpoint.hash, checkpoint };
     });
   }
-  return Object.freeze({ propose, readRevision, readContent, decideSource, readSourceSelection });
+  async function describe(revisionId) {
+    const revision = await readRevision(revisionId);
+    let bundle;
+    if (revision.kind === 'artifact-bundle') {
+      bundle = await readBundle(root, revisionId);
+      const closure = await collectBundleClosure(root, [revisionId], { requireComplete: false });
+      bundle = { ...bundle, members: bundle.members.map((member) => {
+        const child = closure.find((item) => item.revisionId === member.revisionId);
+        return { ...member, contentHash: child.contentHash, byteLength: child.byteLength ?? null, storageStatus: child.storageStatus };
+      }) };
+    }
+    return { revisionId, revision, validation: contentValidation(revision), ...(bundle ? { bundle } : {}) };
+  }
+  async function materialize(revisionId, output) {
+    const revision = await readRevision(revisionId);
+    if (revision.storageStatus !== 'owned_snapshot') throw new FolioError('RESOURCE_CONTENT_UNAVAILABLE', 'external bytes have not been observed');
+    return { revisionId, ...(await materializeResourceFile(root, revision, output)) };
+  }
+  return Object.freeze({ propose, readRevision, readContent, decideSource, readSourceSelection, describe, materialize });
 }
 
 /** Internal write seam: caller must already hold the workspace lock. */
 export async function proposeResourceLocked(root, input) {
   validateProposal(input);
+  if (input.kind === 'artifact-bundle') {
+    if (input.owned?.mediaType !== 'application/json') throw new FolioError('BUNDLE_INVALID', 'bundle must contain owned JSON');
+    await verifyBundleStorage(root, validateBundleManifest(JSON.parse(Buffer.from(input.owned.bytes).toString('utf8'))));
+  }
   const store = createResourceStore(root);
   for (const parentId of input.parents ?? []) {
     const parent = await store.readRevision(parentId);

@@ -53,6 +53,10 @@ export function inputConditions(name, properties) {
   if (name === 'folio_assets') rules.push(when('op', 'put', { oneOf: [{ required: ['path'] }, { required: ['uri'] }] }));
   if (name === 'folio_tracking') rules.push(when('op', 'propose', { oneOf: [{ required: ['plan'] }, { required: ['changes'] }] }));
   if (name === 'folio_resources') rules.push(when('op', 'propose', { oneOf: [{ required: ['owned'] }, { required: ['external'] }] }));
+  if (name === 'folio_operations') rules.push(
+    when('operationContractVersion', 2, { required: ['requestRevisionId'] }),
+    { if: { required: ['requestRevisionId'] }, then: { required: ['operationContractVersion'], properties: { operationContractVersion: { const: 2 } } } },
+  );
   if (name === 'folio_sources') rules.push(when('op', 'add', { oneOf: [{ required: ['text'] }, { required: ['path'] }] }));
   if (name === 'folio_find') rules.push(when('query', 'rename', { required: ['newName'] }));
   if (name === 'folio_decide') rules.push(...decisions);

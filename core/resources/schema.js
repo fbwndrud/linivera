@@ -1,6 +1,8 @@
 import { FolioError } from '../errors.js';
+import { assertMediaType } from './media-types.js';
 
 export const MAX_RESOURCE_BYTES = 8 * 1024 * 1024;
+export const MAX_FILE_BYTES = 2 * 1024 * 1024 * 1024;
 export const HASH_PATTERN = /^sha256:[a-f0-9]{64}$/;
 const ID = /^[a-zA-Z0-9][a-zA-Z0-9._-]{0,127}$/;
 export function assertResourceId(id) {
@@ -21,7 +23,7 @@ export function validateProposal(input) {
   if (Boolean(input.owned) === Boolean(input.external)) throw new FolioError('RESOURCE_INVALID', 'exactly one storage source is required');
   if (input.owned) {
     if (Object.keys(input.owned).some((key) => !['bytes', 'mediaType'].includes(key))) throw new FolioError('RESOURCE_RESERVED_KEY', 'unknown owned field');
-    if (!['text/plain', 'application/json', 'image/png', 'image/jpeg', 'image/webp', 'image/gif', 'audio/wav', 'audio/mpeg', 'video/mp4'].includes(input.owned.mediaType)) throw new FolioError('RESOURCE_MEDIA_UNSUPPORTED', 'unsupported owned MIME type');
+    assertMediaType(input.owned.mediaType);
     if (!['text/plain', 'application/json'].includes(input.owned.mediaType) && !(input.owned.bytes instanceof Uint8Array)) throw new FolioError('RESOURCE_CONTENT_INVALID', 'opaque media requires binary bytes');
     if (!(input.owned.bytes instanceof Uint8Array) && typeof input.owned.bytes !== 'string') throw new FolioError('RESOURCE_INVALID', 'bytes must be text or Uint8Array');
     const bytes = Buffer.from(input.owned.bytes);

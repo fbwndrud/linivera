@@ -4,8 +4,10 @@ import { verifyInput } from '../resources/input-snapshots.js';
 import { copy, fail, get, put } from './objects.js';
 import { readOperation, outputBindings } from './requests.js';
 import { checkAuthority } from './authority.js';
+import { assertOperationContract } from './production-request.js';
 async function boundResult(root, operationId) {
   const request = await readOperation(root, operationId);
+  assertOperationContract(request, 1);
   const result = await get(root, 'results', operationId);
   if (result.operationId !== operationId || result.requestId !== request.requestId || result.inputSnapshotId !== request.inputSnapshotId || canonicalJson(await outputBindings(root, result.resultRevisionIds)) !== canonicalJson(result.outputs)) fail('RESULT_MISMATCH', 'result bindings differ');
   await verifyInput(root, request.inputSnapshotId);

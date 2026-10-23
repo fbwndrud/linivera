@@ -1,0 +1,27 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { productionFixture } from './production-fixture.js';
+import { recordExecution, inspectExecution } from '../../core/operations/executions.js';
+import { canonicalJson, sha256 } from '../../core/util/hash.js';
+test('execution observations survive restart, pin native input and retain partial outputs', async (t) => {
+  const f = await productionFixture(t); const operation = await f.operation();
+  const native = { prompt: 'synthetic', image: 'upload:fixture' };
+  const nativeRecord = await f.resource('native', 'native-request', native);
+  const base = { operationId: operation.operationId, executionId: 'attempt-1' };
+  const prepared = await recordExecution(f.root, { ...base, expectedExecutionHead: null, event: { type: 'prepared', requestDigest: sha256(canonicalJson(native)), nativeRecordRevisionId: nativeRecord.revisionId, remoteInputBindings: [{ fieldPath: 'image', revisionId: f.source.revisionId, remoteRef: 'upload:fixture' }] } });
+  await assert.rejects(recordExecution(f.root, { ...base, expectedExecutionHead: null, event: { type: 'submitting' } }), { code: 'EXECUTION_HEAD_CONFLICT' });
+  const submitting = await recordExecution(f.root, { ...base, expectedExecutionHead: prepared.executionHead, event: { type: 'submitting' } });
+  const accepted = await recordExecution(f.root, { ...base, expectedExecutionHead: submitting.executionHead, event: { type: 'accepted', providerJobId: 'synthetic-job' } });
+  await assert.rejects(recordExecution(f.root, { ...base, expectedExecutionHead: accepted.executionHead, event: { type: 'complete' } }), { code: 'EXECUTION_INCOMPLETE' });
+  const output = await f.resource('partial', 'result', 'synthetic partial', 'text/plain');
+  const observed = await recordExecution(f.root, { ...base, expectedExecutionHead: accepted.executionHead, event: { type: 'outputs-observed', artifacts: [{ artifactKey: 'A/image', groupId: 'A', role: 'image', revisionId: output.revisionId }] } });
+  await recordExecution(f.root, { ...base, expectedExecutionHead: observed.executionHead, event: { type: 'failed', nativeStatus: 'failed', unavailableFields: ['remaining-images'] } });
+  const inspection = await inspectExecution(f.root, { operationId: operation.operationId });
+  assert.equal(inspection.requestRevisionId, f.requestResource.revisionId);
+  assert.equal(inspection.inputSnapshotId, f.snapshot.inputSnapshotId);
+  assert.equal(inspection.executions[0].status, 'failed');
+  assert.equal(inspection.executions[0].artifacts[0].contentHash, output.contentHash);
+  assert.equal(inspection.events.length, 5);
+  const prefix = await inspectExecution(f.root, { operationId: operation.operationId, executionHead: observed.executionHead });
+  assert.equal(prefix.executions[0].status, 'outputs-observed');
+});
