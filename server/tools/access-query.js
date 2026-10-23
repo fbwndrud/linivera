@@ -13,7 +13,7 @@ export const ACCESS_QUERY_ARGUMENTS = {
   connectionReadiness: rule(fields, ['pathId']), retainConnectionReadiness: rule(['resourceId', ...fields], ['pathId']),
   validateConnection: rule(['inputSnapshotId', 'requestRevisionId', 'accountAlias', 'projectAlias', 'accessSpecificationRevisionId']),
 };
-const status = { type: 'string', enum: CHECK_STATES };
+const status = { type: 'string', enum: CHECK_STATES, description: 'Independent connection check state; unknown, partial and expired do not establish readiness.' };
 export const ACCESS_QUERY_FIELDS = {
   accessId: ID, accessSpecificationRevisionId: ID, capabilitySpecificationRevisionId: ID, checkRevisionId: ID,
   accountAlias: ID, projectAlias: ID, inputSnapshotId: ID,
@@ -23,8 +23,8 @@ export const ACCESS_QUERY_FIELDS = {
     properties: { version: { type: 'integer', enum: [1] }, accessSpecificationRevisionId: ID, capabilitySpecificationRevisionId: ID, requestRevisionId: ID,
       scopeId: ID, pathId: ID, accountAlias: ID, projectAlias: ID, checkedAt: ID, expiresAt: ID,
       observation: { type: 'string', enum: ['host-reported'] }, authenticationBoundary: { type: 'string', enum: ['host-secret-store'] },
-      checks: { type: 'array', minItems: 6, maxItems: 6, items: { type: 'object', additionalProperties: false,
-        required: ['kind', 'status', 'basis', 'reasonCode'], properties: { kind: { type: 'string', enum: CHECK_KINDS }, status,
+      checks: { type: 'array', description: 'Exactly one observation for installation, exposure, authentication, permission, plan and credits.', minItems: 6, maxItems: 6, items: { type: 'object', additionalProperties: false,
+        required: ['kind', 'status', 'basis', 'reasonCode'], properties: { kind: { type: 'string', enum: CHECK_KINDS, description: 'Independent connection condition being checked.' }, status,
           basis: { type: 'string', enum: CHECK_BASES }, reasonCode: { type: 'string', enum: CHECK_REASONS } } } },
     } },
 };
