@@ -8,14 +8,15 @@ import { verifyPackageEntry } from './package-entry.js';
 import { verifyInstalledDoctor } from './package-doctor.js';
 import { verifyPackedMarkdownLinks } from './package-links.js';
 import { verifyInstalledPublicationLanguages } from './package-language.js';
+import { verifyInstalledReadiness } from './package-readiness.js';
 
 const repo = dirname(import.meta.dirname);
 const npmCli = process.env.npm_execpath;
 if (!npmCli) throw new Error('run this check with npm run package:verify');
 const sandbox = await mkdtemp(join(tmpdir(), 'linivera-package-'));
 
-function run(command, args, cwd) {
-  const result = spawnSync(command, args, { cwd, encoding: 'utf8', timeout: 180_000,
+function run(command, args, cwd, timeout = 180_000) {
+  const result = spawnSync(command, args, { cwd, encoding: 'utf8', timeout,
     env: { ...process.env, npm_config_cache: join(sandbox, 'cache') } });
   if (result.error || result.status !== 0) {
     throw new Error(`${args[0]} failed: ${result.error?.message ?? result.stderr ?? result.stdout}`);
@@ -94,6 +95,11 @@ try {
     for (const field of ['verified', 'serverRestarted', 'deliveryFeedsNextWork', 'exactDependencyClosure', 'releaseIdentityMatched', 'transitiveReviewRequired']) assert.equal(delivery[field], true);
     for (const field of ['actualModelGeneration', 'externalPublication', 'legalApproval']) assert.equal(delivery[field], false);
   }
+  const chroma = JSON.parse(run(process.execPath, [join(installed, 'examples', 'chroma-continuity.js')], sandbox, 300_000));
+  for (const field of ['verified', 'singleWorkspace', 'originalsDeleted', 'bundleFeedsNextWork', 'historicalInputsVerified', 'connectionCompared', 'officialToolsReused', 'officialToolPartialDownloadRecovered']) assert.equal(chroma[field], true);
+  assert.equal(chroma.exactBundleClosure, 60); assert.equal(chroma.officialCreates, 1);
+  assert.ok(Object.values(chroma.refused).every(Boolean) && Object.values(chroma.reviewPropagation).every(Boolean));
+  for (const field of ['actualModelGeneration', 'actualProviderNetwork', 'providerMcpActuallyCalled', 'externalPublication', 'legalApproval']) assert.equal(chroma[field], false);
   assert.deepEqual(tracking.scenarios, ['mystery', 'cookbook', 'picturebook']);
   const production = JSON.parse(run(process.execPath, [join(installed, 'examples', 'production.js')], sandbox));
   assert.deepEqual(production.serverInfo, { name: manifest.name, version: manifest.version });
@@ -101,8 +107,9 @@ try {
   for (const field of ['synthetic', 'viewerResourceVisible', 'epubVerified', 'resourceOnlyVerified', 'installedCliReady']) assert.equal(production[field], true);
   assert.equal(production.outputsRetained, false);
   const publicationLanguages = await verifyInstalledPublicationLanguages(installed, sandbox);
+  const readinessGuards = await verifyInstalledReadiness(installed, sandbox);
   console.log(JSON.stringify({ installedFromTarball: true, developmentDependenciesAbsent, npx,
-    production, continuity, scopedContinuity, structureContinuity, publicationLanguages, doctor, legacyDoctor, documentation, benchmarkModuleVerified: true, entryCount: packed.entryCount, examples: examples.results.map((result) => result.example), assets, tracking }, null, 2));
+    production, continuity, scopedContinuity, structureContinuity, publicationLanguages, readinessGuards, doctor, legacyDoctor, documentation, benchmarkModuleVerified: true, entryCount: packed.entryCount, examples: examples.results.map((result) => result.example), assets, tracking }, null, 2));
 } finally {
   await rm(sandbox, { recursive: true, force: true });
 }

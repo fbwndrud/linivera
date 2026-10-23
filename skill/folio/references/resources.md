@@ -31,6 +31,11 @@ provider-response + dependencyManifestRevisionId로 연결한다. 브리프·권
 delivery-record를 쓴다. 성과 subject는 identity가 같은 release map이어야 한다.
 [P4 계약](https://github.com/fbwndrud/linivera/blob/codex/chroma-provider-delivery/docs/delivery-data.md)을
 읽고 상태/권리 보고를 내부 승인으로 바꾸지 않는다.
+다음 작업에 결과물과 브리프·권리·응답·편집/프로젝트·배포/성과를 함께 넘길 때는
+usage-context `requirements`로 역할별 필수/선택과 허용 format을 선언하고 사용자가 고른
+판본만 states에 넣는다. context 미리보기의 `ready`를 확인한 뒤 package 하나로 prepare한다.
+역방향 관계를 자동 포함하지 않고 필수 누락을 승인으로 우회하지 않는다.
+[맥락 묶음](https://github.com/fbwndrud/linivera/blob/codex/chroma-context-bundle/docs/context-bundles.md).
 
 | 도구·op | root/op 외 인자 |
 |---|---|
@@ -88,3 +93,18 @@ PID 잠금이 보호한다. 살아 있거나 SIGSTOP된 PID의 잠금을 지우�
 동반 journal/WAL/SHM을 보존한다. 손상된 게이트를 자동 삭제하지 않는다.
 모든 쓰기 프로세스는 같은 새 버전을 써야 하며 옛 잠금 프로토콜과 혼합하지 않는다.
 백업·이전은 모든 서버를 중지하고 수행한다. SIGKILL 복구는 전원 손실 보장이 아니다.
+
+# 기능 선택과 준비 상태
+
+`folio_resource_query capabilities/specification`으로 대표 기능의 입력/출력 계약을 확인한다.
+명세를 `capability-specification` Resource로 보관하고 요청·후보·정의·scope·검색 범위를
+`readiness`에 넘긴다. `retainReadiness`는 대조 보고를 보관한다. 후보 발견은 선택/승인이
+아니며 부분 검색은 미보유를 확정하지 않는다. 명세·보고·요청을 필수 맥락 역할로 묶어
+기존 Input/Operation에 사용한다. 상세: `docs/capability-readiness.md`.
+
+외부 실행 전 `accessSpecifications/accessSpecification`의 경로·계정 조건을 확인하고
+`retainConnectionCheck/connectionReadiness/retainConnectionReadiness`로 비밀 없는 점검을
+입력 대조와 함께 묶는다. 공식 호스트 호출 직전 `validateConnection`으로 정확한
+Input·request·accountAlias·projectAlias·접근 판본을 확인한다. 키·토큰·쿠키·헤더와 원문 인증
+응답은 호스트 secret 관리에 둔다. 설치만으로 인증/권한/크레딧을 충족하지 않는다.
+미확인·만료·부분 상태는 실행 준비 완료가 아니다. 상세: `docs/connection-readiness.md`.

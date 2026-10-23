@@ -2,11 +2,13 @@ import { invalid, requireTransport, prepareRequest, fixedGroups, assertHandle, r
 import { nativeRecord } from './native-records.js';
 import { textBindings } from './input-bindings.js';
 import { capturedFile } from './file-transfer.js';
+import { validateMeshyParameters } from './request-schemas.js';
+import { MESHY_MODEL_MEDIA_TYPES } from './meshy-formats.js';
 
 export const MESHY_ENDPOINT = '/openapi/v2/text-to-3d';
 export const MESHY_SCHEMA_SOURCE = 'https://docs.meshy.ai/en/api/text-to-3d';
 export const MESHY_SCHEMA_CHECKED = '2026-10-22';
-const formats = { glb: 'model/gltf-binary', obj: 'model/obj', fbx: 'application/octet-stream', usdz: 'model/vnd.usdz+zip', stl: 'model/stl', '3mf': 'model/3mf', mtl: 'text/plain' };
+const formats = { ...MESHY_MODEL_MEDIA_TYPES, mtl: 'text/plain' };
 const state = (status) => ({ PENDING: 'accepted', IN_PROGRESS: 'running', SUCCEEDED: 'complete', FAILED: 'failed', CANCELED: 'canceled' })[status] ?? 'unknown';
 
 /** Preview creation only. Refinement is a separate paid operation, never an automatic follow-up. @param {{transport?:any,accountAlias?:string}} options */
@@ -17,13 +19,8 @@ export function createMeshyAdapter({ transport, accountAlias } = {}) {
   return Object.freeze({
     async prepare(request, pinnedArtifacts = []) {
       const parameters = request?.parameters;
-      if (request?.endpoint !== MESHY_ENDPOINT || request.capability !== 'text-to-3d' || parameters?.mode !== 'preview'
-        || typeof parameters.prompt !== 'string' || !parameters.prompt.trim() || parameters.prompt.length > 800
-        || Object.keys(parameters).some((key) => !['mode', 'prompt', 'target_formats', 'should_remesh', 'ai_model'].includes(key))) invalid('supported Meshy preview request required');
-      if (!Array.isArray(parameters.target_formats) || !parameters.target_formats.length || new Set(parameters.target_formats).size !== parameters.target_formats.length
-        || parameters.target_formats.some((format) => !Object.hasOwn(formats, format) || format === 'mtl')) invalid('explicit supported target_formats required');
-      if (parameters.should_remesh !== undefined && typeof parameters.should_remesh !== 'boolean') invalid('should_remesh must be boolean');
-      if (parameters.ai_model !== undefined && (typeof parameters.ai_model !== 'string' || !parameters.ai_model)) invalid('ai_model must be a string');
+      if (request?.endpoint !== MESHY_ENDPOINT || request.capability !== 'text-to-3d') invalid('supported Meshy preview request required');
+      validateMeshyParameters(parameters);
       fixedGroups(request, 1);
       return prepareRequest(request, 'meshy', { endpoint: MESHY_ENDPOINT, input: structuredClone(parameters) }, textBindings(request, pinnedArtifacts, ['prompt']));
     },

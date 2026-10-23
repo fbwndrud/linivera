@@ -2,9 +2,10 @@ import { canonicalJson } from '../util/hash.js';
 import { createResourceStore } from '../resources/revisions.js';
 import { recordObject, contextInvalid, contextText, revisionList, validateUsageContext, usageContextReferences } from '../resources/context-records.js';
 import { historicalTrackingEvidence } from './bridges.js';
+import { evaluateRequirements, coverRequirements, assertRequirementsMet } from './requirements.js';
 
 export async function validateContextPackage(root, value) {
-  recordObject(value, ['version', 'scopeId', 'purpose', 'pathId', 'timeLabel', 'sourceContextRevisionId', 'items', 'referenceRevisionIds', 'coverage']);
+  recordObject(value, ['version', 'scopeId', 'purpose', 'pathId', 'timeLabel', 'sourceContextRevisionId', 'requirements', 'items', 'referenceRevisionIds', 'coverage']);
   if (value.version !== 1 || !Array.isArray(value.items) || value.items.length > 4096) contextInvalid('versioned bounded context package required');
   contextText(value.scopeId, 'scopeId'); contextText(value.purpose, 'purpose');
   const store = createResourceStore(root);
@@ -57,6 +58,9 @@ export async function validateContextPackage(root, value) {
       if (![...value.coverage.missing, ...value.coverage.truncated].some((entry) => entry.revisionId === revisionId && entry.role === state.role)) contextInvalid('excluded source state requires explicit omission coverage');
     }
   }
+  // Requirements are copied exactly from the retained source; a package cannot relax or drop them.
+  if (canonicalJson(value.requirements ?? null) !== canonicalJson(context?.requirements ?? null)) contextInvalid('package requirements must equal its source context');
+  if (context?.requirements) assertRequirementsMet(coverRequirements(await evaluateRequirements(root, context), value.items, value.coverage).blocked);
   const exact = [...new Set(refs)].sort();
   if (canonicalJson(revisionList(value.referenceRevisionIds).slice().sort()) !== canonicalJson(exact)) contextInvalid('package reference closure must match actual provided items');
   return exact;

@@ -9,11 +9,12 @@ import { validateDefinition } from './definitions.js';
 import { collectBundleClosure } from './bundles.js';
 import { buildInputManifestV2 } from './input-snapshots-v2.js';
 import { collectInputClosure, hasInputReferences } from './input-closure.js';
+import { assertInputReadinessContracts } from '../readiness/request-contract.js';
 function invalid(message) { throw new FolioError('INPUT_INVALID', message); }
 function path(root, id) { assertRevisionId(id); return join(root, '.folio', 'resources', 'inputs', id.slice(7) + '.json'); }
 function copy(value) { try { return JSON.parse(canonicalJson(value)); } catch { invalid('JSON input required'); } }
 async function buildManifest(root, input, state, { historical = false, referenceClosureVersion = undefined } = {}) {
-  if (input.version === 2) return buildInputManifestV2(root, input, state);
+  if (input.version === 2) return buildInputManifestV2(root, input, state, { historical });
   if (input.version === 1) { const { version: _version, ...legacy } = input; input = legacy; }
   if (!Array.isArray(input.revisionIds) || !input.revisionIds.length || new Set(input.revisionIds).size !== input.revisionIds.length || Object.keys(input).some((key) => !['revisionIds', 'profileRevisionId', 'pipelineRevisionId', 'policyRevisionId', 'externalMode'].includes(key)) || !['reject', 'reference-only'].includes(input.externalMode ?? 'reject')) invalid('invalid revision set or external mode');
   const store = createResourceStore(root);
@@ -52,6 +53,7 @@ export async function prepareInput(root, input) {
   input = copy(input);
   return withWorkspaceStateTransaction(root, async ({ state }) => {
     const manifest = await buildManifest(root, input, state);
+    await assertInputReadinessContracts(root, manifest);
     const bytes = canonicalJson(manifest); const inputSnapshotId = sha256(bytes);
     await writeImmutable(root, path(root, inputSnapshotId), bytes);
     return { inputSnapshotId, manifest };

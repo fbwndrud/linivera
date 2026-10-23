@@ -1,8 +1,13 @@
 import { FolioError } from '../errors.js';
 import { createResourceStore } from '../resources/revisions.js';
 import { usageContextReferences } from '../resources/context-records.js';
+import { readinessInputReferences, readinessEvidenceReferences } from '../readiness/records.js';
+import { checkReferences, connectionReferences, connectionEvidenceReferences } from '../access/records.js';
 
 function references(kind, value) {
+  if (kind === 'connection-check') return checkReferences(value);
+  if (kind === 'connection-readiness') return [...connectionReferences(value), ...connectionEvidenceReferences(value)];
+  if (kind === 'capability-readiness') return [...readinessInputReferences(value), ...readinessEvidenceReferences(value)];
   if (kind === 'structure-map') return [value.sourceRevisionId, ...value.bindings.map((binding) => binding.revisionId), ...(value.dependencyManifestRevisionId ? [value.dependencyManifestRevisionId] : [])];
   if (kind === 'artifact-bundle') return value.members.map((member) => member.revisionId);
   if (kind === 'usage-context') return usageContextReferences(value);
@@ -16,7 +21,7 @@ function references(kind, value) {
     ...(value.iteration?.baseRevisionIds ?? []), ...(value.iteration?.preserveRefs ?? []), ...(value.iteration?.changeRequestRevisionId ? [value.iteration.changeRequestRevisionId] : [])];
   return [];
 }
-const typed = new Set(['artifact-bundle', 'usage-context', 'resource-usage', 'context-package', 'audio-alignment', 'normalization-map', 'iteration', 'generation-request', 'structure-map']);
+const typed = new Set(['artifact-bundle', 'usage-context', 'resource-usage', 'context-package', 'audio-alignment', 'normalization-map', 'iteration', 'generation-request', 'structure-map', 'capability-readiness', 'connection-check', 'connection-readiness']);
 
 /** Follow actual typed references only. Provenance is not implicitly provided context. */
 export async function assertContextIsolation(root, revisions, expected) {
@@ -31,9 +36,10 @@ export async function assertContextIsolation(root, revisions, expected) {
     if (revision.storageStatus !== 'owned_snapshot' || revision.mediaType !== 'application/json') throw new FolioError('CONTEXT_INVALID', 'typed context references require owned JSON');
     active.add(revision.revisionId);
     const value = JSON.parse((await store.readContent(revision.revisionId)).toString('utf8'));
-    if (['usage-context', 'context-package'].includes(revision.kind)
-      && (value.scopeId !== expected.scopeId || (expected.pathId !== undefined && value.pathId !== expected.pathId)
-        || (expected.timeLabel !== undefined && value.timeLabel !== expected.timeLabel))) throw new FolioError('CONTEXT_SCOPE_MISMATCH', 'contextual state belongs to another scope, path or time');
+    const scopeValue = ['capability-readiness', 'connection-readiness'].includes(revision.kind) ? value.input : value;
+    if (['usage-context', 'context-package', 'capability-readiness', 'connection-check', 'connection-readiness'].includes(revision.kind)
+      && (scopeValue.scopeId !== expected.scopeId || (expected.pathId !== undefined && scopeValue.pathId !== expected.pathId)
+        || (expected.timeLabel !== undefined && scopeValue.timeLabel !== expected.timeLabel))) throw new FolioError('CONTEXT_SCOPE_MISMATCH', 'contextual state belongs to another scope, path or time');
     for (const revisionId of references(revision.kind, value)) {
       if (++edges > 8192) throw new FolioError('CONTEXT_INVALID', 'context isolation exceeds reference budget');
       await visit(await store.readRevision(revisionId), depth + 1);

@@ -12,11 +12,19 @@ export async function productionHost(root) {
       args: [join(import.meta.dirname, '../../bin/folio-mcp.js')], stderr: 'pipe' }));
   }
   await connect();
-  const selections = new Map(); const definitions = {};
+  const selections = new Map(); const definitions = {}; let checkpoint;
   async function call(name, args) {
     const response = await client.callTool({ name, arguments: { root, ...args } });
     const body = JSON.parse(response.content[0].text);
-    assert.ok(!response.isError, JSON.stringify(body)); return body;
+    assert.ok(!response.isError, JSON.stringify(body));
+    if (body?.checkpoint) checkpoint = body.checkpoint;
+    return body;
+  }
+  /** Expected refusals return the public error body instead of failing the host. */
+  async function attempt(name, args) {
+    const response = await client.callTool({ name, arguments: { root, ...args } });
+    const body = JSON.parse(response.content[0].text);
+    assert.ok(response.isError, `${name} unexpectedly succeeded`); return body.error;
   }
   const graph = () => call('folio_resource_query', { op: 'graph' });
   const json = (resourceId, value, kind = 'synthetic', parents = []) => call('folio_resources', {
@@ -32,9 +40,9 @@ export async function productionHost(root) {
     const resource = await read(revisionId);
     const receiptId = await call('folio_operations', { op: 'review', operationId,
       outputHashes: [resource.contentHash], findings: [], reviewer: 'host' });
-    await call('folio_operations', { op: 'decide', operationId, receiptId, actor: 'user', action: 'approve', expectedCheckpoint: (await graph()).checkpoint });
+    await call('folio_operations', { op: 'decide', operationId, receiptId, actor: 'user', action: 'approve', expectedCheckpoint: checkpoint });
     await select(resource); return resource;
   }
-  return { call, graph, json, read, select, input, approve, definitions,
+  return { call, attempt, graph, json, read, select, input, approve, definitions, get checkpoint() { return checkpoint; },
     async restart() { await client.close(); await connect(); }, close: () => client.close() };
 }

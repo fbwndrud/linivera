@@ -2,7 +2,8 @@ import { createResourceStore } from './revisions.js';
 import { readInputDefinitions, assertInputScope, sourceDependency, invalidInput } from './input-definitions.js';
 import { scopedDependencies, validateBindings } from './input-selections.js';
 import { collectInputClosure } from './input-closure.js';
-export async function buildInputManifestV2(root, input, state) {
+import { assertContextIsolation } from '../context/isolation.js';
+export async function buildInputManifestV2(root, input, state, { historical = false } = {}) {
   if (!input || input.version !== 2 || Object.keys(input).some((key) => !['version', 'scopeId', 'scopeSelectionRevision', 'bindingKeys', 'profileRevisionId', 'pipelineRevisionId', 'policyRevisionId', 'externalMode'].includes(key)) || !['reject', 'reference-only'].includes(input.externalMode ?? 'reject')) invalidInput('unsupported v2 input fields');
   const selection = state.inputSelections[input.scopeId];
   if (!selection || selection.scopeSelectionRevision !== input.scopeSelectionRevision || selection.actor !== 'user') invalidInput('exact user scope selection required');
@@ -19,6 +20,7 @@ export async function buildInputManifestV2(root, input, state) {
   }
   const revisionIds = [...new Set(bindings.map((binding) => binding.revisionId))];
   const expanded = await collectInputClosure(root, revisionIds); const resources = [];
+  if (!historical) await assertContextIsolation(root, expanded, { scopeId: input.scopeId });
   const definitionIds = new Set(Object.values(definitions).map((definition) => definition.revisionId));
   let totalBytes = Object.values(definitions).reduce((total, definition) => total + definition.byteLength, 0);
   for (const revision of expanded) {

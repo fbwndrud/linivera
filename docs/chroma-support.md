@@ -1,5 +1,10 @@
 # Chroma 도구별 자료 관리 지원표
 
+[기능별 명세](capability-specifications.md), [37개 파트너의 명세 지원 상태](capability-partner-support.md),
+[자료 대조와 다음 작업 흐름](capability-readiness.md)에서 공식 부분 확인·사용자 선언·미조사를 구별한다.
+[파트너별 웹/API/CLI/MCP/스킬·계정 조건](partner-access.md)과
+[연결·계정 준비 대조](connection-readiness.md)는 입력 자료 준비와 별도로 확인한다.
+
 기준: 2026-10-22 [공식 크레딧 팩](https://submit.chromaawards.com/pack)의 기존 조사
 37개 파트너와 2026-10-23 저장소 구현. 23일 공식 팩 재조회는 HTTP 403이어서
 파트너 명단은 기존 조사 기준을 유지한다. 파트너 참여와 API 제공은 별개다. 실제 계정의 export
@@ -14,6 +19,9 @@
   의존성 설치·실행은 포함하지 않는다. 파일당 2GiB, bundle 8GiB/4,096개.
 - **이후 작업**: 선택한 구조 map의 원본 및 연결 파일까지 Input에 고정한다.
   미연결 필수 참조는 차단하며, 원본 교체 시 기존 결과는 재검토 대상으로 남는다.
+- **맥락 묶음**: 결과물·응답·편집/프로젝트·브리프·권리·배포/성과 map을 역할별
+  필수/선택으로 선언한 context-package 하나로 Input에 고정한다. 역방향 관계는 자동
+  포함하지 않으며 필수 역할 누락은 Input 전에 차단한다. [맥락 묶음](context-bundles.md).
 
 | 순서 | 데이터 관리 효과 | 상태 |
 |---|---|---|
@@ -22,6 +30,8 @@
 | P2 | XMEML/OTIO 편집·명시적 커스텀 의존성·3D 확장 참조 | 기본 범위 구현. 전용 형식·효과/codec 실행은 별도 |
 | P3 | 게임 코드/씬·sprite/atlas·DB·환경·배포 의존성 | 공통 project-manifest 선언과 Aseprite atlas 기본 연결 구현. 엔진/실행 복원은 별도 |
 | P4 | 공급자별 추가 응답·brief/권리/배포 성과의 의미 연결 | 고정 응답 3종·선언 포인터와 delivery-record 기본 연결 구현. 공급자별 전체 API/원문 자동 해석은 별도 |
+| 맥락 묶음 | 다음 작업의 역할별 필수/선택 자료를 정확한 판본 묶음 하나로 Input에 고정 | usage-context requirements·context-package 검증 구현 |
+| P0~P4 통합 | 같은 작업 공간에서 응답 파일 → workflow → 편집 → 프로젝트 → 배포/성과 → 묶음 → 두 후속 작업 | 합성 fixture로 실제 stdio 검증. 실제 생성·공급자·재생·복원·게시는 미검증 |
 
 | 파트너 | 자동 해석 / 형식 조건 | 수동 연결 | 파일 보관 | 남은 연결 우선순위 |
 |---|---|---|---|---|
@@ -65,8 +75,11 @@
 
 사용 절차와 정확한 해석 범위는 [구조 연결](structure-links.md)을 따른다.
 자동 해석의 지원 범위는 ComfyUI 기본/선언 연결, Martini 관측 run, glTF 2 기본/지원 확장
-참조, SRT 시간 구간, XMEML/OTIO 편집 구조다. 미지원 커스텀 노드/확장 필드는 원본에 남고 `coverage.unknown`에
-표시된다. 구조 해석·파일 완전성·프로젝트 복원·생성 품질·승인은 각각 다른 판단이다.
+참조, SRT 시간 구간, XMEML/OTIO 편집 구조, project-manifest/Aseprite atlas 구조,
+고정 공급자 응답 3종·명시적 포인터 선언, delivery-record 구조다. Aseprite 원본 tag와
+export frame의 소속은 자동 확정하지 않는다. 미지원 커스텀 노드/확장 필드는 원본에
+남고 `coverage.unknown`에 표시된다. 구조 해석·파일 완전성·프로젝트 복원·생성 품질·승인은
+각각 다른 판단이다.
 
 공급자 전용 파서가 없는 도구도 자료를 잃지 않고 반복 작업에 연결할 수 있다.
 단, 외부 ID를 실제 파일로 연결하고 누락 자료를 확인하는 작업은 현재 수동이다.

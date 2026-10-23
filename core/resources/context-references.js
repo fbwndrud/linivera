@@ -8,6 +8,10 @@ import { verifyNormalizationMap } from './normalization-bindings.js';
 import { FolioError } from '../errors.js';
 import { assertContextIsolation } from '../context/isolation.js';
 import { readStructureRelations } from './structure-bindings.js';
+import { verifyRequirementRecords } from '../context/requirements.js';
+import { readReadinessReferences, readReadinessRelations } from '../readiness/verify.js';
+import { ACCESS_KINDS } from '../access/records.js';
+import { readAccessReferences, readAccessRelations } from '../access/verify.js';
 
 export async function verifyContextValue(root, kind, value, { requireCurrentBridges = false } = {}) {
   let refs = [];
@@ -19,6 +23,7 @@ export async function verifyContextValue(root, kind, value, { requireCurrentBrid
   if (kind === 'usage-context') {
     refs = usageContextReferences(validateUsageContext(value));
     for (const state of value.states) if (state.nodeRef) await checkBridge(state.nodeRef);
+    await verifyRequirementRecords(root, value);
   }
   if (kind === 'context-package') refs = await validateContextPackage(root, value);
   if (kind === 'resource-usage') {
@@ -39,6 +44,8 @@ export async function verifyContextResource(root, input) {
 }
 /** Only actual provided inputs expand closure; package provenance and omissions do not. */
 export async function readContextReferences(root, revision) {
+  if (ACCESS_KINDS.has(revision.kind)) return readAccessReferences(root, revision);
+  if (['capability-readiness', 'capability-specification'].includes(revision.kind)) return readReadinessReferences(root, revision);
   if (!CONTEXT_KINDS.has(revision.kind) && !['audio-alignment', 'normalization-map'].includes(revision.kind)) return [];
   if (revision.storageStatus !== 'owned_snapshot' || revision.mediaType !== 'application/json') contextInvalid('context records require owned JSON');
   const value = JSON.parse((await createResourceStore(root).readContent(revision.revisionId)).toString('utf8'));
@@ -47,7 +54,9 @@ export async function readContextReferences(root, revision) {
   return verifyContextValue(root, revision.kind, value);
 }
 export async function readResourceRelations(root, revision) {
+  if (ACCESS_KINDS.has(revision.kind)) return readAccessRelations(root, revision);
   if (revision.kind === 'structure-map') return readStructureRelations(root, revision);
+  if (revision.kind === 'capability-readiness') return readReadinessRelations(root, revision);
   const refs = await readContextReferences(root, revision);
   const relations = refs.map((targetRevisionId) => ({ targetRevisionId, kind: revision.kind === 'context-package' ? 'context-input' : 'usage' }));
   if (revision.kind === 'context-package') {

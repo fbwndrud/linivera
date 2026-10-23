@@ -8,13 +8,17 @@ test('fresh tarball without dev dependencies completes the public tracking stdio
   const command = npmCli ? process.execPath : process.platform === 'win32' ? 'npm.cmd' : 'npm';
   const args = [...(npmCli ? [npmCli] : []), 'run', '--silent', 'package:verify'];
   const result = spawnSync(command, args, {
-    cwd: join(import.meta.dirname, '../..'), encoding: 'utf8', timeout: 180_000,
+    // Installation and all serial continuity examples, including the combined P0-P4 scenario.
+    cwd: join(import.meta.dirname, '../..'), encoding: 'utf8', timeout: 600_000,
     shell: !npmCli && process.platform === 'win32',
   });
   assert.equal(result.status, 0, result.stderr);
   const output = JSON.parse(result.stdout);
   assert.equal(output.installedFromTarball, true);
   assert.equal(output.developmentDependenciesAbsent, true);
+  assert.equal(output.readinessGuards.contradictoryOutputRefused, true);
+  assert.equal(output.readinessGuards.directIterationScopeRefused, true);
+  assert.equal(output.readinessGuards.publishedCatalogHashesVerified, true);
   assert.equal(output.doctor.installedBinVerified, true);
   assert.equal(output.doctor.pureReadVerified, true);
   assert.equal(output.tracking.verified, true);
