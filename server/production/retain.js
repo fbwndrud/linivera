@@ -1,9 +1,11 @@
 import { FolioError } from '../../core/errors.js';
+import { retainProductionBundles } from './retain-bundles.js';
 import { MAX_INLINE_CAPTURE_BYTES } from '../../adapters/production/file-transfer.js';
 
 /** Retain observed files first; bind timing metadata to exact retained audio/text. */
 export async function retainProductionArtifacts({ invoke, json, prepared, collection, priorArtifacts = [] }) {
-  if (!Array.isArray(collection.artifacts) || !collection.artifacts.length) throw new FolioError('PRODUCTION_CAPTURE_INVALID', 'observed artifacts required');
+  if (!Array.isArray(collection.artifacts) || (!collection.artifacts.length && !collection.bundles?.length)
+    || new Set(collection.artifacts.map((file) => file.artifactKey)).size !== collection.artifacts.length) throw new FolioError('PRODUCTION_CAPTURE_INVALID', 'unique observed artifacts or bundle captures required');
   const retained = [];
   const ordered = [...collection.artifacts].sort((a, b) => Number(Boolean(a.metadata?.sourceArtifactKey)) - Number(Boolean(b.metadata?.sourceArtifactKey)));
   for (const artifact of ordered) {
@@ -25,5 +27,6 @@ export async function retainProductionArtifacts({ invoke, json, prepared, collec
     }
     retained.push({ artifactKey: artifact.artifactKey, groupId: artifact.groupId, role: artifact.role, ...revision });
   }
-  return retained;
+  const bundles = await retainProductionBundles({ json, bundles: collection.bundles, artifacts: retained, priorArtifacts });
+  return { artifacts: [...retained, ...bundles.artifacts], bundleObservations: bundles.observations };
 }

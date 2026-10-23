@@ -5,6 +5,7 @@ import { verifyInput } from '../resources/input-snapshots.js';
 import { readOperation, outputBindings } from './requests.js';
 import { get, fail } from './objects.js';
 import { productionLineage } from './production-lineage.js';
+import { scopedSelectionChanges } from '../resources/selection-impact.js';
 
 /** All submitted producers, including those whose outputs were selected without approval. */
 export async function readOperationLineage(root) {
@@ -24,11 +25,13 @@ export async function readOperationLineage(root) {
   return records;
 }
 export function selectionChanges(manifest, state) {
-  return manifest.selections.filter((s) => state.sourceSelections[s.resourceId]?.selectionRevision !== s.selectionRevision)
+  const changes = manifest.selections.filter((s) => state.sourceSelections[s.resourceId]?.selectionRevision !== s.selectionRevision)
     .map((s) => ({ resourceId: s.resourceId, inputRevisionId: s.revisionId, inputSelectionRevision: s.selectionRevision,
       currentRevisionId: state.sourceSelections[s.resourceId]?.revisionId ?? null, reason: 'source-selection-changed' }));
+  if (manifest.version !== 2) return changes;
+  return [...changes, ...scopedSelectionChanges(manifest, state)].filter((reason, index, all) => all.findIndex((other) => canonicalJson(other) === canonicalJson(reason)) === index);
 }
 export function operationImpactFacts(records, state) {
   return records.flatMap(({ manifest, outputs }) => outputs.map((output) => ({ ...output, role: 'output',
-    inputRefs: manifest.selections, reviewReasons: selectionChanges(manifest, state) })));
+    inputRefs: manifest.version === 2 ? manifest.resources : manifest.selections, reviewReasons: selectionChanges(manifest, state) })));
 }

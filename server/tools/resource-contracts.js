@@ -21,7 +21,9 @@ export const RESOURCE_ARGUMENTS = {
     importBundle: rule(['resourceId', 'manifest'], ['pathMappings', 'parents', 'schemaRef']),
   },
   folio_inputs: {
-    prepare: rule(['revisionIds', 'profileRevisionId', 'pipelineRevisionId', 'policyRevisionId'], ['externalMode']), verify: rule(['inputSnapshotId']),
+    select: rule(['scopeId', 'expectedScopeSelectionRevision', 'actor', 'reason', 'bindings', 'profileRevisionId', 'pipelineRevisionId', 'policyRevisionId']),
+    getSelection: rule(['scopeId'], ['checkpoint']),
+    prepare: rule(['profileRevisionId', 'pipelineRevisionId', 'policyRevisionId'], ['revisionIds', 'externalMode', 'version', 'scopeId', 'scopeSelectionRevision', 'bindingKeys']), verify: rule(['inputSnapshotId']),
   },
   folio_policy: {
     issue: rule(['grantId', 'policyRevisionId', 'profileRevisionId', 'pipelineRevisionId', 'actor', 'actions', 'resourceIds', 'expiresAt', 'expectedCheckpoint', 'authority']),
@@ -37,7 +39,10 @@ export const RESOURCE_ARGUMENTS = {
     submitGroup: rule(['operationId', 'groupId', 'inputSnapshotId', 'executionId', 'executionHead', 'requestDigest', 'resultRevisionIds', 'groupManifestRevisionId']),
     reviewGroup: rule(['operationId', 'groupId', 'outputHashes', 'findings', 'reviewer']),
     decideGroup: rule(['operationId', 'groupId', 'receiptId', 'expectedCheckpoint', 'action', 'actor'], ['grantId']),
+    recordSession: rule(['sessionId', 'expectedSessionHead', 'event']), inspectSession: rule(['sessionId'], ['sessionHead']),
   },
-  folio_resource_query: { query: rule([], ['resourceId', 'selector', 'freshness']), refresh: rule([], ['checkpoint']), graph: rule([], ['resourceId', 'direction', 'depth', 'limit']) },
+  folio_resource_query: { query: rule([], ['resourceId', 'selector', 'freshness']), refresh: rule([], ['checkpoint']),
+    graph: rule([], ['resourceId', 'direction', 'depth', 'limit', 'cursor', 'generationId', 'boundaryLimit', 'edgeLimit']), indexGraph: rule([]),
+    context: rule(['scopeId', 'purpose', 'budget'], ['contextRevisionId', 'pathId', 'timeLabel', 'revisionIds']) },
   folio_embeddings: { index: rule([], ['dimension', 'freshness']), search: rule(['generationId', 'text'], ['freshness', 'limit']) },
 };

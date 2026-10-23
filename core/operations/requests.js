@@ -6,6 +6,7 @@ import { copy, fail, get, put } from './objects.js';
 import { normalizeTrace } from './trace.js';
 import { checkAuthority } from './authority.js';
 import { assertOperationContract, readProductionRequest } from './production-request.js';
+import { assertNewOperationInputClosure } from '../resources/input-closure.js';
 export async function startOperation(root, input) {
   input = copy(input);
   if (!input || typeof input.idempotencyKey !== 'string' || !input.idempotencyKey.length || input.idempotencyKey.length > 256 || Object.keys(input).some((k) => !['inputSnapshotId', 'idempotencyKey', 'actor', 'grantId', 'operationContractVersion', 'requestRevisionId'].includes(k)) || (input.operationContractVersion !== undefined && input.operationContractVersion !== 2) || (input.operationContractVersion === 2 ? typeof input.requestRevisionId !== 'string' : input.requestRevisionId !== undefined)) fail('OPERATION_INVALID', 'invalid operation request');
@@ -15,6 +16,7 @@ export async function startOperation(root, input) {
     const old = await get(root, 'requests', operationId, true);
     if (old) { if (old.requestId !== requestId) fail('IDEMPOTENCY_CONFLICT', 'key already binds a different request'); return { operationId, requestId }; }
     const { manifest } = await verifyInput(root, input.inputSnapshotId);
+    await assertNewOperationInputClosure(root, manifest);
     if (input.operationContractVersion === 2) await readProductionRequest(root, input, manifest);
     else for (const resource of manifest.resources) if ((await createResourceStore(root).readRevision(resource.revisionId)).kind === 'generation-request') fail('OPERATION_CONTRACT_MISMATCH', 'generation requests require operation contract v2');
     checkAuthority(manifest, state, input.actor, input.grantId, 'create-candidate');

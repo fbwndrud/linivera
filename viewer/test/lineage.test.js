@@ -30,3 +30,17 @@ test('lineage distinguishes candidates, submitted results and review impact and 
   assert.deepEqual(await createStaticApi({ resourceGraph: data }).get('/api/resource-graph'), data);
   await assert.rejects(createStaticApi({}).get('/api/resource-graph'), { code: 'STATIC_UNAVAILABLE' });
 });
+
+test('one history view distinguishes media families, episode choices and causal versus usage connections', () => {
+  const data = { nodes: [
+    { id: 'model', type: 'resource', resourceId: 'Authored model', revisionId: 'sha256:model', family: 'model', states: ['candidate'], scopedSelections: [{ scopeId: 'main/8', role: 'face', mode: 'fixed' }] },
+    { id: 'context', type: 'resource', resourceId: 'episode context', revisionId: 'sha256:context', family: 'context', states: ['scoped-source'] },
+    { id: 'bundle', type: 'resource', resourceId: 'model package', revisionId: 'sha256:bundle', family: 'bundle', states: ['observed-output'] },
+  ], edges: [{ id: 'usage', source: 'context', target: 'model', kind: 'usage' }, { id: 'contains', source: 'bundle', target: 'model', kind: 'contains' }],
+  checkpoint: { seq: 3 }, coverage: { contentVerification: 'verified', executionHeads: [] }, truncated: false };
+  const html = renderToStaticMarkup(React.createElement(ResourceLineageContent, { data }));
+  for (const text of ['3D model', 'Used in context', 'Included file', 'Episode selection', 'main/8']) assert.ok(html.includes(text), text);
+  const korean = renderToStaticMarkup(React.createElement(Provider, { initialLocale: 'ko' }, React.createElement(ResourceLineageContent, { data })));
+  for (const text of ['3D 모델', '사용 맥락', '포함 파일', '회차 선택', 'Authored model']) assert.ok(korean.includes(text), text);
+  assert.deepEqual(data.nodes[0].resourceId, 'Authored model');
+});

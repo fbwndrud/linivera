@@ -32,7 +32,7 @@ async function resourceDetail(root, entry) {
   const mediaType = revision.mediaType?.split(';')[0].trim().toLowerCase();
   let contentPreview = null;
   let previewTruncated = false;
-  if (revision.storageStatus === 'owned_snapshot' && ['text/plain', 'application/json'].includes(mediaType)) {
+  if (revision.storageStatus === 'owned_snapshot' && ['text/plain', 'application/json'].includes(mediaType) && revision.byteLength <= 8 * 1024 * 1024) {
     const text = (await store.readContent(entry.revisionId)).toString('utf8');
     contentPreview = text.slice(0, MAX_PREVIEW);
     previewTruncated = text.length > MAX_PREVIEW;

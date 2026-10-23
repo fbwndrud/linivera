@@ -58,6 +58,12 @@ async function transfer(handle, writer = null) {
   return { contentHash: 'sha256:' + hash.digest('hex'), byteLength };
 }
 
+/** Fingerprint actual regular-file bytes without retaining them or trusting a caller's digest. */
+export async function fingerprintResourceFile(path) {
+  const handle = await openResourceFile(path);
+  try { return await transfer(handle); } finally { await handle.close(); }
+}
+
 export async function verifyStoredBlob(root, envelope) {
   if (!Number.isSafeInteger(envelope.byteLength) || envelope.byteLength < 0 || envelope.byteLength > MAX_FILE_BYTES) throw new FolioError('RESOURCE_INTEGRITY_FAILURE', 'invalid stored file size');
   const path = resourceObjectPath(root, envelope.contentHash, 'content');

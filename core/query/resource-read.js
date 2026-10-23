@@ -17,7 +17,7 @@ export async function readResourceQuery(root, input, state) {
   const legacy = generator !== METADATA_GENERATOR_REVISION;
   const verified = await metadataEntries(root, prefix, { transitive: generator === 'folio-metadata-v2', includeSubmitted: false });
   const { generationId: _generationId, ...actualManifest } = generation.manifest;
-  if (!['folio-metadata-v1', 'folio-metadata-v2', 'folio-metadata-v3', METADATA_GENERATOR_REVISION].includes(generator) || canonicalJson(actualManifest) !== canonicalJson(metadataManifest(verified, prefix, generator)) || canonicalJson(verified) !== canonicalJson(generation.entries)) fail('PROJECTION_INTEGRITY_FAILURE', 'generation entries differ from verified authoritative prefix');
+  if (!['folio-metadata-v1', 'folio-metadata-v2', 'folio-metadata-v3', 'folio-metadata-v4', METADATA_GENERATOR_REVISION].includes(generator) || canonicalJson(actualManifest) !== canonicalJson(metadataManifest(verified, prefix, generator)) || canonicalJson(verified) !== canonicalJson(generation.entries)) fail('PROJECTION_INTEGRITY_FAILURE', 'generation entries differ from verified authoritative prefix');
   let status = checkpointFreshness(generation.manifest, state);
   if (legacy) status = 'stale';
   let entries = verified.filter((e) => (resourceId === undefined || e.resourceId === resourceId) && (selector.type !== 'atRevision' || e.revisionId === selector.revisionId));

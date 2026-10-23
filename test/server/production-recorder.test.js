@@ -6,6 +6,22 @@ import { createProductionRecorder } from '../../server/production/recorder.js';
 import { prepareRequest, digest } from '../../adapters/production/common.js';
 import { retainProductionArtifacts } from '../../server/production/retain.js';
 import { syntheticWav } from '../../examples/support/synthetic-media.js';
+
+test('multiple native observations remain connected through one redacted retained batch', async (t) => {
+  const f = await fixture(t); const recorder = f.recorder();
+  await recorder.prepared(f.prepared); await recorder.submitting();
+  await recorder.accepted({ handle: { jobId: 'batch-job' }, nativeRecords: [
+    { stage: 'submit', record: { request_id: 'batch-job', api_key: 'synthetic-secret' } },
+    { stage: 'download', record: { result: 'https://example.invalid/result?token=synthetic-secret' } },
+  ] });
+  const event = (await recorder.resume()).events.at(-1).payload.event;
+  const retained = await f.host.call('folio_resources', { op: 'read', revisionId: event.nativeRecordRevisionId });
+  const batch = JSON.parse(retained.content);
+  assert.deepEqual(batch.observations.map((item) => item.stage), ['submit', 'download']);
+  assert.equal(batch.observations[0].record.api_key, '[redacted]');
+  assert.equal(batch.observations[1].record.result, 'https://example.invalid/result');
+  assert.ok(!retained.content.includes('synthetic-secret'));
+});
 import { createFalAdapter } from '../../adapters/production/fal.js';
 
 async function fixture(t, options = {}) {
