@@ -12,7 +12,7 @@ import { exportFixture, sourceSnapshot } from '../support/export-work.js';
 import { editYaml } from '../support/recheck.js';
 test('마지막 folio_export 도구는 check를 읽기만 수행하고 web/epub을 새 외부 폴더에 낸다', async (t) => {
   const f = await exportFixture(t), tools = createToolbox({ packs: await loadBuiltinPacks() }), before = await sourceSnapshot(f.root);
-  assert.equal(tools.tools.length, 22); assert.equal(tools.tools.at(-1).name, 'folio_export');
+  assert.equal(tools.tools.length, 23); assert.equal(tools.tools.at(-1).name, 'folio_export');
   const checked = await tools.call('folio_export', { root: f.root, op: 'check' }); assert.equal(checked.ok, true); assert.equal(checked.result.nodes, 4);
   assert.equal((await tools.call('folio_export', { root: f.root, op: 'check', language: 'en-US' })).result.language, 'en-US');
   assert.equal((await tools.call('folio_export', { root: f.root, op: 'check', language: '한국어' })).error.code, 'EXPORT_LANGUAGE_INVALID');

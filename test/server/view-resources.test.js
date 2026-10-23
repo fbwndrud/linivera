@@ -39,6 +39,9 @@ test('resource-only viewer starts through the registry and uses the authenticate
   await mkdir(join(root, '.folio', 'tx'), { recursive: true }); await writeFile(join(root, '.folio', 'tx', 'journal.json'), '{}');
   const before = await sourceSnapshot(root);
   const work = await call('/api/work'); assert.equal(work.json.mode, 'resources');
+  const graph = await call('/api/resource-graph'); assert.equal(graph.status, 200); assert.ok(graph.json.nodes.some((n) => n.revisionId === f.source.revisionId));
+  assert.ok(!graph.json.nodes.some((n) => n.revisionId === extra.revisionId));
+  assert.equal((await call('/api/resource-graph', { headers: { 'x-folio-token': '' } })).status, 401);
   const list = await call('/api/resources'); assert.equal(list.status, 200); assert.equal(list.json.entries.length, 1);
   const detail = await call(`/api/resources/${encodeURIComponent(f.source.revisionId)}`); assert.equal(detail.json.contentPreview, 'synthetic selected');
   assert.equal((await call(`/api/resources/${extra.revisionId}?root=${encodeURIComponent(other)}`)).json.error.code, 'RESOURCE_NOT_VISIBLE');

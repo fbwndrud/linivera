@@ -28,5 +28,6 @@ export const RESOURCE_DESCRIPTIONS = {
   reviewer: 'Actor who performed this self-review.', severity: 'Finding severity; hard prevents approval and soft does not trigger automatic edits.',
   receiptId: 'Exact review receipt identifier.', selector: 'Choose current, exact revision or exact checkpoint.',
   freshness: 'requireCurrent rejects stale projections; allowStale returns the actual historical state.',
+  direction: 'Follow exact input/output links upstream, downstream or both.', depth: 'Maximum number of graph edges to traverse; truncation is explicit.',
   generationId: 'Exact vector generation identifier returned by index.', dimension: 'Supported embedding dimension; defaults to 768.',
 };

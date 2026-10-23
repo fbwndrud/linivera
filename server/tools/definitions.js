@@ -1,4 +1,5 @@
 import { embeddingsDefinition } from './embeddings.js';
+import { motionDefinition } from './motion.js';
 import { resourcesDefinition } from './resources.js';
 import { inputsDefinition } from './inputs.js';
 import { policyDefinition } from './policy.js';
@@ -96,7 +97,7 @@ export const TOOLS = Object.freeze([
     feedback: { type: 'string', maxLength: 4000 }, type: { type: 'string', enum: ['entities', 'observations', 'evidence', 'history'] }, subjectId: ID, criterionId: ID, nodeId: ID,
     cursor: { type: 'string', pattern: '^(0|[1-9][0-9]*)$' }, limit: { type: 'integer', minimum: 1, maximum: 200 },
   }, ['op']),
-  ...[resourcesDefinition, inputsDefinition, policyDefinition, operationsDefinition, resourceQueryDefinition, embeddingsDefinition].map((definition) => ({
+  ...[resourcesDefinition, inputsDefinition, policyDefinition, operationsDefinition, resourceQueryDefinition, embeddingsDefinition, motionDefinition].map((definition) => ({
     ...definition, annotations: toolAnnotations(definition.name), outputSchema: outputSchema(definition.name),
     inputSchema: { ...definition.inputSchema, properties: describeProperties(definition.inputSchema.properties, definition.name),
       ...inputConditions(definition.name, Object.fromEntries(Object.entries(definition.inputSchema.properties).filter(([key]) => key !== 'root'))) },

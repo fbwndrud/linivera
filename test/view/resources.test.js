@@ -92,7 +92,7 @@ test('resource-only workspace has explicit capabilities; missing work alone is t
   assert.equal((await viewerTarget(root)).mode, 'resources');
   const work = await viewOutline(root, { packs: fakePacks() }); assert.equal(work.mode, 'resources');
   assert.deepEqual(work.capabilities, { resources: true, writing: false, viewerExport: true, viewerToggles: false });
-  assert.deepEqual(work.availableScreens, ['resources']); assert.deepEqual(work.nodes, []);
+  assert.deepEqual(work.availableScreens, ['resources', 'graph']); assert.deepEqual(work.nodes, []);
   await assert.rejects(viewerTarget(root, 'synthetic'), { code: 'NODE_NOT_FOUND' });
   await writeFile(join(root, 'work.yaml'), 'levels: []\n');
   await assert.rejects(viewerTarget(root), { code: 'CONFIG_INVALID' }); await assert.rejects(viewOutline(root, { packs: fakePacks() }), { code: 'CONFIG_INVALID' });

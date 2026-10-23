@@ -7,6 +7,7 @@ import { validateInput } from '../../server/validate-input.js';
 const provider = new AjvJsonSchemaValidator();
 const schemaOf = (name) => TOOLS.find((tool) => tool.name === name).inputSchema;
 const VALID = {
+  folio_motion: [{ op: 'plan', inputSnapshotId: 'snapshot' }, { op: 'render', inputSnapshotId: 'snapshot', idempotencyKey: 'movie', actor: 'user' }, { op: 'compile', inputSnapshotId: 'snapshot', idempotencyKey: 'timeline', actor: 'host', grantId: 'grant' }],
   folio_assets: [{ op: 'list' }], folio_tracking: [{ op: 'get' }],
   folio_resources: [{ op: 'propose', resourceId: 'synthetic', kind: 'note', owned: { bytes: 'synthetic', mediaType: 'text/plain' } }],
   folio_inputs: [{ op: 'verify', inputSnapshotId: 'snapshot' }], folio_policy: [{ op: 'status', grantId: 'grant' }],
@@ -25,6 +26,7 @@ const VALID = {
   folio_import_vibelore: [{ from: '/tmp/source' }], folio_export: [{ output: '/tmp/book' }, { op: 'export', output: '/tmp/book' }, { op: 'check' }],
 };
 const INVALID = {
+  folio_motion: [{ op: 'render', inputSnapshotId: 'snapshot' }, { op: 'plan', inputSnapshotId: 'snapshot', actor: 'user' }, { op: 'assemble', inputSnapshotId: 'snapshot', idempotencyKey: 'movie', actor: 'user', width: 100 }],
   folio_structure: [{ op: 'add' }, { op: 'move', nodeId: 'a', title: 'extra' }, { op: 'wrap', nodeIds: [], level: 'chapter', id: 'c' }],
   folio_sources: [{ op: 'get' }, { op: 'list', text: 'extra' }, { op: 'add', id: 'ref' }, { op: 'add', id: 'ref', text: '자료', path: '/tmp/ref.txt' }, { op: 'link', nodeId: 'a' }],
   folio_occurrences: [{ op: 'submit' }, { op: 'rename', entityId: 'hero', newName: '주인공' }],
@@ -35,7 +37,7 @@ const INVALID = {
   folio_export: [{}, { op: 'export' }],
 };
 
-test('22개 도구의 조건별 입력을 표준 검증기와 같은 방식으로 받거나 거부한다', () => {
+test('모든 도구의 조건별 입력을 표준 검증기와 같은 방식으로 받거나 거부한다', () => {
   for (const tool of TOOLS) {
     const standard = provider.getValidator(tool.inputSchema);
     const cases = [...VALID[tool.name].map((args) => [args, true]), ...(INVALID[tool.name] ?? []).map((args) => [args, false]),

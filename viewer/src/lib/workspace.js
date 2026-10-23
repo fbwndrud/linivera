@@ -56,6 +56,6 @@ export const navGroup = (screen) => NAV_GROUPS.find((group) => group.items.some(
   ?? NAV_GROUPS[screen === 'receipt' ? 1 : ['entity', 'source', 'resource'].includes(screen) ? 3 : 0];
 
 export const workspaceNavigation = (work) => !work ? [] : work.mode === 'resources'
-  ? [{ name: 'Library', screen: 'resources', items: [['resources', 'Resources'], ['examples', 'Examples']] }] : NAV_GROUPS;
+  ? [{ name: 'Library', screen: 'resources', items: [['resources', 'Resources'], ['graph', 'Connections'], ['examples', 'Examples']] }] : NAV_GROUPS;
 export const writingScreenUnavailable = (work, screen) => work?.mode === 'resources'
-  && !['home', 'resources', 'resource', 'examples'].includes(screen);
+  && !['home', 'resources', 'resource', 'graph', 'examples'].includes(screen);

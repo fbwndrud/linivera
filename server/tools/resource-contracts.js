@@ -1,6 +1,7 @@
 const rule = (required, optional = []) => ({ required, allowed: [...required, ...optional] });
 /** Declarative operation shapes mirror the public command boundaries. */
 export const RESOURCE_ARGUMENTS = {
+  folio_motion: { plan: rule(['inputSnapshotId']), render: rule(['inputSnapshotId', 'idempotencyKey', 'actor'], ['grantId']), compile: rule(['inputSnapshotId', 'idempotencyKey', 'actor'], ['grantId']), assemble: rule(['inputSnapshotId', 'idempotencyKey', 'actor'], ['grantId']) },
   folio_assets: {
     add: rule(['id', 'brief'], ['title']), update: rule(['id', 'expectedRev', 'brief'], ['title']),
     put: rule(['id', 'expectedRev', 'mediaType'], ['path', 'uri', 'contentHash', 'origin']),
@@ -15,6 +16,7 @@ export const RESOURCE_ARGUMENTS = {
   folio_resources: {
     propose: rule(['resourceId', 'kind'], ['parents', 'owned', 'external', 'schemaRef']), read: rule(['revisionId']),
     decideSource: rule(['revisionId', 'expectedSelectionRevision', 'action']),
+    importFile: rule(['resourceId', 'kind', 'path', 'mediaType'], ['parents', 'schemaRef', 'contentHash']), importAsset: rule(['assetId', 'expectedRev']),
   },
   folio_inputs: {
     prepare: rule(['revisionIds', 'profileRevisionId', 'pipelineRevisionId', 'policyRevisionId'], ['externalMode']), verify: rule(['inputSnapshotId']),
@@ -29,6 +31,6 @@ export const RESOURCE_ARGUMENTS = {
     review: rule(['operationId', 'outputHashes', 'findings', 'reviewer']),
     decide: rule(['operationId', 'receiptId', 'expectedCheckpoint', 'action', 'actor'], ['grantId']),
   },
-  folio_resource_query: { query: rule([], ['resourceId', 'selector', 'freshness']), refresh: rule([], ['checkpoint']) },
+  folio_resource_query: { query: rule([], ['resourceId', 'selector', 'freshness']), refresh: rule([], ['checkpoint']), graph: rule([], ['resourceId', 'direction', 'depth', 'limit']) },
   folio_embeddings: { index: rule([], ['dimension', 'freshness']), search: rule(['generationId', 'text'], ['freshness', 'limit']) },
 };

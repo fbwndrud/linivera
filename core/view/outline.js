@@ -38,7 +38,7 @@ async function statusSummary(root, packs) {
 export async function viewOutline(root, { packs }) {
   const workspace = await viewWorkspaceMode(root);
   const capabilities = workspaceCapabilities(workspace.mode, workspace.config);
-  if (workspace.mode === 'resources') return { title: workspace.title, mode: workspace.mode, capabilities, availableScreens: ['resources'],
+  if (workspace.mode === 'resources') return { title: workspace.title, mode: workspace.mode, capabilities, availableScreens: ['resources', 'graph'],
     levels: [], features: { viewerToggles: false }, nodes: [], entities: [], status: { ok: true } };
   const work = await openWork(root);
   const nodes = preorder(work.tree).map((id) => {

@@ -1,0 +1,22 @@
+// Resource lineage system labels; authored IDs and content remain literal.
+export default Object.freeze({
+  "Writing connections": "집필 연결",
+  "Production": "제작 작업",
+  "Resource history": "자산 이력",
+  "Follow selected sources, production steps and reusable results. A submitted result still needs review. Review needed means an earlier input changed.": "선택한 원본, 제작 단계, 재사용할 결과를 따라갑니다. 제출 결과에는 아직 검토가 필요합니다. 재검토 필요는 앞선 입력이 바뀌었다는 뜻입니다.",
+  "Resource": "자산",
+  "All resources": "모든 자산",
+  "Refresh history": "이력 새로고침",
+  "Checkpoint {seq} · {items} items · {connections} connections": "기록 지점 {seq} · 항목 {items}개 · 연결 {connections}개",
+  "Partial graph. More connections exist outside this view. Use a focused graph query to inspect them.": "부분 그래프입니다. 현재 보기 밖에 연결이 더 있습니다. 자산 범위를 좁힌 그래프 조회로 확인하세요.",
+  "No resources registered yet.": "등록한 자산이 없습니다.",
+  "Selected history item": "선택한 이력 항목",
+  "Operation ID": "제작 작업 ID",
+  "Revision ID": "판본 ID",
+  "Content hash": "내용 해시",
+  "Sealed input": "봉인 입력",
+  "All history items": "모든 이력 항목",
+  "source": "선택 원본", "candidate": "후보", "submitted": "제출됨",
+  "approved": "승인됨", "rejected": "거절됨", "pending": "대기 중",
+  "input": "입력", "output": "출력", "revision": "판본 이력",
+});

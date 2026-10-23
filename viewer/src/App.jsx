@@ -81,7 +81,7 @@ export function Screen({ route, outline, reloadOutline, readId }) {
     case 'blocks': return <Blocks outline={outline.data} />;
     case 'graph': // 색은 작품 제목으로 저장하므로 제목을 안 뒤에 그린다(새로 고침해도 고른 색을 읽는다).
       return outline.data
-        ? <Suspense fallback={<p className="muted">{t("Loading…")}</p>}><Graph key={outline.data.title} title={outline.data.title} /></Suspense>
+        ? <Suspense fallback={<p className="muted">{t("Loading…")}</p>}><Graph key={outline.data.title} title={outline.data.title} resourceOnly={outline.data.mode === 'resources'} /></Suspense>
         : <LoadState state={outline} />;
     default: return <Home outline={outline} />;
   }

@@ -27,13 +27,14 @@ const format = status('web', 'epub');
 
 /** 동적인 노드·검사·질문 상세는 확장을 허용하고, 안정적인 바깥 계약을 선언한다. */
 const RESULTS = {
+  folio_motion: choice(shape({ status: status('ready', 'needs_assets'), specRevisionId: text, plan: object, missing: array }), shape({ status: status('submitted'), operationIds: strings, resultRevisionIds: strings, creativeReview: text })),
   folio_assets: choice(shape({ asset: object }), shape({ assets: array, summary: object })),
   folio_tracking: choice(shape({ plan: nullable(object) }), shape({ proposalId: text, proposalDigest: text }), shape({ type: text, entries: array })),
   folio_resources: choice(shape({ revisionId: text }), shape({ revision: object }), shape({ selectionRevision: text })),
   folio_inputs: shape({ inputSnapshotId: text, manifest: object }),
   folio_policy: nullable(shape({ grantId: text, revoked: { type: 'boolean' } })),
   folio_operations: choice(shape({ operationId: text }), text),
-  folio_resource_query: choice(shape({ generationId: text }), shape({ entries: array, freshness: text })),
+  folio_resource_query: choice(shape({ generationId: text }), shape({ entries: array, freshness: text }), shape({ nodes: array, edges: array, checkpoint: object, truncated: { type: 'boolean' } })),
   folio_embeddings: choice(shape({ generationId: text }), shape({ results: array, freshness: text })),
   folio_init: shape({ created: { type: 'boolean' }, root: text, config: object }, ['created', 'root']),
   folio_status: shape({ ledger: object, next: nullable(object), activeRun: nullable(object), pending: nullable(run),

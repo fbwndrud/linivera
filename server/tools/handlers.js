@@ -1,4 +1,5 @@
 import { embeddingsTool } from './embeddings.js';
+import { motionTool } from './motion.js';
 import { resourcesTool } from './resources.js';
 import { inputsTool } from './inputs.js';
 import { policyTool } from './policy.js';
@@ -42,6 +43,7 @@ function structureArgs(op, args) {
 export function createHandlers({ packs, viewer = createViewerRegistry({ packs }) }) {
   const runner = (root) => createRunner({ root, packs });
   return {
+    folio_motion: ({ root, ...args }) => motionTool(root, args),
     folio_embeddings: ({ root, ...args }) => embeddingsTool(root, args),
     folio_resources: ({ root, ...args }) => resourcesTool(root, args),
     folio_inputs: ({ root, ...args }) => inputsTool(root, args),

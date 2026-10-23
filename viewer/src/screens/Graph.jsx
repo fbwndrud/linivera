@@ -5,9 +5,15 @@ import { useLoad } from '../api-context.jsx';
 import { hrefFor } from '../lib/route.js';
 import { focusedConnections } from '../lib/connections.js';
 import { LoadState } from '../components/Status.jsx';
+import { ResourceLineage } from '../components/ResourceLineage.jsx';
 
 const Diagram = lazy(() => import('../components/ConnectionDiagram.jsx'));
-export function Graph({ title }) {
+export function Graph({ title, resourceOnly = false }) {
+  const t = useT();
+  return <><h1>{t("Connections")}</h1><ResourceLineage />{!resourceOnly && <WritingConnections title={title} />}</>;
+}
+
+function WritingConnections({ title }) {
   const t = useT();
   const [state] = useLoad('/api/graph');
   const [selected, setSelected] = useState('');
@@ -16,7 +22,7 @@ export function Graph({ title }) {
   if (!state.data) return <LoadState state={state} />;
   const graph = state.data, focus = focusedConnections(graph, selected, query);
   return <section className="connections-screen">
-    <p className="eyebrow">{t("Library · Connections")}</p><h1>{t("Connections")}</h1>
+    <p className="eyebrow">{t("Library · Connections")}</p><h2>{t("Writing connections")}</h2>
     <p>{t("Select a character, place or other definition to see its actual manuscript references. Mentions and declared links do not by themselves describe a relationship.")}</p>
     {!focus.entity ? <div className="empty-state"><h2>{t("No definitions yet")}</h2><p>{t("Ask your AI assistant to record the people, places or concepts you want to follow.")}</p></div> : <>
       <div className="impact-filters"><label>{t("Definition")}<select value={focus.entity.refId} onChange={(e) => { setSelected(e.target.value); setDiagram(false); }}>{graph.entities.map((e) => <option key={e.id} value={e.refId}>{e.label} · {t(kindLabel(e.kind))}</option>)}</select></label>
