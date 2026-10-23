@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.1.3 — 2026-10-24
+
+Connect retained files, exact inputs, tool execution, review and later work in one local workspace.
+The prepared GitHub release archive includes the MCP server and built Studio. Installation commands use v0.1.3; earlier engine and example archives remain unchanged.
+
+- Resource lineage and local FFmpeg motion: reuse selected images/audio through shots, timelines and assembled videos, with transitive review impact.
+- Streaming files up to 2GiB, bounded nested bundles, sealed generation requests, append-only execution records and independently reviewed output groups. Retry collection without repeating an uncertain generation request.
+- Exact revisions selected per scope, iteration intent, usage context and required context-package roles; preserve historical Input hashes while checking fresh work.
+- Structure links for workflow/run, glTF/GLB, subtitles, XMEML/OTIO, project manifests and Aseprite atlases; provider-response and brief/rights/release/performance records feed two later tasks.
+- Four representative capability specifications and six access specifications. Compare exact retained input candidates and separate installation, exposure, authentication, permission, plan and credits; the 37-partner table is research, not 37 executable integrations.
+- A host-supplied official Meshy MCP subset verifies implementation/version/schema and captures complete local files before Resource retention. Provider transports are injected; synthetic tests do not establish real account readiness.
+- Fix cross-scope request/report reuse and contradictory Meshy output formats. Published catalog IDs and release hashes are immutable; append new editions while retaining old specifications, reports and Inputs.
+- Refresh English/Korean READMEs, document navigation, installation/version guidance and verification boundaries. Existing work folders, `folio_*` tools and `folio-*` commands remain compatible.
+
 ## 0.1.2 — 2026-10-11
 
 Fixes manuscript-language metadata in Studio exports and the API authentication guide.

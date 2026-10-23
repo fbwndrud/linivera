@@ -10,7 +10,7 @@
 
 ## 호스트에게 요청하기
 
-`skill/folio/`를 설치한 호스트에서 다음처럼 요청한다.
+Linivera MCP에 연결하고 기본 지침과 `linivera://guides/skill`을 읽은 호스트에서 다음처럼 요청한다. 호스트가 MCP resources를 지원하지 않으면 `skill/folio/`를 해당 프로그램 방식으로 등록한다. 연결 방법은 [연결 안내](connect.md), 생성 파일과 다음 제작은 [문서 안내](README.md)를 따른다.
 
 > `/absolute/path/to/my-story` 폴더에 단일 장면 소설을 만들어 줘.
 > 제목은 ‘첫 장면’이고, 닫힌 가게 앞에서 오래된 편지를 발견하는 이야기야.

@@ -37,7 +37,7 @@ node examples/tracking.js
 node examples/run.js all --out /absolute/path/to/new-demo
 ```
 
-CI에서는 다음 명령으로 검증하고, 이 실행이 만든 임시 폴더를 정리한다.
+로컬에서는 다음 명령으로 검증하고, 이 실행이 만든 임시 폴더를 정리한다.
 
 ```sh
 npm run examples:verify
@@ -60,7 +60,9 @@ npm run examples:verify
 후보 비공개, 관리 대상 path:null, 원문 hash 보존, 다음 요청 근거, 보충과 재검토의 차이,
 연결 복원, 잘못된 입력, 기능을 꺼도 기록 삭제를 거부하는 경계를 확인한다.
 
-## English fixtures
+## 제작 데이터의 합성 연속성
+
+현재 소스 0.1.3 또는 그 소스로 만든 설치본에서 실행한다. 모션을 포함한 예제는 로컬 FFmpeg가 필요하다.
 
 `node examples/delivery-continuity.js --change=rights`는 공급자 응답·브리프·권리·배포·성과를
 기존 Resource에 연결해 재시작 뒤 두 단계 다음 결과에 사용한다. change는 rights,
@@ -71,7 +73,7 @@ rights-proof, performance, contract다. 합성 증거와 opaque 영상 fixture�
 공식 Meshy MCP 합성 호스트의 연결 점검/부분 다운로드 복구/모델 의존성 →
 합성 fal 이미지 생성/응답 보관 → 공급자 응답/파일 → P0 연결 →
 P1 workflow/model → P2 편집 → P3 프로젝트·DB 증거 → P4 브리프·권리·배포·성과 → 맥락 묶음
-하나의 Input → 두 후속 작업을 실행한다. 원본 삭제·재시작·거절 10종·변경 5종의 두 단계
+하나의 Input → 두 후속 작업을 실행한다. 60개 판본을 고정하고 원본 삭제·재시작·거절 21종·변경 9종의 두 단계
 재검토·과거 Input 검증을 확인한다. 합성 자료만 쓰며 실제 생성·공급자 호출·재생·복원·
 게시·법률 판단은 수행하지 않는다. [맥락 묶음](../docs/context-bundles.md)을 참고한다.
 
@@ -79,5 +81,7 @@ P1 workflow/model → P2 편집 → P3 프로젝트·DB 증거 → P4 브리프�
 보관하고 MCP 재시작 후 프로젝트/atlas/DB 데이터를 두 단계 후속 작업에 사용한다.
 DB 또는 스프라이트 판본 변경의 전이 재검토를 검증한다. 실제 브로커/공급자 호출·
 모델 생성·게임 복원/배포는 수행하지 않는다. 임시 자료는 항상 정리한다.
+
+## English fixtures
 
 CLI examples now default to English. Use `node examples/run.js all --language en --verify`, or the one-command demo in [Getting started](../docs/getting-started.en.md). Use `--language ko` for the original Korean fixtures. The JavaScript `runExamples` API keeps its original Korean default. Both versions use fixed synthetic responses and simulated approval; they never approve a real user work.

@@ -70,7 +70,7 @@ subprocess는 shell 없이 실행하며 stdout은 JSON만, stdout4MiB/stderr64Ki
 기본 timeout300초를 넘으면 강제 종료한다. 호출자에게 입력/비밀/원본 stderr를
 반환하지 않는다. 요청마다 모델을 다시 로드하므로 CPU 지연과 메모리 사용이 크다.
 대규모 처리·background 실행·모델 품질 보장·audio/video 추론은 제공하지 않는다.
-CI는 가중치 없이 합성 벡터와 subprocess 실패를 검사한다. 실제 모델 검증은
+로컬 회귀 검사는 가중치 없이 합성 벡터와 subprocess 실패를 검사한다. 실제 모델 검증은
 별도 합성 text/image smoke이며 창작 결과물을 저장소에 커밋하지 않는다.
 
 출시·모델 계약 근거: [Google releases](https://ai.google.dev/gemma/docs/releases),

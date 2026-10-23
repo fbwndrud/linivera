@@ -14,7 +14,7 @@ export function Examples() {
     <section className="next-action"><h2>{t("Small examples included with Linivera")}</h2>
       <p>{t("These use synthetic inputs, scripted AI responses and simulated approval. They show the workflow, not independent writing quality.")}</p>
       <div className="example-grid">{examples.map(([name, description, id]) => <article key={id} className="example-card"><h3>{t(name)}</h3><p>{t(description)}</p><blockquote>{t("Ask your AI assistant: Run Linivera’s {example} synthetic example in a new folder and open its viewer.", { example: id })}</blockquote></article>)}</div>
-      <details><summary>{t("Command-line instructions")}</summary><pre><code>{`npx -y https://github.com/fbwndrud/linivera/releases/download/v0.1.1/linivera-0.1.1.tgz examples all --language ${locale} --out ./my-new-examples`}</code></pre><p>{t("Use a new output folder. Linivera will not overwrite an existing example folder.")}</p></details>
+      <details><summary>{t("Command-line instructions")}</summary><pre><code>{`npx -y https://github.com/fbwndrud/linivera/releases/download/v0.1.3/linivera-0.1.3.tgz examples all --language ${locale} --out ./my-new-examples`}</code></pre><p>{t("Use a new output folder. Linivera will not overwrite an existing example folder.")}</p></details>
     </section>
     <section><h2>{t("Complete works with images")}</h2>
       <p>{t("Complete works are separate ZIP bundles. Each contains the manuscript, images, sources, a Linivera work copy, a read-only Studio, Web and EPUB editions.")}</p>

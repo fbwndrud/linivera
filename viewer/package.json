@@ -1,6 +1,6 @@
 {
   "name": "linivera-viewer",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "private": true,
   "type": "module",
   "description": "Linivera Studio screens, built into viewer/dist and served locally by server/view.",

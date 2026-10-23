@@ -95,7 +95,7 @@ test('localized timeline keeps event classes, author names and original IDs; err
 test('example instructions work in both languages and retain commands and approval disclosures', async () => {
   const { Examples } = await server.ssrLoadModule('/src/screens/Examples.jsx');
   const html = render(Examples, {});
-  for (const text of ['예시 모음', '모의 승인을', '작품 예시', 'node serve.mjs', 'npx -y https://github.com/fbwndrud/linivera/releases/download/v0.1.1/linivera-0.1.1.tgz examples all --language ko', 'work 폴더']) {
+  for (const text of ['예시 모음', '모의 승인을', '작품 예시', 'node serve.mjs', 'npx -y https://github.com/fbwndrud/linivera/releases/download/v0.1.3/linivera-0.1.3.tgz examples all --language ko', 'work 폴더']) {
     assert.ok(html.includes(text), text);
   }
   assert.match(render(Examples, {}, 'en'), /Small examples included with Linivera/);
