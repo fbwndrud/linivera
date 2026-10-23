@@ -12,6 +12,8 @@ const VALID = {
   folio_resources: [{ op: 'propose', resourceId: 'synthetic', kind: 'note', owned: { bytes: 'synthetic', mediaType: 'text/plain' } },
     { op: 'inspectStructure', revisionId: 'source', format: 'glb' },
     { op: 'inspectStructure', revisionId: 'source', format: 'xmeml', parserVersion: 1 },
+    { op: 'inspectStructure', revisionId: 'source', format: 'aseprite' },
+    { op: 'normalizeStructure', resourceId: 'structure', sourceRevisionId: 'source', format: 'project-manifest', structureBindings: [] },
     { op: 'inspectStructure', revisionId: 'source', format: 'comfy-ui', parserVersion: 2, dependencyManifestRevisionId: 'contract' },
     { op: 'normalizeStructure', resourceId: 'structure', sourceRevisionId: 'source', format: 'comfy-api', structureBindings: [{ referenceKey: '/1/inputs/image', revisionId: 'image' }] }],
   folio_inputs: [{ op: 'verify', inputSnapshotId: 'snapshot' }], folio_policy: [{ op: 'status', grantId: 'grant' }],

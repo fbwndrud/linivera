@@ -1,6 +1,8 @@
 import { FolioError } from '../errors.js';
 import { assertResourceId, assertRevisionId } from './schema.js';
 import { createResourceStore } from './revisions.js';
+import { assertBundlePath } from './bundle-path.js';
+export { assertBundlePath } from './bundle-path.js';
 
 export const MAX_BUNDLE_MEMBERS = 4096;
 export const MAX_BUNDLE_BYTES = 8 * 1024 * 1024 * 1024;
@@ -8,9 +10,6 @@ function invalid(message) { throw new FolioError('BUNDLE_INVALID', message); }
 function object(value) { return value && typeof value === 'object' && !Array.isArray(value); }
 function fields(value, allowed) { if (!object(value) || Object.keys(value).some((key) => !allowed.includes(key))) invalid('unknown bundle field'); }
 function role(value) { if (typeof value !== 'string' || !value.trim() || value.length > 128) invalid('member role required'); }
-export function assertBundlePath(value) {
-  if (typeof value !== 'string' || value.length > 2048 || !value || /[\\\0:]/.test(value) || value.startsWith('/') || value.split('/').some((part) => !part || part === '.' || part === '..')) invalid('normalized relative member path required');
-}
 export function validateBundleManifest(value, { draft = false } = {}) {
   fields(value, ['version', 'bundleType', 'members', 'entrypoints', 'unavailable', 'completeness', 'dependencyCoverage', 'restorability']);
   if (value.version !== 1) invalid('bundle version 1 required'); assertResourceId(value.bundleType);

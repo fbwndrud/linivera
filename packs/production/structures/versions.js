@@ -1,6 +1,6 @@
 import { invalid } from './common.js';
 
-const latest = { 'comfy-api': 2, 'comfy-ui': 2, 'martini-run': 1, srt: 1, gltf: 2, glb: 2, xmeml: 1, otio: 1 };
+const latest = { 'comfy-api': 2, 'comfy-ui': 2, 'martini-run': 1, srt: 1, gltf: 2, glb: 2, xmeml: 1, otio: 1, 'project-manifest': 1, aseprite: 1 };
 export const STRUCTURE_FORMATS = Object.keys(latest);
 export function resolveParserVersion(format, requested) {
   if (!Object.hasOwn(latest, format)) invalid('unsupported structure format');

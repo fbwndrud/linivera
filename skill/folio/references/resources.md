@@ -23,12 +23,15 @@ workflow/3D/자막 파일을 다음 작업에 연결할 때는
 편집은 xmeml/otio를 사용한다. 커스텀 Comfy 선언은 보관한 dependencyManifestRevisionId로
 전달한다. 새 작업은 최신 parserVersion을 사용하며 옛 map/Input의 읽기·재시도는 유지한다.
 범위와 필수 파일 계약은 [편집·의존성](https://github.com/fbwndrud/linivera/blob/codex/chroma-timeline-dependencies/docs/editing-dependencies.md)을 따른다.
+파서 없는 파트너 파일도 공통 반입으로 보관한다. project-manifest 선언과 aseprite atlas는
+[프로젝트 자료](https://github.com/fbwndrud/linivera/blob/codex/chroma-project-dependencies/docs/project-data.md)를 따른다.
+브로커가 확보한 bytes/path와 관측하지 못한 생성 이력을 구분한다.
 
 | 도구·op | root/op 외 인자 |
 |---|---|
 | folio_resources propose | resourceId, kind, parents? (기본 []), schemaRef?, owned:{bytes:UTF-8문자열,mediaType:text/plain 또는 application/json} 또는 owned:{base64:canonical문자열,mediaType:지원MIME}(상호 배타·8MiB) 또는 external:{uri,reportedRevision?} |
 | folio_resources read | revisionId; `{revision,content}` 반환, external content=null; 후보도 읽을 수 있음 |
-| folio_resources inspectStructure | revisionId, format:comfy-api/comfy-ui/martini-run/gltf/glb/srt/xmeml/otio, parserVersion?, dependencyManifestRevisionId?; `{revision,structure}` 반환 |
+| folio_resources inspectStructure | revisionId, format:comfy-api/comfy-ui/martini-run/gltf/glb/srt/xmeml/otio/project-manifest/aseprite, parserVersion?, dependencyManifestRevisionId?; `{revision,structure}` 반환 |
 | folio_resources normalizeStructure | resourceId, sourceRevisionId, format, structureBindings:[{referenceKey,revisionId}], parserVersion?, dependencyManifestRevisionId?; `structure-map` 후보 반환 |
 | folio_resources decideSource | revisionId, expectedSelectionRevision:null 또는 마지막 selectionRevision, action:{type:select 또는 deselect,actor:user,reason?}; deselect 이유 필수 |
 | folio_inputs prepare | revisionIds, profileRevisionId, pipelineRevisionId, policyRevisionId, externalMode?:reject 또는 reference-only |
