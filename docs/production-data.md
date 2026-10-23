@@ -2,6 +2,9 @@
 
 이 기능은 [공통 자원](resources.md)과 [모션 제작](motion.md)의 저장·입력·검토 구조를 이어 쓴다. 생성 결과 파일, 실제 요청, 실행 관측, 후보별 검토를 같은 Resource/Operation으로 연결한다. core는 모델이나 네트워크를 호출하지 않는다.
 
+도구별 자동 해석·수동 연결·파일 보관 범위는 [Chroma 지원표](chroma-support.md),
+workflow/3D/자막 내부 참조를 다음 Input에 고정하는 절차는 [구조 연결](structure-links.md)을 따른다.
+
 ## 확인된 실행 예제
 
 ```sh

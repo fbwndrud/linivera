@@ -44,3 +44,13 @@ test('one history view distinguishes media families, episode choices and causal 
   for (const text of ['3D 모델', '사용 맥락', '포함 파일', '회차 선택', 'Authored model']) assert.ok(korean.includes(text), text);
   assert.deepEqual(data.nodes[0].resourceId, 'Authored model');
 });
+
+test('structure source and mapped files have distinct labels in both Studio languages', () => {
+  const data = { nodes: [{ id: 'map', type: 'resource', resourceId: 'Synthetic structure', revisionId: 'sha256:map', family: 'structure', states: ['candidate'] },
+    { id: 'source', type: 'resource', resourceId: 'Synthetic source', revisionId: 'sha256:source', family: 'workflow', states: ['source'] }],
+  edges: [{ id: 's', source: 'map', target: 'source', kind: 'structure-source' }, { id: 'r', source: 'map', target: 'source', kind: 'structure-reference' }], checkpoint: { seq: 1 } };
+  for (const [locale, labels] of [['en', ['File structure', 'Structure source', 'Linked structure file']], ['ko', ['파일 구조', '구조 원본', '구조에 연결한 파일']]]) {
+    const html = renderToStaticMarkup(React.createElement(Provider, { initialLocale: locale }, React.createElement(ResourceLineageContent, { data })));
+    for (const label of labels) assert.ok(html.includes(label), label);
+  }
+});

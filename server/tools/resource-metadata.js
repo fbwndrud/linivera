@@ -1,5 +1,8 @@
 /** Shared vocabulary for managed assets, tracking and resource operation schemas. */
 export const RESOURCE_DESCRIPTIONS = {
+  sourceRevisionId: 'Exact retained source revision from which the structure is recomputed.',
+  structureBindings: 'Explicit links from inspected reference keys to exact retained file revisions.',
+  referenceKey: 'Stable source locator returned by inspectStructure; file names and external IDs are hints only.',
   expectedRev: 'Current version fingerprint from get; null means no prior tracking plan.',
   uri: 'External reference recorded without downloading or granting approval.',
   mediaType: 'Declared MIME type of the supplied bytes.', contentHash: 'Exact SHA-256 fingerprint of the reviewed content.',

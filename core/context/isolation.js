@@ -3,6 +3,7 @@ import { createResourceStore } from '../resources/revisions.js';
 import { usageContextReferences } from '../resources/context-records.js';
 
 function references(kind, value) {
+  if (kind === 'structure-map') return [value.sourceRevisionId, ...value.bindings.map((binding) => binding.revisionId)];
   if (kind === 'artifact-bundle') return value.members.map((member) => member.revisionId);
   if (kind === 'usage-context') return usageContextReferences(value);
   if (kind === 'context-package') return value.referenceRevisionIds;
@@ -15,7 +16,7 @@ function references(kind, value) {
     ...(value.iteration?.baseRevisionIds ?? []), ...(value.iteration?.preserveRefs ?? []), ...(value.iteration?.changeRequestRevisionId ? [value.iteration.changeRequestRevisionId] : [])];
   return [];
 }
-const typed = new Set(['artifact-bundle', 'usage-context', 'resource-usage', 'context-package', 'audio-alignment', 'normalization-map', 'iteration', 'generation-request']);
+const typed = new Set(['artifact-bundle', 'usage-context', 'resource-usage', 'context-package', 'audio-alignment', 'normalization-map', 'iteration', 'generation-request', 'structure-map']);
 
 /** Follow actual typed references only. Provenance is not implicitly provided context. */
 export async function assertContextIsolation(root, revisions, expected) {
