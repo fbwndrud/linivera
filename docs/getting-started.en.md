@@ -1,8 +1,8 @@
 # Getting started with Linivera
 
-This source checkout is **0.1.3**. The latest published engine archive is still **0.1.2**;
-the download commands below use that existing release. For the production-data features in
-0.1.3, use the [source setup](../README.md#installation) or a locally built 0.1.3 archive.
+The prepared engine package is **0.1.3** and includes the MCP server and built Studio.
+The download commands below use that release. Existing installations need the new package
+URL and a server reconnect. For development, see the [source setup](../README.md#installation).
 See the [documentation map](README.md) and [changelog](../CHANGELOG.md).
 
 ## Connect your AI application
@@ -13,14 +13,14 @@ Ask your assistant:
 
 You need Node.js 24 (22.13+ within 22.x, or 26.x also supported). The prepared package includes Studio. No cloning, source build or separate model download is needed. npm downloads the package and its dependencies on first use; you need internet access then. The package is distributed through GitHub Releases, not the npm registry.
 
-For a manual registration command, see [Installation](../README.md#installation). Reconnect or restart the AI application after registering. Ask it to list the server tools: the 0.1.3 source server reports `linivera`, version `0.1.3`, with 23 tools. The published 0.1.2 archive still reports its own version and 22 tools; always compare against the installed package manifest. Existing tool IDs still start with `folio_` for compatibility.
+For a manual registration command, see [Installation](../README.md#installation). Reconnect or restart the AI application after registering. Ask it to list the server tools: the 0.1.3 server reports `linivera`, version `0.1.3`, with 23 tools. Always compare against the installed package manifest; older archives keep their own version and tool set. Existing tool IDs still start with `folio_` for compatibility.
 
 The server supplies basic workflow instructions on connection. Hosts supporting MCP resources can read this guide at `linivera://guides/getting-started`, the detailed skill at `linivera://guides/skill`, and its listed references. The detailed references currently use Korean; this guide and the tool descriptions cover the first English workflow. For a host without resource support, its instruction/skill mechanism can load the packaged `skill/folio/` folder.
 
 ## Try an example before writing
 
 ```sh
-npx -y https://github.com/fbwndrud/linivera/releases/download/v0.1.2/linivera-0.1.2.tgz demo
+npx -y https://github.com/fbwndrud/linivera/releases/download/v0.1.3/linivera-0.1.3.tgz demo
 ```
 
 This creates a new English synthetic story with fixed responses and simulated approval, then prints the Studio address. Open that address. You can select English or Korean in the toolbar; UI language and manuscript language are separate choices. No AI account is used for the demonstration.
@@ -28,7 +28,7 @@ This creates a new English synthetic story with fixed responses and simulated ap
 The terminal prints the saved work folder. The default is a new temporary folder; use `demo --out ./my-first-example` to keep it in a chosen new folder. The folder's parent must already exist. An existing folder is never overwritten. Stop Studio with Ctrl+C. To reopen a saved work:
 
 ```sh
-npx -y https://github.com/fbwndrud/linivera/releases/download/v0.1.2/linivera-0.1.2.tgz view ./my-first-example/story
+npx -y https://github.com/fbwndrud/linivera/releases/download/v0.1.3/linivera-0.1.3.tgz view ./my-first-example/story
 ```
 
 Use `demo --language ko` for Korean. For four small English examples with automatic verification and cleanup, run the same package with `examples all --verify`.

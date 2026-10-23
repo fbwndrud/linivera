@@ -1,12 +1,12 @@
 # 로컬 설치와 첫 실행 검증
 
-Linivera는 로컬 폴더에서 실행한다. 현재 소스 버전은 **0.1.3**, 공개 설치 패키지는 **0.1.2**다. 0.1.3은 아직 공개 릴리스 전이며 새 제작 기능은 소스 또는 직접 만든 tarball로 사용한다. npm 공개 게시·클라우드 게시 서비스는 제공하지 않는다. Node 지원 범위는 package.json에 있으며 Node 24를 권장한다.
+Linivera는 로컬 폴더에서 실행한다. 현재 소스와 공개 설치 패키지 버전은 **0.1.3**이다. 새 제작 기능은 빌드된 Studio를 포함한 릴리스 tarball 또는 소스에서 사용한다. npm 공개 게시·클라우드 게시 서비스는 제공하지 않는다. Node 지원 범위는 package.json에 있으며 Node 24를 권장한다.
 
 목적별 시작점과 제작 데이터 흐름은 [문서 안내](README.md), 변경 내역은 [CHANGELOG](../CHANGELOG.md)를 따른다.
 
 ## 릴리스에서 받기
 
-[0.1.2 다운로드](https://github.com/fbwndrud/linivera/releases/tag/v0.1.2)에서 `linivera-0.1.2.tgz`와 `SHA256SUMS`를 받는다. 빌드된 화면을 포함한다. 가장 간단한 MCP 등록과 한 줄 데모는 [README](../README.ko.md#설치)에 있다. 전체 작품 ZIP은 엔진과 별도이며 [예시 안내](examples.md)에서 설명한다.
+[0.1.3 다운로드](https://github.com/fbwndrud/linivera/releases/tag/v0.1.3)에서 `linivera-0.1.3.tgz`와 `SHA256SUMS`를 받는다. 빌드된 화면을 포함한다. 가장 간단한 MCP 등록과 한 줄 데모는 [README](../README.ko.md#설치)에 있다. 전체 작품 ZIP은 엔진과 별도이며 [예시 안내](examples.md)에서 설명한다.
 
 ## 소스에서 준비하기
 
@@ -36,7 +36,7 @@ npm run package:verify
 
 package:build는 viewer build 후 npm pack --ignore-scripts를 수행해 현재 폴더에 tarball을 만든다. package:verify는 화면을 다시 빌드하고 임시 tarball을 개발 의존성 없이 새로 설치한다. 설치본의 stdio 스키마, 네 원고·자산·추적 예제, 전체 production 경로와 linivera-view 실행, 설치본 package.json과 MCP 초기 응답의 이름·버전 일치, 합성 영어 번역의 원본 결속 영수증·판본 HTTP 조회·Web/EPUB 실제 본문과 새 영어/한국어 원본의 기본 Studio 다운로드 언어 태그를 확인하고 임시 설치와 npm cache를 정리한다. 생성·회차 선택·P0~P4 구조·공식 도구 합성 호스트·맥락 묶음의 후속 두 작업과 역사 Input도 설치본에서 검증한다. 출고 카탈로그 10개 hash, 모순된 출력 형식 거부와 다른 회차 요청 거부도 확인한다. 단순 npm pack은 화면을 빌드하지 않으므로 배포에는 package:build를 쓴다.
 
-직접 만든 0.1.3 tarball은 별도 설치 폴더에서 다음처럼 실행한다. 공개 0.1.2를 받았다면 파일 이름을 받은 파일로 바꾼다.
+내려받거나 직접 만든 0.1.3 tarball은 별도 설치 폴더에서 다음처럼 실행한다.
 
 ```sh
 npm install --omit=dev --ignore-scripts /path/to/linivera-0.1.3.tgz
@@ -56,7 +56,7 @@ Windows에서는 같은 설치 폴더의 `node_modules\.bin\linivera-view.cmd`�
 4. MCP를 재연결하고 serverInfo 이름·버전이 설치된 package.json과 일치하는지 확인한다. 앱이 캐시한 도구·지침은 새 대화에서 확인한다.
 5. 작품 상태와 읽기 전용 doctor를 확인한 뒤 Studio를 다시 연다. 정적 검토 사본은 다시 내보낸다.
 
-문제가 생기면 MCP 실행 경로를 이전 설치 폴더로 되돌린다. 이번 업데이트는 기존 작품 형식·`.folio` 기록장·`folio_*` 도구 이름을 유지한다. 최신 소스는 0.1.3 패키지를 준비한다. 공개된 v0.1.2 패키지와 최초 v0.1.0 다운로드는 그대로 보존한다. GitHub에 0.1.3을 게시하기 전까지 기존 npx URL로는 새 기능이 설치되지 않는다. 새 패키지에도 기존 `folio-*` 실행 명령을 포함한다.
+문제가 생기면 MCP 실행 경로를 이전 설치 폴더로 되돌린다. 이번 업데이트는 기존 작품 형식·`.folio` 기록장·`folio_*` 도구 이름을 유지한다. v0.1.3 릴리스는 MCP 서버와 빌드된 Studio를 함께 제공한다. 공개된 v0.1.2 패키지와 최초 v0.1.0 다운로드는 그대로 보존한다. 기존 npx 등록도 v0.1.3 URL로 갱신해야 새 기능이 설치된다. 새 패키지에도 기존 `folio-*` 실행 명령을 포함한다.
 
 ## 화면과 내보내기
 

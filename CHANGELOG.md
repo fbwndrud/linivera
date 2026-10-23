@@ -1,9 +1,9 @@
 # Changelog
 
-## 0.1.3 — 2026-10-24 (unreleased)
+## 0.1.3 — 2026-10-24
 
 Connect retained files, exact inputs, tool execution, review and later work in one local workspace.
-The published engine archive remains v0.1.2 until a v0.1.3 release is published.
+The prepared GitHub release archive includes the MCP server and built Studio. Installation commands use v0.1.3; earlier engine and example archives remain unchanged.
 
 - Resource lineage and local FFmpeg motion: reuse selected images/audio through shots, timelines and assembled videos, with transitive review impact.
 - Streaming files up to 2GiB, bounded nested bundles, sealed generation requests, append-only execution records and independently reviewed output groups. Retry collection without repeating an uncertain generation request.

@@ -2,11 +2,11 @@
 
 **원본부터 결과까지, 연결해서 관리하세요.**
 
-[English](README.md) · [문서 안내](docs/README.md) · [공개 패키지 v0.1.2](https://github.com/fbwndrud/linivera/releases/tag/v0.1.2) · [첫 작품 쓰기](docs/writing-guide.md) · [문제 신고](https://github.com/fbwndrud/linivera/issues)
+[English](README.md) · [문서 안내](docs/README.md) · [공개 패키지 v0.1.3](https://github.com/fbwndrud/linivera/releases/tag/v0.1.3) · [첫 작품 쓰기](docs/writing-guide.md) · [문제 신고](https://github.com/fbwndrud/linivera/issues)
 
 리니베라는 AI와 작업하는 프로젝트의 데이터를 내 컴퓨터에서 관리하는 도구입니다. 원본 문서·그림·음원·영상·workflow·3D 파일의 정확한 판본과 근거·검토 기록을 연결합니다. 집필은 활용 사례 중 하나입니다. Studio에서 글을 읽고, 근거를 따라가고, 다시 확인할 부분을 볼 수 있습니다. 완성한 원고는 웹이나 EPUB으로 내보냅니다.
 
-**현재 소스는 0.1.3을 준비합니다.** 생성 데이터의 후속 연결, 입력·연결 준비 대조, 필수 맥락 묶음과 카탈로그 판본 보존을 추가했습니다. 공개 설치 패키지는 아직 **0.1.2**이므로 아래 다운로드 주소는 기존 파일을 가리킵니다. 새 기능은 0.1.3 공개 전까지 아래 소스 설치나 직접 만든 0.1.3 tarball로 사용합니다. [변경 이력](CHANGELOG.md)과 [문서 안내](docs/README.md)를 참고하세요.
+**0.1.3 설치 패키지를 제공합니다.** 생성 데이터의 후속 연결, 입력·연결 준비 대조, 필수 맥락 묶음과 카탈로그 판본 보존을 추가했습니다. 아래 설치 명령은 MCP 서버와 빌드된 Studio를 포함한 0.1.3 패키지를 사용합니다. [변경 이력](CHANGELOG.md)과 [문서 안내](docs/README.md)를 참고하세요.
 
 **0.1 계열은 로컬 사용을 위한 초기 버전입니다.** 집필하려면 stdio MCP를 지원하는 AI 프로그램이 필요합니다. 연결한 AI가 글을 쓰고, 이미지 도구를 지원하면 그림도 만듭니다. 리니베라는 파일과 기록을 관리합니다. 화면은 한국어와 영어를 선택할 수 있습니다.
 
@@ -28,19 +28,19 @@
 Claude Code는 사용할 프로젝트에서:
 
 ```sh
-claude mcp add --scope project linivera -- npx -y https://github.com/fbwndrud/linivera/releases/download/v0.1.2/linivera-0.1.2.tgz
+claude mcp add --scope project linivera -- npx -y https://github.com/fbwndrud/linivera/releases/download/v0.1.3/linivera-0.1.3.tgz
 ```
 
 Codex:
 
 ```sh
-codex mcp add linivera -- npx -y https://github.com/fbwndrud/linivera/releases/download/v0.1.2/linivera-0.1.2.tgz
+codex mcp add linivera -- npx -y https://github.com/fbwndrud/linivera/releases/download/v0.1.3/linivera-0.1.3.tgz
 ```
 
 Grok CLI:
 
 ```sh
-grok mcp add linivera -- npx -y https://github.com/fbwndrud/linivera/releases/download/v0.1.2/linivera-0.1.2.tgz
+grok mcp add linivera -- npx -y https://github.com/fbwndrud/linivera/releases/download/v0.1.3/linivera-0.1.3.tgz
 ```
 
 Windows에서는 `-- npx` 대신 `-- cmd /c npx`를 사용합니다. 등록 후 AI 프로그램을 재연결하거나 다시 시작하세요. 첫 다운로드 중 시간 초과가 나면 아래 데모를 한 번 실행하고 재연결하세요. Codex의 `startup_timeout_sec`는 필요하면 60으로 늘립니다. JSON 설정은 [영어 README](README.md#installation)를 참고하세요.
@@ -52,7 +52,7 @@ Windows에서는 `-- npx` 대신 `-- cmd /c npx`를 사용합니다. 등록 후 
 다음 한 줄로 한국어 합성 원고를 만들고 Studio 서버를 엽니다.
 
 ```sh
-npx -y https://github.com/fbwndrud/linivera/releases/download/v0.1.2/linivera-0.1.2.tgz demo --language ko
+npx -y https://github.com/fbwndrud/linivera/releases/download/v0.1.3/linivera-0.1.3.tgz demo --language ko
 ```
 
 표시된 주소를 브라우저에서 여세요. 화면 상단에서 한국어와 영어를 선택합니다. 고정 응답과 모의 승인으로 동작하므로 AI 계정이나 모델 다운로드가 필요 없습니다. Ctrl+C로 종료합니다.
@@ -127,7 +127,7 @@ MCP 연결 때 기본 작업 규칙을 보냅니다. MCP 리소스를 지원하�
 
 영어 예시는 [영어 모음 ZIP](https://github.com/fbwndrud/linivera/releases/download/v0.1.1/linivera-examples-en.zip)으로 받습니다. 새 단편·그림책·실습 안내서·네 장짜리 이야기와 기존 한국어 단편의 영어 번역이 들어 있습니다. 네 장짜리 이야기는 2,657단어의 구조 실습용 예시입니다. 새 묶음의 Web·EPUB·Studio는 영어 번역을 엽니다. Studio 상단의 **읽는 판본**에서 한국어 원본과 번역본을 전환하세요. 본문·구간 검토 기록·출판 미리보기가 함께 바뀌며 설정과 추적 정보는 원본 기준입니다.
 
-판본 선택은 현재 소스와 새 영어 Studio 묶음에 포함됩니다. 최초 `folio-0.1.0.tgz`와 기존 예시 ZIP은 변경하지 않았습니다. 공개 0.1.2 패키지가 저장소 변경만으로 0.1.3으로 바뀌지는 않습니다. 현재 소스에서 `npm run package:build`를 실행하면 0.1.3 MCP 서버와 빌드된 Studio를 함께 담은 설치 패키지를 만듭니다.
+판본 선택은 현재 소스와 새 영어 Studio 묶음에 포함됩니다. 최초 `folio-0.1.0.tgz`와 기존 예시 ZIP은 변경하지 않았습니다. 0.1.3 릴리스에는 MCP 서버와 빌드된 Studio가 들어 있습니다. 이전 엔진 패키지의 내용은 그대로이므로 기존 설치도 새 패키지 주소로 등록해야 업데이트됩니다. 현재 소스에서 `npm run package:build`를 실행하면 0.1.3 MCP 서버와 빌드된 Studio를 함께 담은 설치 패키지를 만듭니다.
 
 ## Folio에서 리니베라로
 
@@ -138,7 +138,7 @@ MCP 연결 때 기본 작업 규칙을 보냅니다. MCP 리소스를 지원하�
 ## 이미 설치했다면 업데이트하기
 
 1. AI 앱의 MCP 연결과 Studio를 종료하고 작품 폴더 전체를 백업합니다. 작품은 설치 폴더와 별도로 보관하세요.
-2. npx 등록에는 공개된 패키지 URL을 사용합니다. 위 주소는 현재 0.1.2입니다. 0.1.3 소스는 `git pull --ff-only`와 `npm run setup`으로 준비합니다. 직접 만든 0.1.3 파일은 새 설치 폴더에서 `npm install --omit=dev --ignore-scripts /path/to/linivera-0.1.3.tgz`로 설치합니다.
+2. npx 등록 값을 위의 0.1.3 패키지 주소로 갱신하고 재연결합니다. 소스는 `git pull --ff-only`와 `npm run setup`으로 준비합니다. 내려받은 0.1.3 파일은 새 설치 폴더에서 `npm install --omit=dev --ignore-scripts /path/to/linivera-0.1.3.tgz`로 설치합니다.
 3. 별도로 복사한 `skill/folio/`도 새 설치본의 폴더로 바꿉니다. 설치 위치가 달라졌다면 MCP 실행 경로도 고칩니다.
 4. MCP를 재연결합니다. 앱이 도구나 지침을 기억한다면 새 대화를 시작하세요. 서버가 알리는 이름·버전이 설치본 `package.json`과 같은지 확인한 다음 작품 상태를 조회하고 Studio를 다시 엽니다.
 
