@@ -82,6 +82,10 @@ requirements는 그 usage-context를 만든 다음 작업의 선언이다. packa
   `STRUCTURE_BINDINGS_INCOMPLETE`.
 - package 전체 typed reference의 scope/path/time은 기존 격리를 따른다. 중첩 P3/P4 map의
   증거로 다른 이야기·경로의 context를 넣으면 `CONTEXT_SCOPE_MISMATCH`.
+- scoped v2 Input은 package나 대조 보고 없이 요청을 직접 선택해도 전체 typed closure의
+  scopeId를 검사한다. `generation-request.iteration`을 통한 다른 이야기의 맥락 유입도 차단한다.
+  이 검사 전에 보관한 Input의 hash/판본 검증은 유지하지만 새 Operation에서 다시 차단한다.
+  v2 Input 자체에는 path/time 대상 필드가 없으며, 이를 선언한 context/보고 경로가 별도로 검사한다.
 - 위조 item·참조 집합, 원본과 다른 map, identity가 다른 performance, profile/policy의
   scope·`maxInputBytes` 초과는 기존 검증으로 거절한다.
 - 구버전 parser map을 담은 package는 Input으로 봉인·검증할 수 있지만 새 Operation

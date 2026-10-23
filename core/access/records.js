@@ -2,7 +2,7 @@ import { FolioError } from '../errors.js';
 import { assertResourceId, assertRevisionId } from '../resources/schema.js';
 import { readTypedJson } from '../readiness/records.js';
 import { validateAccessSpec } from '../../packs/production/access-specifications.js';
-import { validateCapabilityRequest } from '../../packs/production/capabilities.js';
+import { validateCapabilityRequest, validateHistoricalCapabilityRequestV1 } from '../../packs/production/capabilities.js';
 import { canonicalJson } from '../util/hash.js';
 
 export const ACCESS_KINDS = new Set(['access-specification', 'connection-check', 'connection-readiness']);
@@ -48,13 +48,14 @@ export async function readAccessJson(root, revisionId, kind) {
   if (kind === 'connection-check') validateConnectionCheck(result.value);
   return result;
 }
-export async function validateCheckReferences(root, value) {
+/** Retained v1 check references replay their original contract; fresh observations request current validation. */
+export async function validateCheckReferences(root, value, { currentContract = false } = {}) {
   validateConnectionCheck(value);
   const access = await readAccessJson(root, value.accessSpecificationRevisionId, 'access-specification');
   const capability = await readTypedJson(root, value.capabilitySpecificationRevisionId, 'capability-specification');
   const request = await readTypedJson(root, value.requestRevisionId, 'generation-request');
   if (access.value.capabilityId !== capability.value.id || canonicalJson(access.value.identity) !== canonicalJson(capability.value.identity)) invalidAccess('access and capability identities differ');
-  validateCapabilityRequest(capability.value, request.value);
+  (currentContract ? validateCapabilityRequest : validateHistoricalCapabilityRequestV1)(capability.value, request.value);
   return { access, capability, request };
 }
 export function checkReferences(value) { return [value.accessSpecificationRevisionId, value.capabilitySpecificationRevisionId, value.requestRevisionId]; }

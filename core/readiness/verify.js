@@ -6,12 +6,13 @@ import { buildCapabilityReadiness } from './compare.js';
 import { invalidReadiness, READINESS_KIND, SPECIFICATION_KIND, readTypedJson, readinessInputReferences, readinessEvidenceReferences } from './records.js';
 import { hasCurrentScopedConsumption, assertReportedScopeCurrent } from './selection.js';
 import { validateCapabilitySpec } from '../../packs/production/capabilities.js';
+import { assertReadinessRequestContract } from './request-contract.js';
 
 /** Rebuild a report against its retained ledger prefix, never against today's selections. */
 export async function verifyCapabilityReadiness(root, value) {
-  if (!value || value.version !== 1 || !value.input || !value.workspaceCheckpoint) invalidReadiness('versioned readiness report with exact checkpoint required');
+  if (!value || ![1, 2].includes(value.version) || !value.input || !value.workspaceCheckpoint) invalidReadiness('versioned readiness report with exact checkpoint required');
   const state = await readWorkspaceState(root, { checkpoint: value.workspaceCheckpoint });
-  const expected = await buildCapabilityReadiness(root, value.input, state);
+  const expected = await buildCapabilityReadiness(root, value.input, state, { reportVersion: value.version });
   if (canonicalJson(expected) !== canonicalJson(value)) invalidReadiness('report differs from exact specification, retained evidence or historical scope');
   return readinessInputReferences(value);
 }
@@ -39,6 +40,7 @@ export async function readReadinessRelations(root, revision) {
 export async function assertReadinessCurrent(root, revisionId, manifest = undefined) {
   const { value } = await readTypedJson(root, revisionId, READINESS_KIND);
   await verifyCapabilityReadiness(root, value);
+  await assertReadinessRequestContract(root, value);
   const store = createResourceStore(root); const state = await readWorkspaceState(root);
   const prior = await readWorkspaceState(root, { checkpoint: value.workspaceCheckpoint });
   const refs = [...readinessInputReferences(value), ...readinessEvidenceReferences(value)];
@@ -74,6 +76,7 @@ export async function assertReadinessForRequest(root, manifest, requestRevisionI
   if (!matching.length) throw new FolioError('CAPABILITY_READINESS_REQUEST_MISMATCH', 'The prepared comparison must name the exact generation request being started.');
   for (const report of matching) {
     await verifyCapabilityReadiness(root, report);
+    await assertReadinessRequestContract(root, report);
     if (!report.readiness.canPrepare) throw new FolioError('CAPABILITY_INPUTS_INCOMPLETE', 'Resolve required inputs before starting this request.');
   }
 }

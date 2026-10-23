@@ -8,6 +8,7 @@ import { verifyPackageEntry } from './package-entry.js';
 import { verifyInstalledDoctor } from './package-doctor.js';
 import { verifyPackedMarkdownLinks } from './package-links.js';
 import { verifyInstalledPublicationLanguages } from './package-language.js';
+import { verifyInstalledReadiness } from './package-readiness.js';
 
 const repo = dirname(import.meta.dirname);
 const npmCli = process.env.npm_execpath;
@@ -106,8 +107,9 @@ try {
   for (const field of ['synthetic', 'viewerResourceVisible', 'epubVerified', 'resourceOnlyVerified', 'installedCliReady']) assert.equal(production[field], true);
   assert.equal(production.outputsRetained, false);
   const publicationLanguages = await verifyInstalledPublicationLanguages(installed, sandbox);
+  const readinessGuards = await verifyInstalledReadiness(installed, sandbox);
   console.log(JSON.stringify({ installedFromTarball: true, developmentDependenciesAbsent, npx,
-    production, continuity, scopedContinuity, structureContinuity, publicationLanguages, doctor, legacyDoctor, documentation, benchmarkModuleVerified: true, entryCount: packed.entryCount, examples: examples.results.map((result) => result.example), assets, tracking }, null, 2));
+    production, continuity, scopedContinuity, structureContinuity, publicationLanguages, readinessGuards, doctor, legacyDoctor, documentation, benchmarkModuleVerified: true, entryCount: packed.entryCount, examples: examples.results.map((result) => result.example), assets, tracking }, null, 2));
 } finally {
   await rm(sandbox, { recursive: true, force: true });
 }

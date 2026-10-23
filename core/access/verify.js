@@ -7,6 +7,7 @@ import { assertReportedScopeCurrent, hasCurrentScopedConsumption } from '../read
 import { validateAccessSpec } from '../../packs/production/access-specifications.js';
 import { buildConnectionReadiness } from './compare.js';
 import { partitionCurrentConnectionReports } from './current-reports.js';
+import { assertReadinessRequestContract } from '../readiness/request-contract.js';
 import { ACCESS_KINDS, checkReferences, connectionReferences, connectionEvidenceReferences, invalidAccess, readAccessJson, timestamp, validateCheckReferences } from './records.js';
 
 /** Historical reports always recompute using their observation-time checkpoint and clock. */
@@ -54,6 +55,7 @@ export async function assertConnectionRequirements(root, revisionId) {
 export async function assertConnectionCurrent(root, revisionId, manifest = undefined) {
   const { value } = await readAccessJson(root, revisionId, 'connection-readiness');
   await assertConnectionRequirements(root, revisionId);
+  await assertReadinessRequestContract(root, value);
   const now = Date.now();
   if (now < timestamp(value.freshness.checkedAt) || now >= timestamp(value.freshness.expiresAt)) throw new FolioError('CONNECTION_CHECK_EXPIRED', 'Repeat non-billing host checks immediately before this execution.');
   const store = createResourceStore(root); const state = await readWorkspaceState(root);

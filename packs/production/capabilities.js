@@ -3,6 +3,7 @@ import { canonicalJson } from '../../core/util/hash.js';
 import { validateProductionRequest } from './request-schema.js';
 import { capabilityCatalog } from './capability-catalog.js';
 import { validateFalParameters, validateSpeechParameters, validateMeshyParameters } from '../../adapters/production/request-schemas.js';
+import { MESHY_MODEL_MEDIA_TYPES } from '../../adapters/production/meshy-formats.js';
 
 function invalid(message) { throw new FolioError('CAPABILITY_SPEC_INVALID', message); }
 export function listCapabilitySpecs() { return structuredClone(capabilityCatalog); }
@@ -43,7 +44,7 @@ export function validateCapabilityValue(input, value) {
     }
   }
 }
-function validateOutput(spec, request) {
+function validateOutput(spec, request, historicalV1) {
   if (request.outputSpec.groupPolicy !== 'fixed') invalid('representative capability requires fixed output groups');
   const groups = request.outputSpec.groups;
   const expected = spec.id === 'fal-flux-schnell-v1' ? request.parameters.num_images ?? 1 : 1;
@@ -55,13 +56,14 @@ function validateOutput(spec, request) {
       if (slot && (slot.acceptableMediaTypes.some((type) => !output.mediaTypes.includes(type))
         || (slot.cardinality ?? 1) > output.maxCount)) invalid(`unsupported output slot: ${output.role}`);
       if (slot && output.countFrom === 'target_formats' && (slot.cardinality ?? 1) !== request.parameters.target_formats.length) invalid('model output cardinality must equal selected formats');
+      if (!historicalV1 && slot && output.countFrom === 'target_formats' && request.parameters.target_formats.some((format) => !slot.acceptableMediaTypes.includes(MESHY_MODEL_MEDIA_TYPES[format]))) invalid('model output slot must accept every selected format');
       if (slot && spec.id === 'fal-flux-schnell-v1' && slot.acceptableMediaTypes.some((type) => type !== `image/${request.parameters.output_format ?? 'jpeg'}`)) invalid('image output slot disagrees with requested format');
     }
     if (group.slots.some((slot) => !spec.outputs.some((output) => output.role === slot.role))) invalid('undeclared capability output role');
   }
 }
 /** Pure validation: it does not attest Resource bytes, rights, availability, selection, or approval. */
-export function validateCapabilityRequest(specOrId, request) {
+function validateRequest(specOrId, request, historicalV1 = false) {
   const spec = typeof specOrId === 'string' ? getCapabilitySpec(specOrId) : validateCapabilitySpec(specOrId);
   validateProductionRequest(request);
   for (const key of ['provider', 'product', 'capability', 'schemaVersion']) if (request[key] !== spec.identity[key]) invalid(`capability identity mismatch: ${key}`);
@@ -84,6 +86,9 @@ export function validateCapabilityRequest(specOrId, request) {
   if (spec.id === 'fal-flux-schnell-v1') validateFalParameters(request.parameters);
   if (spec.id === 'elevenlabs-tts-timestamps-v1') validateSpeechParameters(request.parameters);
   if (spec.id === 'meshy-text-to-3d-preview-v1') validateMeshyParameters(request.parameters);
-  validateOutput(spec, request);
+  validateOutput(spec, request, historicalV1);
   return request;
 }
+export function validateCapabilityRequest(specOrId, request) { return validateRequest(specOrId, request); }
+/** Replay v1 evidence only. New preparation and execution always apply the current contract separately. */
+export function validateHistoricalCapabilityRequestV1(specOrId, request) { return validateRequest(specOrId, request, true); }

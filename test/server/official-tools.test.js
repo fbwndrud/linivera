@@ -167,8 +167,21 @@ test('requested download formats outside the discovered tool enum are blocked be
   listing.tools[2].inputSchema.properties.format.enum = ['glb'];
   f.fixture.tools.list = async () => listing;
   const requested = request({ target_formats: ['obj'] });
+  requested.outputSpec.groups[0].slots[0].acceptableMediaTypes = ['model/obj'];
   const prepared = await f.adapter.prepare(requested, [{ revisionId: sourceId, mediaType: 'text/plain', bytes: Buffer.from(prompt) }]);
   assert.equal((await f.adapter.submit(prepared)).status, 'submission-unknown');
+  assert.equal(f.fixture.counters.create, 0);
+});
+
+test('official execution refuses contradictory output commitments before any host call', async () => {
+  const f = await setup();
+  for (const formats of [['obj'], ['glb', 'obj']]) {
+    const value = request({ target_formats: formats });
+    value.outputSpec.groups[0].slots[0].cardinality = formats.length;
+    await assert.rejects(f.adapter.prepare(value, [{ revisionId: sourceId, mediaType: 'text/plain', bytes: Buffer.from(prompt) }]),
+      { code: 'CAPABILITY_SPEC_INVALID' });
+  }
+  assert.equal(f.fixture.counters.list, 0);
   assert.equal(f.fixture.counters.create, 0);
 });
 

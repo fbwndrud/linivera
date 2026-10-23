@@ -42,12 +42,17 @@ export async function buildConnectionReadiness(root, input, state, evaluatedAt) 
       meaning: 'This report cannot replace policy grants, approvals, rights or the host check immediately before a provider call.' } };
 }
 export async function compareConnectionReadiness(root, input) {
-  return buildConnectionReadiness(root, JSON.parse(canonicalJson(input)), await readWorkspaceState(root), new Date().toISOString());
+  const copied = JSON.parse(canonicalJson(input));
+  validateConnectionInput(copied);
+  const check = await readAccessJson(root, copied.checkRevisionId, 'connection-check');
+  await validateCheckReferences(root, check.value, { currentContract: true });
+  return buildConnectionReadiness(root, copied, await readWorkspaceState(root), new Date().toISOString());
 }
 export async function retainConnectionReadiness(root, { resourceId, ...input }) {
   const report = await compareConnectionReadiness(root, input);
   return createResourceStore(root).propose({ resourceId, kind: 'connection-readiness', owned: { bytes: canonicalJson(report), mediaType: 'application/json' } });
 }
 export async function retainConnectionCheck(root, { resourceId, check }) {
+  await validateCheckReferences(root, check, { currentContract: true });
   return createResourceStore(root).propose({ resourceId, kind: 'connection-check', owned: { bytes: canonicalJson(check), mediaType: 'application/json' } });
 }

@@ -13,12 +13,16 @@ import { assertContextRequirements } from '../context/requirements.js';
 import { assertReadinessCurrent, assertReadinessRequirements } from '../readiness/verify.js';
 import { ACCESS_KINDS } from '../access/records.js';
 import { assertConnectionRequirements } from '../access/verify.js';
+import { assertContextIsolation } from '../context/isolation.js';
+import { assertInputReadinessContracts } from '../readiness/request-contract.js';
 export function hasInputReferences(kind) {
   return ACCESS_KINDS.has(kind) || CONTEXT_KINDS.has(kind) || ['iteration', 'audio-alignment', 'normalization-map', 'generation-request', 'structure-map', 'capability-readiness', 'capability-specification'].includes(kind);
 }
 /** Historical snapshots still verify; new work must use the typed-reference closure contract. */
 export async function assertNewOperationInputClosure(root, manifest) {
   const store = createResourceStore(root);
+  await assertInputReadinessContracts(root, manifest);
+  if (manifest.version === 2) await assertContextIsolation(root, manifest.resources.map((row) => row.revisionId), { scopeId: manifest.scopeId });
   for (const resource of manifest.resources) {
     const revision = await store.readRevision(resource.revisionId);
     if (manifest.version === 1 && manifest.referenceClosureVersion !== 1 && hasInputReferences(revision.kind)) throw new FolioError('INPUT_REFERENCE_CLOSURE_REQUIRED', 'Prepare a fresh input snapshot or use version 2 before starting new work with typed context references.');

@@ -3,11 +3,12 @@ import { nativeRecord } from './native-records.js';
 import { textBindings } from './input-bindings.js';
 import { capturedFile } from './file-transfer.js';
 import { validateMeshyParameters } from './request-schemas.js';
+import { MESHY_MODEL_MEDIA_TYPES } from './meshy-formats.js';
 
 export const MESHY_ENDPOINT = '/openapi/v2/text-to-3d';
 export const MESHY_SCHEMA_SOURCE = 'https://docs.meshy.ai/en/api/text-to-3d';
 export const MESHY_SCHEMA_CHECKED = '2026-10-22';
-const formats = { glb: 'model/gltf-binary', obj: 'model/obj', fbx: 'application/octet-stream', usdz: 'model/vnd.usdz+zip', stl: 'model/stl', '3mf': 'model/3mf', mtl: 'text/plain' };
+const formats = { ...MESHY_MODEL_MEDIA_TYPES, mtl: 'text/plain' };
 const state = (status) => ({ PENDING: 'accepted', IN_PROGRESS: 'running', SUCCEEDED: 'complete', FAILED: 'failed', CANCELED: 'canceled' })[status] ?? 'unknown';
 
 /** Preview creation only. Refinement is a separate paid operation, never an automatic follow-up. @param {{transport?:any,accountAlias?:string}} options */

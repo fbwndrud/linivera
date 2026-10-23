@@ -67,6 +67,11 @@ profile/pipeline/policy 판정 근거는 `context-evidence` 관계로 남기며 
 변환이 필요하면 결과를 별도 Resource 판본/Operation으로 보관하고 기존 binding의
 `transformRevisionId`로 연결한다. 원본과 실제 변환 판본을 모두 보존한다.
 
+새 입력 대조 보고는 version 2이며 요청한 Meshy 형식과 출력 slot MIME의 일치까지 검사한다.
+version 1 보고는 당시 검증 계약으로 재계산하여 과거 Input/hash를 보존한다. 과거 보고의 성공은
+새 계약을 통과했다는 뜻이 아니다. 새 Input 준비와 새 Operation은 보고 버전과 관계없이 현재
+요청 계약을 다시 검사한다. 같은 원칙은 과거 연결 점검·연결 보고만 포함한 Input에도 적용된다.
+
 ## 재현
 
 지원 Node로 `node examples/chroma-continuity.js`를 실행한다. 하나의 실제 stdio MCP 작업

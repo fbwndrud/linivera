@@ -3,7 +3,7 @@ import { readWorkspaceState } from '../publications/state.js';
 import { readInputDefinitions, assertInputScope } from '../resources/input-definitions.js';
 import { createResourceStore } from '../resources/revisions.js';
 import { assertContextIsolation } from '../context/isolation.js';
-import { validateCapabilityRequest, validateCapabilityValue } from '../../packs/production/capabilities.js';
+import { validateCapabilityRequest, validateHistoricalCapabilityRequestV1, validateCapabilityValue } from '../../packs/production/capabilities.js';
 import { validateReadinessInput, invalidReadiness, readTypedJson, exactFact, SPECIFICATION_KIND } from './records.js';
 import { inspectCandidate, candidateForRequirement } from './candidates.js';
 import { readReadinessSelections } from './selection.js';
@@ -21,7 +21,8 @@ function parameterResult(row, request, needed) {
   catch (error) { return { status: 'mismatch', evidence: 'request-parameter', reasons: [error.message] }; }
 }
 /** Compare only a caller-declared bounded search of exact revisions; this never selects inputs. */
-export async function buildCapabilityReadiness(root, input, state) {
+export async function buildCapabilityReadiness(root, input, state, { reportVersion = 2 } = {}) {
+  if (![1, 2].includes(reportVersion)) invalidReadiness('unsupported readiness report version');
   validateReadinessInput(input);
   const store = createResourceStore(root);
   const specification = await readTypedJson(root, input.specificationRevisionId, SPECIFICATION_KIND);
@@ -42,7 +43,7 @@ export async function buildCapabilityReadiness(root, input, state) {
   // Completeness refers exclusively to selected revisions in this exact profile/policy intersection.
   if (input.search.completeness === 'complete' && missingSelected.length) invalidReadiness('complete search must include every selected revision in the declared profile/policy scope');
   let requestValidation = { status: 'valid' };
-  try { validateCapabilityRequest(specification.value, request.value); }
+  try { (reportVersion === 1 ? validateHistoricalCapabilityRequestV1 : validateCapabilityRequest)(specification.value, request.value); }
   catch (error) { requestValidation = { status: 'mismatch', code: error.code ?? 'CAPABILITY_REQUEST_INVALID', reason: error.message }; }
   const requirements = [];
   for (const row of specification.value.inputs) {
@@ -71,7 +72,7 @@ export async function buildCapabilityReadiness(root, input, state) {
   const consumed = await Promise.all(boundRevisionIds.map(async (id) => exactFact(await store.readRevision(id))));
   const totalBytes = [...new Map([...consumed, exactFact(specification.revision), exactFact(request.revision), ...Object.values(definitions)].map((row) => [row.revisionId, row])).values()].reduce((sum, row) => sum + (row.byteLength ?? 0), 0);
   const maxInputBytes = Math.min(definitions.profile.value.maxInputBytes, definitions.policy.value.maxInputBytes ?? Number.MAX_SAFE_INTEGER);
-  return { version: 1, input, workspaceCheckpoint: state.checkpoint, specification: exactFact(specification.revision), request: exactFact(request.revision),
+  return { version: reportVersion, input, workspaceCheckpoint: state.checkpoint, specification: exactFact(specification.revision), request: exactFact(request.revision),
     definitions: Object.fromEntries(Object.entries(definitions).map(([kind, value]) => [kind, { revisionId: value.revisionId, contentHash: value.contentHash, definitionHash: value.definitionHash }])),
     search: { ...input.search, basis: 'scope-bindings-with-global-fallback-in-profile-policy-intersection', resourceIds: scope, selected, omittedSelected: missingSelected,
       unselectedAndExternalHoldings: 'not-searched', freshness: 'at-workspace-checkpoint' },

@@ -5,6 +5,7 @@ import { capturedFile } from '../../adapters/production/file-transfer.js';
 import { invalid, digest, freezeJson } from '../../adapters/production/common.js';
 import { assertOfficialSpec, assertOfficialDiscovery, officialResult, taskId, taskState } from './official-tools-contract.js';
 import { assertToolArguments, assertKnownToolArguments } from './official-tools-schema.js';
+import { validateCapabilityRequest } from '../../packs/production/capabilities.js';
 export { inspectOfficialToolConnection } from './official-tools-check.js';
 export { MESHY_TOOL_CONTRACT, MESHY_INSTALLATION_EVIDENCE } from './official-tools-contract.js';
 
@@ -78,6 +79,7 @@ export function createOfficialToolAdapter({ tools, accessSpec, accountAlias, pro
       if (Object.entries(accessSpec.identity).some(([key, value]) => request?.[key] !== value)
         || request.parameters?.prompt?.length < 2 || request.parameters?.ai_model !== 'meshy-7.1') invalid('official tool subset requires exact pinned identity, Meshy 7.1 and a two-character prompt');
       const prepared = await adapter.prepare(request, artifacts);
+      validateCapabilityRequest(accessSpec.capabilityId, request);
       preparedRequests.add(prepared); return prepared;
     },
     async submit(prepared) {

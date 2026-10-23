@@ -63,6 +63,10 @@ not-applicable도 준비 완료로 승격하지 않는다. 로컬 브로커는 �
 호스트 callback의 원문 오류도 고정된 비밀 없는 오류로 바꾸며 signed URL은 일시적으로만 다룬다.
 
 보고는 기록 prefix와 `evaluatedAt`으로 재계산한다. 과거 Input 검증은 현재 시각과 무관하다.
+과거 v1 연결 점검·보고의 요청은 당시 계약으로 재검증한다. 원시 Resource propose로 역사
+기록을 다시 보관할 수 있지만, 새 Input 준비·새 실행·현재 연결 검증은 현재 기능 요청 계약을
+항상 적용한다. 새 `retainConnectionCheck`와 `connectionReadiness`도 현재 계약을 강제한다.
+과거에 준비 완료였던 기록이라도 요청 형식과 출력 slot이 모순되면 새 작업에 사용할 수 없다.
 새 실행은 점검 expiresAt 및 접근 명세의 최대 수명(현재 5분)을 다시 검사한다. 같은 요청·계정·
 프로젝트·경로에 과거/새 보고가 공존하면 host checkedAt이 최신인 보고를 현재 판단으로 사용하고,
 나머지는 ignoredHistoricalReportRevisionIds로 구별한다. 동일 시각의 충돌은 모두 검사하며,

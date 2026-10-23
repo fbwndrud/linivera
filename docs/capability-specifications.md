@@ -10,6 +10,9 @@
 거절한다. `validateCapabilityRequest(specOrId, request)`는 기존 generation-request 및
 outputSpec 검사에 더해 명세 identity, 모델, 파라미터, 필수 판본 binding, 출력 역할과 개수를
 검사한다. 파일 바이트·내용·규격·권리·선택·승인은 별도 자료 대조와 기존 Input 잠금이 검사한다.
+Meshy model slot은 개수뿐 아니라 `target_formats`의 모든 형식을 수용하는 MIME를 가져야 한다.
+예를 들어 GLB 요청에 OBJ만 허용하거나 GLB/OBJ 요청에 GLB만 허용하면 모순된 계약으로 거절한다.
+공식 MCP 호스트의 `prepare`도 이 대표 명세 검사를 재사용하며, 모순된 요청은 도구 호출 전에 차단한다.
 
 ## 실행 가능한 대표 명세
 

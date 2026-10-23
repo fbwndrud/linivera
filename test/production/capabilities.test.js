@@ -91,6 +91,7 @@ test('representative constraints reject out of range, undeclared parameters and 
     ['meshy-text-to-3d-preview-v1', (value) => { value.parameters.ai_model = 'latest'; }],
     ['meshy-text-to-3d-preview-v1', (value) => { value.parameters.target_formats = ['glb', 'glb']; }],
     ['meshy-text-to-3d-preview-v1', (value) => { value.outputSpec.groups[0].slots[0].cardinality = 1; }],
+    ['meshy-text-to-3d-preview-v1', (value) => { value.outputSpec.groups[0].slots[0].acceptableMediaTypes = ['model/gltf-binary']; }],
     ['local-broker-v1', (value) => { value.outputSpec.groups[0].slots[0].role = 'unreported'; }],
     ['local-broker-v1', (value) => { value.inputBindings.push(binding('unconsumed')); }],
   ];
@@ -98,6 +99,13 @@ test('representative constraints reject out of range, undeclared parameters and 
     const value = request(id); mutate(value);
     assert.throws(() => validateCapabilityRequest(id, value), `${id} must reject an invalid representative request`);
   }
+});
+test('all selected Meshy output formats remain expressible with matching cardinality and media types', () => {
+  const value = request('meshy-text-to-3d-preview-v1');
+  value.parameters.target_formats = ['glb', 'obj', 'fbx', 'usdz', 'stl', '3mf'];
+  value.outputSpec.groups[0].slots[0] = slot('model', ['model/gltf-binary', 'model/obj', 'application/octet-stream',
+    'model/vnd.usdz+zip', 'model/stl', 'model/3mf'], { cardinality: 6 });
+  assert.equal(validateCapabilityRequest('meshy-text-to-3d-preview-v1', value), value);
 });
 test('field validation is reusable by comparison and preserves typed nullability', () => {
   const spec = getCapabilitySpec('elevenlabs-tts-timestamps-v1');
