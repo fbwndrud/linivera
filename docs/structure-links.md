@@ -3,6 +3,7 @@
 [Chroma 지원표](chroma-support.md)에서 도구별 자동 해석·수동 연결·파일 보관을 확인한다.
 [편집·확장 의존성](editing-dependencies.md)은 XMEML/OTIO와 커스텀 패키지·3D 확장의 상세 계약이다.
 [프로젝트 자료](project-data.md)는 공급자 파서 없는 공통 반입과 코드·씬·atlas·상태 증거의 계약이다.
+[응답·납품 자료](delivery-data.md)는 공급자 응답과 brief/rights/release/performance의 계약이다.
 `folio_resources`의 다음 두 동작은 기존 Resource/Input/Operation 경로를 사용한다.
 
 1. `importFile` 또는 `propose`로 원본과 필요한 소재 파일을 보관한다.
@@ -29,7 +30,7 @@
    실제 입력·출력 파생 관계와 구조상의 링크는 서로 다른 관계로 조회된다.
 
 map은 `{version:1,sourceRevisionId,sourceContentHash,format,parserVersion,structure,bindings,unresolvedReferenceKeys}`다.
-커스텀 선언을 사용하면 `dependencyManifestRevisionId`도 포함하며 다음 Input에 함께 고정된다.
+Comfy 의존성 또는 공급자 응답 선언을 사용하면 `dependencyManifestRevisionId`도 포함하며 다음 Input에 함께 고정된다.
 `unresolvedReferenceKeys`는 선택적 슬롯을 포함한 모든 미연결 위치를 표시한다.
 직접 `propose`한 map도 원본에서 재계산해 일치해야 한다. 기존 parserVersion의 해석은
 과거 입력 검증을 위해 유지한다. 구조 반입은 생성 실행·선택·승인을 대신하지 않는다.
@@ -47,6 +48,9 @@ map은 `{version:1,sourceRevisionId,sourceContentHash,format,parserVersion,struc
 | otio | OTIO JSON 트랙·클립·gap·transition과 원본/parent 시간 | 미디어 reference를 실제 파일로 연결. retime/visible range 평탄화는 별도 |
 | project-manifest | 파일 역할·진입점·의존성·DB/환경/배포 증거와 누락을 명시한 Linivera v1 계약 | 파일과 필수 누락 슬롯을 보관 판본에 연결. native 코드/씬 분석·실행 복원은 별도 |
 | aseprite | JSON hash/array atlas frame 좌표·trim·duration(ms)·원본 tag 범위 | sheet 필수 연결. 원본 frame 번호 대응과 tag 소속은 unknown, 이미지 decode·재생은 별도 |
+| runware-image-response / minimax-video-query / kling-video-query | 공식 고정 응답의 작업·결과·오류 | 결과 slot → 보관 파일. 상태/ID/URL은 실행 인과·승인을 대신하지 않음 |
+| provider-response | 보관한 sidecar 선언의 정확한 JSON Pointer | dependencyManifestRevisionId 필수. 원본·선언·실제 출력 파일을 고정 |
+| delivery-record | Linivera v1 brief/rights/release/performance와 원문 증거 | 대상 판본·원문 증거 필수. 성과는 identity가 일치하는 release map에 연결 |
 
 JSON/SRT 구조 원본은 6MiB까지 해석한다. GLB는 파일당 2GiB 범위 안에서 전체 hash를
 스트림 검증하고 6MiB 이하 JSON chunk만 메모리에 읽는다. 구조는 최대 4,096 units,

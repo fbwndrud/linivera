@@ -11,22 +11,29 @@ import { comfyDependencies } from '../../packs/production/structures/comfy-depen
 import { gltfExtensions } from '../../packs/production/structures/gltf-extensions.js';
 import { projectManifest } from '../../packs/production/structures/project-manifest.js';
 import { aseprite } from '../../packs/production/structures/aseprite.js';
+import { deliveryRecord } from '../../packs/production/structures/delivery-record.js';
+import { declaredResponse } from '../../packs/production/structures/provider-response.js';
+import { runwareImageResponse } from '../../packs/production/structures/runware-response.js';
+import { minimaxVideoQuery } from '../../packs/production/structures/minimax-response.js';
+import { klingVideoQuery } from '../../packs/production/structures/kling-response.js';
 
 import { resolveParserVersion } from '../../packs/production/structures/versions.js';
 export { STRUCTURE_FORMATS } from '../../packs/production/structures/versions.js';
-export async function inspectStructure(root, { revisionId, format, parserVersion: requestedVersion, dependencyManifestRevisionId }) {
+export async function inspectStructure(root, { revisionId, format, parserVersion: requestedVersion = undefined, dependencyManifestRevisionId = undefined }) {
   const parserVersion = resolveParserVersion(format, requestedVersion);
-  if (dependencyManifestRevisionId !== undefined && (parserVersion !== 2 || !['comfy-api', 'comfy-ui'].includes(format))) invalid('dependency manifest requires extended Comfy parser');
-  const parser = { 'comfy-api': comfyApi, 'comfy-ui': comfyUi, 'martini-run': martiniRun, 'project-manifest': projectManifest, aseprite, otio }[format];
+  const comfy = parserVersion === 2 && ['comfy-api', 'comfy-ui'].includes(format);
+  if (dependencyManifestRevisionId !== undefined && !comfy && format !== 'provider-response') invalid('dependency manifest requires extended Comfy or declared provider response parser');
+  const parser = { 'comfy-api': comfyApi, 'comfy-ui': comfyUi, 'martini-run': martiniRun, 'project-manifest': projectManifest, 'delivery-record': deliveryRecord,
+    'runware-image-response': runwareImageResponse, 'minimax-video-query': minimaxVideoQuery, 'kling-video-query': klingVideoQuery, aseprite, otio }[format];
   const { revision, bytes } = await readStructureSource(root, revisionId, format);
-  if (parserVersion === 2 && ['comfy-api', 'comfy-ui'].includes(format)) {
+  if (comfy || format === 'provider-response') {
     let declaration;
     if (dependencyManifestRevisionId !== undefined) {
       const dependency = await readStructureSource(root, dependencyManifestRevisionId, 'dependency-manifest');
       if (dependency.revision.mediaType !== 'application/json') invalid('dependency manifest requires retained JSON');
       declaration = json(dependency.bytes);
     }
-    return { revision, structure: comfyDependencies(json(bytes), { format, declaration }) };
+    return { revision, structure: comfy ? comfyDependencies(json(bytes), { format, declaration }) : declaredResponse(json(bytes), declaration) };
   }
   if (format === 'xmeml') return { revision, structure: xmeml(bytes) };
   if (format === 'glb') {

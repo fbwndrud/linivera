@@ -89,6 +89,11 @@ try {
     assert.equal(project.actualModelGeneration, false); assert.equal(project.actualBrokerNetwork, false); assert.equal(project.runtimeRestored, false);
   }
   assert.equal(tracking.verified, true);
+  for (const change of ['rights', 'rights-proof', 'performance', 'contract']) {
+    const delivery = JSON.parse(run(process.execPath, [join(installed, 'examples', 'delivery-continuity.js'), '--change=' + change], sandbox));
+    for (const field of ['verified', 'serverRestarted', 'deliveryFeedsNextWork', 'exactDependencyClosure', 'releaseIdentityMatched', 'transitiveReviewRequired']) assert.equal(delivery[field], true);
+    for (const field of ['actualModelGeneration', 'externalPublication', 'legalApproval']) assert.equal(delivery[field], false);
+  }
   assert.deepEqual(tracking.scenarios, ['mystery', 'cookbook', 'picturebook']);
   const production = JSON.parse(run(process.execPath, [join(installed, 'examples', 'production.js')], sandbox));
   assert.deepEqual(production.serverInfo, { name: manifest.name, version: manifest.version });

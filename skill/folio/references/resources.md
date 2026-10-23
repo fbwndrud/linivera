@@ -26,12 +26,17 @@ workflow/3D/자막 파일을 다음 작업에 연결할 때는
 파서 없는 파트너 파일도 공통 반입으로 보관한다. project-manifest 선언과 aseprite atlas는
 [프로젝트 자료](https://github.com/fbwndrud/linivera/blob/codex/chroma-project-dependencies/docs/project-data.md)를 따른다.
 브로커가 확보한 bytes/path와 관측하지 못한 생성 이력을 구분한다.
+공급자 응답은 runware-image-response/minimax-video-query/kling-video-query 또는
+provider-response + dependencyManifestRevisionId로 연결한다. 브리프·권리·배포·성과는
+delivery-record를 쓴다. 성과 subject는 identity가 같은 release map이어야 한다.
+[P4 계약](https://github.com/fbwndrud/linivera/blob/codex/chroma-provider-delivery/docs/delivery-data.md)을
+읽고 상태/권리 보고를 내부 승인으로 바꾸지 않는다.
 
 | 도구·op | root/op 외 인자 |
 |---|---|
 | folio_resources propose | resourceId, kind, parents? (기본 []), schemaRef?, owned:{bytes:UTF-8문자열,mediaType:text/plain 또는 application/json} 또는 owned:{base64:canonical문자열,mediaType:지원MIME}(상호 배타·8MiB) 또는 external:{uri,reportedRevision?} |
 | folio_resources read | revisionId; `{revision,content}` 반환, external content=null; 후보도 읽을 수 있음 |
-| folio_resources inspectStructure | revisionId, format:comfy-api/comfy-ui/martini-run/gltf/glb/srt/xmeml/otio/project-manifest/aseprite, parserVersion?, dependencyManifestRevisionId?; `{revision,structure}` 반환 |
+| folio_resources inspectStructure | revisionId, format:comfy-api/comfy-ui/martini-run/gltf/glb/srt/xmeml/otio/project-manifest/aseprite/delivery-record/provider-response/runware-image-response/minimax-video-query/kling-video-query, parserVersion?, dependencyManifestRevisionId?; `{revision,structure}` 반환 |
 | folio_resources normalizeStructure | resourceId, sourceRevisionId, format, structureBindings:[{referenceKey,revisionId}], parserVersion?, dependencyManifestRevisionId?; `structure-map` 후보 반환 |
 | folio_resources decideSource | revisionId, expectedSelectionRevision:null 또는 마지막 selectionRevision, action:{type:select 또는 deselect,actor:user,reason?}; deselect 이유 필수 |
 | folio_inputs prepare | revisionIds, profileRevisionId, pipelineRevisionId, policyRevisionId, externalMode?:reject 또는 reference-only |
