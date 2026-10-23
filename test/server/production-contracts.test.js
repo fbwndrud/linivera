@@ -46,3 +46,17 @@ test('capability discovery and exact revision comparisons have distinct public c
   rejects('folio_resource_query', { op: 'readiness', ...input, search: { completeness: 'complete' } });
   rejects('folio_resource_query', { op: 'capabilities', candidateRevisionIds: [] });
 });
+
+test('connection contracts separate exact check metadata from credentials and current execution validation', () => {
+  accepts('folio_resource_query', { op: 'accessSpecifications' });
+  accepts('folio_resource_query', { op: 'accessSpecification', accessId: 'meshy-preview-official-mcp-v1' });
+  const input = { accessSpecificationRevisionId: fingerprint, capabilitySpecificationRevisionId: fingerprint, requestRevisionId: fingerprint,
+    checkRevisionId: fingerprint, profileRevisionId: fingerprint, pipelineRevisionId: fingerprint, policyRevisionId: fingerprint,
+    scopeId: 'episode-1', accountAlias: 'account-synthetic', projectAlias: 'project-synthetic' };
+  accepts('folio_resource_query', { op: 'connectionReadiness', ...input });
+  accepts('folio_resource_query', { op: 'retainConnectionReadiness', resourceId: 'connection', ...input });
+  rejects('folio_resource_query', { op: 'connectionReadiness', ...input, authorization: 'SYNTHETIC-SECRET' });
+  rejects('folio_resource_query', { op: 'validateConnection', inputSnapshotId: fingerprint, requestRevisionId: fingerprint });
+  accepts('folio_resource_query', { op: 'validateConnection', inputSnapshotId: fingerprint, requestRevisionId: fingerprint,
+    accountAlias: 'account-synthetic', projectAlias: 'project-synthetic', accessSpecificationRevisionId: fingerprint });
+});

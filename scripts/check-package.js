@@ -95,9 +95,10 @@ try {
     for (const field of ['actualModelGeneration', 'externalPublication', 'legalApproval']) assert.equal(delivery[field], false);
   }
   const chroma = JSON.parse(run(process.execPath, [join(installed, 'examples', 'chroma-continuity.js')], sandbox, 300_000));
-  for (const field of ['verified', 'singleWorkspace', 'originalsDeleted', 'bundleFeedsNextWork', 'historicalInputsVerified']) assert.equal(chroma[field], true);
+  for (const field of ['verified', 'singleWorkspace', 'originalsDeleted', 'bundleFeedsNextWork', 'historicalInputsVerified', 'connectionCompared', 'officialToolsReused', 'officialToolPartialDownloadRecovered']) assert.equal(chroma[field], true);
+  assert.equal(chroma.exactBundleClosure, 60); assert.equal(chroma.officialCreates, 1);
   assert.ok(Object.values(chroma.refused).every(Boolean) && Object.values(chroma.reviewPropagation).every(Boolean));
-  for (const field of ['actualModelGeneration', 'actualProviderNetwork', 'externalPublication', 'legalApproval']) assert.equal(chroma[field], false);
+  for (const field of ['actualModelGeneration', 'actualProviderNetwork', 'providerMcpActuallyCalled', 'externalPublication', 'legalApproval']) assert.equal(chroma[field], false);
   assert.deepEqual(tracking.scenarios, ['mystery', 'cookbook', 'picturebook']);
   const production = JSON.parse(run(process.execPath, [join(installed, 'examples', 'production.js')], sandbox));
   assert.deepEqual(production.serverInfo, { name: manifest.name, version: manifest.version });

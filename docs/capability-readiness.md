@@ -1,5 +1,8 @@
 # 필요한 입력과 보유 자료 대조
 
+입력 자료가 있어도 실제 경로·계정의 사용 가능성은 별도다.
+[연결·계정 준비](connection-readiness.md)와 [파트너별 접근 경로](partner-access.md)를 함께 확인한다.
+
 `folio_resource_query capabilities`에서 [대표 기능 명세](capability-specifications.md)를 찾고
 `specification {capabilityId}`로 정확한 계약을 읽는다. 이 JSON을 `folio_resources propose`의
 kind `capability-specification`으로 보관한다. 명세를 이름만으로 실행하거나 자동 갱신하지 않는다.
@@ -68,9 +71,10 @@ profile/pipeline/policy 판정 근거는 `context-evidence` 관계로 남기며 
 
 지원 Node로 `node examples/chroma-continuity.js`를 실행한다. 하나의 실제 stdio MCP 작업
 공간에서 공식 fal 대표 명세/대조/입력 묶음 → 합성 생성 이미지와 원문 응답 → P0~P4 →
-로컬 브로커 명세/재대조 → 47개 판본의 묶음 하나 → v2 합성 Operation 출력 → 두 번째
+공식 Meshy 도구의 준비 대조/부분 다운로드 복구와 프로젝트 모델 의존성 →
+로컬 브로커 명세/재대조 → 60개 판본의 묶음 하나 → v2 합성 Operation 출력 → 두 번째
 작업을 검증한다. 원본 삭제·중간 재시작·필수 맥락과 연결 누락·중첩 이야기/경로 격리·위조·
-배포 identity·입력 예산·구 parser/역사 Input 호환과 일곱 종류 변경의 두 단계 전파를 검사한다.
+배포 identity·입력 예산·구 parser/역사 Input 호환과 아홉 종류 변경의 두 단계 전파를 검사한다.
 
 후속 결과는 보관한 hash·편집 구간·DB 값·brief 문구·권리 보고 상태/원문·성과 수치·공급자
 file ID·선언 버전을 소비한다. 실제 모델 생성·공급자 네트워크·미디어 재생·편집기/엔진 복원·

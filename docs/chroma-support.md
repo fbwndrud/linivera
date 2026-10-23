@@ -2,6 +2,8 @@
 
 [기능별 명세](capability-specifications.md), [37개 파트너의 명세 지원 상태](capability-partner-support.md),
 [자료 대조와 다음 작업 흐름](capability-readiness.md)에서 공식 부분 확인·사용자 선언·미조사를 구별한다.
+[파트너별 웹/API/CLI/MCP/스킬·계정 조건](partner-access.md)과
+[연결·계정 준비 대조](connection-readiness.md)는 입력 자료 준비와 별도로 확인한다.
 
 기준: 2026-10-22 [공식 크레딧 팩](https://submit.chromaawards.com/pack)의 기존 조사
 37개 파트너와 2026-10-23 저장소 구현. 23일 공식 팩 재조회는 HTTP 403이어서

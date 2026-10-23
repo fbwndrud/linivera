@@ -101,3 +101,10 @@ PID 잠금이 보호한다. 살아 있거나 SIGSTOP된 PID의 잠금을 지우�
 `readiness`에 넘긴다. `retainReadiness`는 대조 보고를 보관한다. 후보 발견은 선택/승인이
 아니며 부분 검색은 미보유를 확정하지 않는다. 명세·보고·요청을 필수 맥락 역할로 묶어
 기존 Input/Operation에 사용한다. 상세: `docs/capability-readiness.md`.
+
+외부 실행 전 `accessSpecifications/accessSpecification`의 경로·계정 조건을 확인하고
+`retainConnectionCheck/connectionReadiness/retainConnectionReadiness`로 비밀 없는 점검을
+입력 대조와 함께 묶는다. 공식 호스트 호출 직전 `validateConnection`으로 정확한
+Input·request·accountAlias·projectAlias·접근 판본을 확인한다. 키·토큰·쿠키·헤더와 원문 인증
+응답은 호스트 secret 관리에 둔다. 설치만으로 인증/권한/크레딧을 충족하지 않는다.
+미확인·만료·부분 상태는 실행 준비 완료가 아니다. 상세: `docs/connection-readiness.md`.

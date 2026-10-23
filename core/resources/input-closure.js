@@ -11,8 +11,10 @@ import { readStructureRelations } from './structure-bindings.js';
 import { resolveParserVersion } from '../../packs/production/structures/versions.js';
 import { assertContextRequirements } from '../context/requirements.js';
 import { assertReadinessCurrent, assertReadinessRequirements } from '../readiness/verify.js';
+import { ACCESS_KINDS } from '../access/records.js';
+import { assertConnectionRequirements } from '../access/verify.js';
 export function hasInputReferences(kind) {
-  return CONTEXT_KINDS.has(kind) || ['iteration', 'audio-alignment', 'normalization-map', 'generation-request', 'structure-map', 'capability-readiness', 'capability-specification'].includes(kind);
+  return ACCESS_KINDS.has(kind) || CONTEXT_KINDS.has(kind) || ['iteration', 'audio-alignment', 'normalization-map', 'generation-request', 'structure-map', 'capability-readiness', 'capability-specification'].includes(kind);
 }
 /** Historical snapshots still verify; new work must use the typed-reference closure contract. */
 export async function assertNewOperationInputClosure(root, manifest) {
@@ -49,6 +51,7 @@ export async function collectInputClosure(root, revisionIds) {
     } else if (revision.kind === 'structure-map') refs = (await readStructureRelations(root, revision, { requireComplete: true })).map((ref) => ref.targetRevisionId);
     else {
       refs = [...await readContextReferences(root, revision), ...await readIterationReferences(root, revision)];
+      if (revision.kind === 'connection-readiness') await assertConnectionRequirements(root, revision.revisionId);
       if (revision.kind === 'capability-readiness') await assertReadinessRequirements(root, revision.revisionId);
       if (revision.kind === 'usage-context') await assertContextRequirements(root, JSON.parse((await store.readContent(id)).toString('utf8')));
     }

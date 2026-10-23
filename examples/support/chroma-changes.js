@@ -11,7 +11,12 @@ export async function chromaChanges(host, s, { outputs, intermediates, unaffecte
   const minimax = syntheticDownloads().minimax; minimax.base_resp.status_msg = 'synthetic re-query';
   const declaration = syntheticDownloads()['response-contract']; declaration.schemaVersion = 'fixture-v2';
   const spec = await call('folio_resource_query', { op: 'specification', capabilityId: 'fal-flux-schnell-v1' });
+  const access = await call('folio_resource_query', { op: 'accessSpecification', accessId: 'meshy-preview-api-v1' });
+  const connection = await s.readJson('official-check');
+  connection.checks = connection.checks.map((row) => row.kind === 'credits' ? { ...row, status: 'blocked', reasonCode: 'credits-insufficient' } : row);
   const changes = [
+    ['access-specification', 'official-access', { bytes: JSON.stringify(access), mediaType: 'application/json' }],
+    ['connection-check', 'official-check', { bytes: JSON.stringify(connection), mediaType: 'application/json' }],
     ['input-specification', 'capability-spec', { bytes: JSON.stringify(spec), mediaType: 'application/json' }],
     ['provider-declaration', 'response-contract', { bytes: JSON.stringify(declaration), mediaType: 'application/json' }],
     ['provider-raw', 'minimax', { bytes: JSON.stringify(minimax), mediaType: 'application/json' }],

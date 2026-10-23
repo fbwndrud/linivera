@@ -29,10 +29,12 @@ export function syntheticTimeline(frameSeconds) {
   return { OTIO_SCHEMA: 'Timeline.1', tracks: { OTIO_SCHEMA: 'Stack.1', children: [{ OTIO_SCHEMA: 'Track.1', children: [
     clip('Synthetic frame', frameSeconds * 24, 'file:///synthetic/frame.png'), clip('Synthetic provider video', 24, 'file:///synthetic/provider.bin')] }] } };
 }
-export function syntheticProject() {
+export function syntheticProject({ officialModel = false } = {}) {
   return { version: 1, files: [{ path: 'scenes/main.json', role: 'scene', required: true }, { path: 'media/cut.bin', role: 'media', required: true },
+    ...(officialModel ? [{ path: 'models/preview.glb', role: 'model', required: true }] : []),
     { path: 'db/snapshot.json', role: 'db-snapshot', required: true }, { path: 'environment.json', role: 'environment', required: true }],
-  entrypoints: ['scenes/main.json'], dependencies: [{ from: 'scenes/main.json', to: 'media/cut.bin', kind: 'media' }],
+  entrypoints: ['scenes/main.json'], dependencies: [{ from: 'scenes/main.json', to: 'media/cut.bin', kind: 'media' },
+    ...(officialModel ? [{ from: 'scenes/main.json', to: 'models/preview.glb', kind: 'model' }] : [])],
   externalStates: [{ id: 'world-db', kind: 'database', required: true, evidence: ['db/snapshot.json'], unavailable: [] },
     { id: 'runtime', kind: 'environment', required: true, evidence: ['environment.json'], unavailable: [] }] };
 }
@@ -44,6 +46,11 @@ export const nextTaskRequirements = [
   ...readinessRequirements,
   { role: 'initial-input', required: true, accepts: [{ kind: 'context-package' }] },
   { role: 'initial-provider-response', required: true, accepts: [{ kind: 'provider-response-source' }] },
+  { role: 'official-input', required: true, accepts: [{ kind: 'context-package' }] },
+  { role: 'official-response', required: true, accepts: [{ kind: 'provider-response-source' }] },
+  { role: 'official-model', required: true, accepts: [{ kind: 'artifact-bundle' }] },
+  { role: 'official-model-structure', required: true, accepts: [map('glb')] },
+  { role: 'official-preflight', required: true, accepts: [{ kind: 'connection-check' }] },
   { role: 'deliverable', required: true, accepts: [{ kind: 'deliverable' }] },
   { role: 'provider-response', required: true, accepts: [map('runware-image-response'), map('minimax-video-query'), map('provider-response')] },
   { role: 'workflow', required: true, accepts: [map('comfy-api')] },

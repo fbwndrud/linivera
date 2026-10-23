@@ -106,9 +106,10 @@ normalize하고 새 usage-context와 package를 만든다.
 P1 ComfyUI workflow(응답이 보고한 이미지 ID를 LoadImage에 사용)와 node 계약·model →
 작업 1 frame → P2 OTIO(frame과 공급자 영상) → 작업 2 cut → P3 project-manifest(cut·DB
 snapshot 외부 상태 증거) → 작업 3 deliverable → P4 brief/rights/release/performance →
-재시작 → [기능 명세·자료 대조](capability-readiness.md) → 묶음 하나의 Input(47개 판본) →
+공식 Meshy MCP의 합성 호스트 점검/부분 다운로드 복구·모델 의존성도 함께 연결한다.
+재시작 → [기능 명세·자료 대조](capability-readiness.md)와 [연결 준비](connection-readiness.md) → 묶음 하나의 Input(60개 판본) →
 v2 합성 Operation 작업 4 → 작업 5로 이어진다. 명세·대조 보고·정확한 요청도 필수 역할이다.
-필수 맥락·연결 누락, 잘못된 역할, 중첩 scope, 위조, 용량, 구 parser 거절과 일곱 가지
+필수 맥락·연결 누락, 잘못된 역할, 중첩 scope, 위조, 용량, 구 parser 거절과 아홉 가지
 upstream 변경의 두 단계 재검토, 과거 Input 검증을 함께 확인한다.
 
 모든 자료는 합성 fixture다. 실제 모델 생성·공급자 호출·미디어 재생·편집기/엔진 복원·

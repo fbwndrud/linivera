@@ -1,3 +1,4 @@
+import { ACCESS_QUERY_ARGUMENTS } from './access-query.js';
 const rule = (required, optional = []) => ({ required, allowed: [...required, ...optional] });
 /** Declarative operation shapes mirror the public command boundaries. */
 export const RESOURCE_ARGUMENTS = {
@@ -43,7 +44,7 @@ export const RESOURCE_ARGUMENTS = {
     decideGroup: rule(['operationId', 'groupId', 'receiptId', 'expectedCheckpoint', 'action', 'actor'], ['grantId']),
     recordSession: rule(['sessionId', 'expectedSessionHead', 'event']), inspectSession: rule(['sessionId'], ['sessionHead']),
   },
-  folio_resource_query: { query: rule([], ['resourceId', 'selector', 'freshness']), refresh: rule([], ['checkpoint']),
+  folio_resource_query: { ...ACCESS_QUERY_ARGUMENTS, query: rule([], ['resourceId', 'selector', 'freshness']), refresh: rule([], ['checkpoint']),
     graph: rule([], ['resourceId', 'direction', 'depth', 'limit', 'cursor', 'generationId', 'boundaryLimit', 'edgeLimit']), indexGraph: rule([]),
     context: rule(['scopeId', 'purpose', 'budget'], ['contextRevisionId', 'pathId', 'timeLabel', 'revisionIds']),
     capabilities: rule([]), specification: rule(['capabilityId']),
