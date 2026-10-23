@@ -24,7 +24,7 @@ npm run benchmark:local
 공개 MCP 서버로 실행해 네 원고 예제와 동적 추적의 본문·커밋·기록장·최종 상태를 확인한다.
 `assets:verify`는 합성 SVG를 실제 MCP로 등록·인계·검토·승인·교체·재승인한다.
 `package:verify`는 배포 tarball을 새 임시 폴더에 만들고, 개발 의존성 없이 설치한 뒤
-설치된 네 원고 예제·자산 예제·동적 추적 예제와 production 경로에서 MCP·linivera-view 실행 파일을 검증한다.
+설치된 네 원고 예제·자산 예제·동적 추적 예제와 production 경로에서 MCP·linivera-view 실행 파일을 검증한다. 생성·회차·구조·편집·프로젝트·배포와 통합 P0~P4의 후속 두 작업·역사 Input을 실행하고, 출고 명세 10개 hash와 현재 준비 차단도 확인한다.
 `production:verify`는 모델 없는 합성 그림책·Resource 전용 workspace의 stdio→HTTP→웹/EPUB·정적 사본을 확인하고 정리한다.
 viewer/dist를 명시적으로 빌드해 포함하며 설치 hook·모델 가중치·Python 설치는 없다.
 추적 문서·스킬·예제 포함과 테스트·계획·작품 상태·출력 경로 제외,
@@ -39,6 +39,27 @@ viewer/dist를 명시적으로 빌드해 포함하며 설치 hook·모델 가중
 GitHub Actions CI는 사용하지 않는다. push·pull request 시 자동 검증은 실행하지 않으며,
 변경 범위에 맞는 위 로컬 명령을 실행하고 결과를 기록한다.
 OS·Node 지원 범위와 실제 검증한 환경은 구분한다.
+
+## 2026-10-24 제작 데이터 통합 검증
+
+#2~#9 병합 결과 `7221374`는 검증한 `3cde927`과 파일 tree가 같다.
+macOS arm64·Node 24.19.0에서 lint·타입 검사·backend **2058/2058**과 새 tarball 설치를 통과했다.
+통합 합성 P0~P4는 60개 판본·두 후속 작업·거절 21종·변경 9종의 재검토와 역사 Input을 확인했다.
+카탈로그 판본 추가 뒤 재시작해도 구판 보고서·연결 점검·v1/v2 Input hash가 유지되는 회귀를 포함한다.
+실제 공급자 호출·계정 권한·유료 생성·편집기 복원·외부 게시·법적 승인은 검증하지 않았다.
+
+## 2026-10-24 문서·버전 0.1.3 검증
+
+macOS arm64·Node 24.19.0에서 `npm run check`의 lint·타입 검사·backend **2058/2058**,
+`npm --prefix viewer test` **74/74**를 통과했다. 실패·취소·skip은 모두 0이다.
+전체 검사에 포함된 새 tarball 설치는 0.1.3 manifest/MCP identity·23개 도구·동봉 guide,
+개발 의존성 부재·공개 예제·P0~P4 연속성·카탈로그 hash와 현재 준비 차단을 확인했다.
+화면 build와 설치본의 상대 문서 링크 검증도 포함한다.
+
+수정한 문서 19개의 로컬 링크·앵커 179개와 설치 대상 문서 114개의 상대 링크를 별도로 확인했다.
+CHANGELOG도 패키지에 포함해 README·시작 안내의 링크가 설치 뒤에 열린다.
+Studio의 실제 localhost HTTP 경로는 sandbox의 listen 제한을 해제한 로컬 실행에서 검증했다.
+공개 v0.1.3 릴리스 게시·다른 OS/Node 조합·실제 공급자 실행 검증은 포함하지 않는다.
 
 ## 이전 로컬 검증 기록
 

@@ -2,6 +2,18 @@
 
 이 경로는 기존 novel/picturebook/source/asset/tracking 파일과 독립이다. 기존 자료를 자동 반입하지 않는다. UTF-8 text/plain, application/json, 정규 MIME을 선언한 opaque 파일, 미관측 외부 URI 참조와 metadata 조회를 지원한다. 인라인 미디어는 bytes 대신 canonical base64(상호 배타, 최대8MiB)로 등록하고 read는 base64/encoding을 반환한다. 큰 파일은 importFile로 보존하고 describe/materialize로 회수한다. text/JSON의 작은 read 계약은 그대로다. [생성 데이터·묶음·실행·후보별 승인 안내](production-data.md)와 선택 원본의 [로컬 text/image Vector 검색](embeddings.md)을 제공한다. 공통 판본·작업 그래프와 변경 영향 추적을 제공한다. CSV/PDF 내용 파싱, Wiki 생성, 자동 외부 관측은 제공하지 않는다. 모든 MCP 인자는 `root` 절대 경로와 `op`를 포함한다. 실제 사용자 지시 없이 host가 `actor:user` 결정이나 authority 진술을 만들면 안 된다. 로컬 caller 진술은 인간 인증/ACL이 아니다.
 
+## 제작 데이터와 작업 준비
+
+0.1.3의 제작 흐름은 [문서 안내](README.md)에서 시작한다. 아래 표는 공통 기본 계약이며,
+실행 v2의 후보별 API는 [생성 데이터](production-data.md), 회차 선택·반복·사용 맥락은
+[회차 연결](continuity.md), 필수 역할·범위·typed 참조 폐쇄는 [맥락 묶음](context-bundles.md)을 따른다.
+
+[기능 명세](capability-specifications.md)·[입력 준비](capability-readiness.md)와
+[접근 명세](partner-access.md)·[연결 준비](connection-readiness.md)는 정확한 판본과
+관측 근거를 별도 Resource로 보존한다. 후보 발견은 사용자 선택을 대신하지 않으며,
+역사 Input 검증 성공도 새 실행의 현재 준비 완료를 뜻하지 않는다.
+카탈로그 판본을 바꾸는 방법은 [보존 정책](catalog-history.md)에 있다.
+
 ## MCP 순서와 정확한 인자
 
 | 도구·op | root/op 외 인자 |

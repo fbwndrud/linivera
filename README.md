@@ -2,9 +2,11 @@
 
 **Keep your sources, versions, and results connected.**
 
-[한국어](README.ko.md) · [English examples](https://github.com/fbwndrud/linivera/releases/download/v0.1.1/linivera-examples-en.zip) · [Releases](https://github.com/fbwndrud/linivera/releases/tag/v0.1.2) · [Getting started](docs/getting-started.en.md) · [Report a bug](https://github.com/fbwndrud/linivera/issues)
+[한국어](README.ko.md) · [Documentation](docs/README.md) · [English examples](https://github.com/fbwndrud/linivera/releases/download/v0.1.1/linivera-examples-en.zip) · [Published v0.1.2](https://github.com/fbwndrud/linivera/releases/tag/v0.1.2) · [Getting started](docs/getting-started.en.md) · [Report a bug](https://github.com/fbwndrud/linivera/issues)
 
-Linivera is a local data workspace for projects you work on with an AI assistant. Keep source documents, structured data, images, revisions, evidence and review history together. Writing is one use case. Open Studio to read the work, follow its references and see what needs another check. Export a reading edition as a website or EPUB.
+Linivera is a local data workspace for projects you work on with an AI assistant. Keep documents, images, audio/video, workflows, 3D files, exact revisions, evidence and review history connected. Writing is one use case. Open Studio to read the work, follow its references and see what needs another check. Export a reading edition as a website or EPUB.
+
+**This source checkout prepares 0.1.3.** It adds production-data continuity, input and connection readiness, required context bundles and immutable catalog editions. The published engine download is still **0.1.2**; the installation URLs below intentionally point to that existing archive. To use the new features before a 0.1.3 release is published, use the source setup below or build a local 0.1.3 tarball. See the [changes](CHANGELOG.md) and [documentation map](docs/README.md).
 
 **The 0.1 series is an early release for local use.** You need an AI application that supports stdio MCP to write with Linivera. Your AI application writes and, if its tools support it, generates images; Linivera manages the files and records. Studio offers Korean and English.
 
@@ -104,12 +106,27 @@ Linivera records what was checked and which version you accepted. If a relevant 
 | Keep track of details | Characters, relationships, promises and custom tracking rules, with references back to the work |
 | Manage material | Original resources, immutable revisions, derived results and metadata, with keyword and optional local text/image vector retrieval |
 | Manage illustrations | Image IDs, file hashes, versions, review status and usage locations; generation runs in your AI application |
+| Keep production files connected | Up to 2GiB per imported file, bounded bundles, exact generation requests, execution records and output-group review; collect partial results without starting the generation again |
+| Reuse data in later work | Per-scope revision selection, workflow/3D/subtitle/editing/project/delivery structure links, required context bundles and transitive review impact |
+| Check what a task needs | Representative capability specifications and retained-input comparisons; separate host connection, authentication, permission, plan and credit checks |
+| Assemble local motion | Selected poses/audio → shots → timeline → video, using optional local FFmpeg/ffprobe |
 | Inspect the work | Manuscript, Review and Publish views; changes, evidence, relationships and tracking timelines |
 | Share a reading copy | Web ZIP, EPUB and a read-only Studio snapshot; PDF through browser printing |
 
 Manuscripts are Markdown and settings are YAML. Activity and decisions are kept in an append-only ledger inside the work folder. Back up the whole folder to keep the work and its records together.
 
 Optional [vector retrieval (한국어)](docs/embeddings.md) requires a separate Python runtime and pinned Google multimodal model weights. They are not included in the installation. A model's interpretation and a recorded check can still be wrong; an accepted version is your decision, not a guarantee of factual accuracy.
+
+## Connect production data in 0.1.3
+
+1. Compare the task's required inputs with exact retained revisions. Discovery identifies candidates; you choose the inputs and approve the work.
+2. Check the actual host route, account and project separately. Installing a tool or seeing a balance does not establish permission or sufficient credits. Credentials stay in the host's secret store.
+3. Fix the request, specifications, checks and required context roles in one input bundle. Run through your host's supported tools, then retain the complete result files and review each output group.
+4. Reuse those revisions in workflow, editing, project and delivery records. Upstream changes flag later results for review while historical Input hashes remain readable.
+
+The representative catalog has **four capability and six access specifications**. The 37-partner research table does not mean 37 executable integrations. A supplied official Meshy MCP connection is checked against the supported implementation/version/schema subset; tool success, a download URL, local capture and durable retention remain separate states. Catalog changes add new IDs and preserve published editions.
+
+[Production data](docs/production-data.md), [context bundles](docs/context-bundles.md), [input readiness](docs/capability-readiness.md), [connection readiness](docs/connection-readiness.md) and [catalog history](docs/catalog-history.md) describe the contracts in Korean. The synthetic `node examples/chroma-continuity.js` flow connects P0–P4 and two later tasks in one workspace. It does not call a real provider, validate rights or restore an editor/game project. Local motion examples additionally require FFmpeg; [example instructions](examples/README.md) list the separate commands and requirements.
 
 ## Open a complete example
 
@@ -121,7 +138,7 @@ Each bundle contains a Linivera work copy, images where used, Web/EPUB editions 
 
 The translation keeps its Korean original and source-bound English variant. Its Web, EPUB and updated Studio open the English translation. In Studio, use **Reading edition** to switch between the original and translation; section text, review records and publication follow that choice. Settings and tracking remain tied to the original.
 
-The edition selector is included in the current source checkout and updated English Studio bundles. The original `folio-0.1.0.tgz` and earlier example ZIPs remain unchanged. The prepared `linivera-0.1.2.tgz` includes the built Studio and current MCP server.
+The edition selector is included in the source checkout and updated English Studio bundles. The original `folio-0.1.0.tgz` and earlier example ZIPs remain unchanged. The published `linivera-0.1.2.tgz` includes its built Studio and MCP server; it does not acquire 0.1.3 features when this repository changes.
 
 English examples use simulated approval and same-host review. The Korean research book remains a draft awaiting author approval. These examples show the workflow and its outputs, not an independent assessment of writing quality. Generated works are release downloads; the source and engine package contain only small synthetic fixtures.
 
@@ -134,7 +151,7 @@ MCP tool IDs still use `folio_*`, and the skill keeps its `folio` ID and `skill/
 ## Update an existing installation
 
 1. Stop Studio and disconnect the MCP server in your AI app. Back up the entire work folder; keep it separate from the installation.
-2. For an npx registration, replace the package URL with the v0.1.2 URL in Installation and reconnect. For a source checkout, run `git pull --ff-only` and `npm run setup`. For a release archive, install the downloaded archive in a new installation folder with `npm install --omit=dev --ignore-scripts /path/to/downloaded-package.tgz`.
+2. For an npx registration, use a published package URL and reconnect; the URL above currently installs 0.1.2. For the 0.1.3 source update, run `git pull --ff-only` and `npm run setup`. A locally built 0.1.3 archive can be installed in a new folder with `npm install --omit=dev --ignore-scripts /path/to/linivera-0.1.3.tgz`.
 3. Replace any separately copied `skill/folio/` folder with the version from that installation. Update the MCP script path if the installation moved.
 4. Reconnect the MCP server and start a fresh chat if the app caches its tools or instructions. Confirm that the server's reported name/version match the installed `package.json`, then read the work's status and reopen Studio.
 
@@ -148,6 +165,7 @@ Keep backups before working on important material. The [operations guide (한국
 
 ## Read more and contribute
 
+- **Documentation map:** [Choose a workflow](docs/README.md), including production data, P0–P4 structures and capability/account readiness — 한국어.
 - **Writing:** [First work](docs/writing-guide.md), [images](docs/assets.md), [sources and resources](docs/resources.md), [Studio](docs/studio.md), [exports](docs/export.md) — 한국어.
 - **Setup and recovery:** [Connect](docs/connect.md), [install](docs/production.md), [operations](docs/operations.md) — 한국어.
 - **Development:** [Contributing](CONTRIBUTING.md), [testing](docs/testing.md), [security](SECURITY.md) — 한국어. Run `npm run check` and the checks listed in the contribution guide. Use synthetic reproductions in issues; do not upload private works or credentials.

@@ -1,12 +1,14 @@
 # Linivera viewer
 
 The viewer is a local workspace for reading your manuscript and understanding
-its review records. Interface labels are English; manuscript text is preserved.
+its review records. Choose Korean or English interface labels in the header;
+manuscript text keeps its own language. The source version is 0.1.3.
 
-- **Read:** overview, manuscript, contents and story threads.
-- **Review:** review records and check groups.
-- **Library:** sources, evidence, figures, references and connections.
-- **Settings:** reading preferences and permitted writing-step settings.
+- **Manuscript:** overview, manuscript, contents and story threads.
+- **Review:** evidence desk, changes, review records and check groups.
+- **Publish:** reading-edition preview and Web ZIP/EPUB downloads.
+- **Library:** selected resources, sources, evidence, figures, references and connections.
+- **Settings:** permitted writing-step settings and examples.
 
 Search Contents by title or section ID. Filter finalized sections, unfinished
 sections or those needing attention. Matching sections retain their parent
@@ -17,7 +19,7 @@ control text size, spacing, width, typeface and appearance. These preferences ar
 stored in your browser; they do not modify the work. Focus mode hides navigation
 and the review panel. Use Exit focus mode or Escape to return.
 
-Show review opens the current section’s review alongside the manuscript on wide
+Section review opens the current section’s review alongside the manuscript on wide
 screens, or below it on small screens. Show in text highlights a finding’s quoted
 passage and moves keyboard focus to it. Repeated quotes use the first match.
 Evidence that cannot be located in the current reading view does not offer this
@@ -33,8 +35,21 @@ Open full review record for finalization steps, later reviews, accepted findings
 referenced versions and content fingerprints. Approvals and finalization remain
 available through your AI assistant rather than through new viewer write actions.
 
-Export review view creates a read-only workspace copy for review, rather than a
-finished manuscript edition. From the Linivera repository, run
+When a work declares translations, revisions or summaries, **Reading edition**
+selects the text, section receipts, publication preview and Web/EPUB download
+together. Outline, settings, tracking and work-wide summaries describe the original.
+UI language and manuscript/export language are independent. Missing edition text
+is never filled with the original automatically.
+
+**Resources** shows selected sources and approved results with their exact revisions,
+evidence, self-review and later review needs. Ask the host to refresh metadata if
+the list is not indexed or is stale. A resource-only workspace uses Library and
+Examples. File capture, readiness comparisons and approvals use the MCP host;
+reading the viewer creates no approval. Production binary files are not embedded
+in a static review copy. See the [documentation map](../docs/README.md).
+
+Export review view creates a read-only workspace copy with the included reading
+editions and review records. From the Linivera repository, run
 `npm run preview -- "/path/to/work/exports/viewer"` and open the printed address.
 The export includes reading preferences controls but does not
 offer writing-step mutations, viewer shutdown or another export.

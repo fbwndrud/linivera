@@ -1,6 +1,6 @@
 {
   "name": "linivera",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "private": true,
   "type": "module",
   "description": "Local MCP tools for keeping sources, revisions, AI results and review history connected.",
@@ -36,6 +36,7 @@
     "examples/",
     "scripts/",
     "docs/*.md",
+    "CHANGELOG.md",
     "CONTRIBUTING.md",
     "SECURITY.md",
     "NOTICE",

@@ -68,7 +68,7 @@ SRT/VTT/XML/AAF, 모델·텍스처·rig/clip, 소스·build 등도 파일로 보
 
 완료 후 같은 파일을 다시 관측하면 complete를 유지한다. 새 파일 때문에 출력 개수가 달라지면 현재 실행은 partial이 되며 complete 재보고도 거절한다. 이미 봉인한 후보의 과거 execution prefix와 영수증은 그대로 검증한다.
 
-고정 후보는 `outputSpec.groups`에 미리 선언한다. 동적 복합 실행은 `groupRules`의 native key 필드·최대 그룹·종류와 `slotsSchema`를 고정하고, `group-discovered` 이벤트로만 새 그룹을 발견한다. 현재 두 공급자 Adapter는 고정 후보를 사용한다.
+고정 후보는 `outputSpec.groups`에 미리 선언한다. 동적 복합 실행은 `groupRules`의 native key 필드·최대 그룹·종류와 `slotsSchema`를 고정하고, `group-discovered` 이벤트로만 새 그룹을 발견한다. 현재 fal·ElevenLabs·Meshy 공급자 Adapter는 고정 후보를 사용한다.
 
 완전한 후보만 `submitGroup`으로 제출한다. 제출은 입력 snapshot·실행 ID·실행 prefix·request digest·후보 ID·파일·manifest를 함께 고정한다. `reviewGroup`은 manifest를 포함한 모든 출력 hash를 검토하고 `decideGroup`은 해당 영수증과 현재 checkpoint에 결속한다. 한 후보의 hard 지적은 그 후보의 승인을 차단한다. 다른 후보에 대한 별도 검토와 부분 결과 보존은 가능하다.
 
@@ -82,6 +82,7 @@ SRT/VTT/XML/AAF, 모델·텍스처·rig/clip, 소스·build 등도 파일로 보
 |---|---|---|
 | `adapters/production/fal.js` | `fal-ai/flux/schnell` 이미지 queue | `submit(endpoint,{input})`, `status(endpoint,{requestId,logs})`, `result(endpoint,{requestId})`, `download(url)` |
 | `adapters/production/elevenlabs.js` | `/v1/text-to-speech/{voice_id}/with-timestamps` | `convertWithTimestamps(voiceId,body,query)` |
+| `adapters/production/meshy.js` | `/openapi/v2/text-to-3d` preview, refine은 별도 작업 | `submit(endpoint,input)`, `get(endpoint,jobId)`, `download(url)` |
 | `adapters/production/manual-capture.js` | 로컬 사용자 파일 | transport 없음, 명시적 capture ID와 파일 bytes |
 | `adapters/production/versioned-export.js` | 임의 파트너의 확보한 파일·역할·bundle | 호스트/브로커가 bytes 또는 절대 로컬 path를 명시. 공급자 전용 파서 불필요 |
 
@@ -108,6 +109,11 @@ manual capture는 보존 시점의 파일을 관측할 뿐이다. 원래 생성 
 코드·씬·sprite atlas·DB/환경/배포 증거를 다음 작업에 연결하는 방법을 설명한다.
 [응답·브리프·권리·배포 성과](delivery-data.md)는 공급자 출력과 적용 조건·배포판·지표를
 정확한 원본/증거 판본에 연결하는 P4 계약이다.
+
+공식 Meshy MCP 재사용은 위 transport 경로와 별도로 호스트가 제공한 구현·판본·도구 schema의
+지원 교집합을 확인한다. 부분 다운로드는 같은 작업에서 회수하며 전체 필수 파일을 확보해야
+보관 완료로 센다. 절차와 지원 제한은 [연결 준비](connection-readiness.md), 입력 대조와
+필수 맥락은 [기능 준비](capability-readiness.md)·[맥락 묶음](context-bundles.md)을 따른다.
 
 ## 이번 범위
 

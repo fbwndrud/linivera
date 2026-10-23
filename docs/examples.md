@@ -16,7 +16,7 @@ Studio의 **설정 → 예시 모음**, 작품 개요의 **예시로 시작하�
 node examples/run.js all --language ko --out ./my-new-examples
 ```
 
-기존 [합성 예시 안내](../examples/README.md)에 개별 실행과 자동 검증을 설명했다.
+기존 [합성 예시 안내](../examples/README.md)에 개별 실행과 로컬 검증을 설명했다. 0.1.3의 제작 데이터·P0~P4·필수 맥락 묶음 예제도 여기서 찾을 수 있다. 전체 사용 경로는 [문서 안내](README.md)를 따른다.
 
 ## 전체 작품 예시
 
