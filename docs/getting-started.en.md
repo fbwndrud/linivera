@@ -2,7 +2,7 @@
 
 The prepared engine package is **0.1.3** and includes the MCP server and built Studio.
 The download commands below use that release. Existing installations need the new package
-URL and a server reconnect. For development, see the [source setup](../README.md#installation).
+URL and a server reconnect. For development, see the [source setup (Korean)](production.md#소스에서-준비하기).
 See the [documentation map](README.md) and [changelog](../CHANGELOG.md).
 
 ## Connect your AI application
